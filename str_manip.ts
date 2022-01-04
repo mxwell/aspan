@@ -4,7 +4,7 @@ function getLastItem(s: string): string {
     return s[s.length - 1];
 }
 
-function check_char_presence(c: string, target: string): boolean {
+function checkCharPresence(c: string, target: string): boolean {
     for (let i = 0; i < target.length; i++) {
         if (target[i] == c) {
             return true;

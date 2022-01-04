@@ -1,5 +1,7 @@
 let VOWELS = "аәеиоөуүұыіэюя";
 let SOFT_VOWELS = "әеөүі";
+let CONS_GROUP1 = "руйл";
+let CONS_GROUP2 = "жзмнң";
 
 let PRESENT_TRANSITIVE_EXCEPT_VERBS1 = ["оқу", "аршу", "тану", "ренжу", "есту"];
 let PRESENT_TRANSITIVE_EXCEPT_VERBS2 = ["қою", "құю"];
@@ -22,3 +24,7 @@ const PRESENT_TRANSITIVE_AFFIXES: Record<Face, Record<Plurality, String[]>> = {
         Plural: ["ды", "ді"]
     }
 }
+
+const MAME = ["ма", "ме"];
+const BABE = ["ба", "бе"];
+const PAPE = ["па", "пе"];

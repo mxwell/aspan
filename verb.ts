@@ -39,6 +39,21 @@ class VerbBuilder {
             let affix = this.present_transitive_suffix();
             let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
             return `${this.verb_base}${affix}${pers_affix}`;
+        } else if (sentence_type == "Negative") {
+            let particle = getQuestionParticle(this.base_last, this.soft_offset);
+            let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
+            return `${this.verb_base}${particle}й${pers_affix}`
+        } else if (sentence_type == "Question") {
+            let verb: string;
+            let affix = this.present_transitive_suffix();
+            if (face == "Third") {
+                verb = `${this.verb_base}${affix}`;
+            } else {
+                let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
+                verb = `${this.verb_base}${affix}${pers_affix}`;
+            }
+            let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
+            return `${verb} ${particle}?`;
         }
         return "unsupported";
     }

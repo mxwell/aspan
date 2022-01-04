@@ -10,6 +10,20 @@ function test001() {
                 "Statement"
             )
         );
+        console.log(
+            "negative form: " + verbBuilder.present_transitive_form(
+                "Second",
+                "Plural",
+                "Negative"
+            )
+        );
+        console.log(
+            "question form: " + verbBuilder.present_transitive_form(
+                "First",
+                "Singular",
+                "Question"
+            )
+        );
     }
 }
 

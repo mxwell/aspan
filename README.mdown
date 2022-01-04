@@ -3,6 +3,6 @@
 1. Launch docker container: `make builder`
 2. Compile Typescript to Javascript:
 
-  `tsc types.ts str_manip.ts rules.ts phonetics.ts verb.ts test.ts -outFile BUILD/output.js`
+  `tsc types.ts str_manip.ts rules.ts phonetics.ts question.ts verb.ts test.ts -outFile BUILD/output.js`
 
 3. Run Javascript: `node BUILD/output.js`

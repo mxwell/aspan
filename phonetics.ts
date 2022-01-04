@@ -1,9 +1,9 @@
 function vowel(c: string): boolean {
-    return check_char_presence(c, VOWELS);
+    return checkCharPresence(c, VOWELS);
 }
 
 function is_soft_vowel(c: string): boolean {
-    return check_char_presence(c, SOFT_VOWELS);
+    return checkCharPresence(c, SOFT_VOWELS);
 }
 
 function word_is_soft(w: string): boolean {
