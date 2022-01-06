@@ -9,6 +9,8 @@
 
   - for use as library
 
-  `tsc types.ts str_manip.ts rules.ts phonetics.ts question.ts verb.ts -outFile BUILD/aspan.js`
+  ```
+  ./build_aspan.sh
+  ```
 
-3. Run Javascript: `node BUILD/test.js`
+3. Run Javascript for testing: `node BUILD/test.js`

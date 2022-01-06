@@ -16,5 +16,5 @@ enum SentenceType {
     Question = "Question",
 }
 
-const GrammarPersons: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
-const GrammarNumbers: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];
+const GRAMMAR_PERSONS: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
+const GRAMMAR_NUMBERS: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];
