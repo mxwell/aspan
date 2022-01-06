@@ -4,24 +4,24 @@ function test001() {
         let verbBuilder = new VerbBuilder(verb);
         console.log("base: " + verbBuilder.verb_base);
         console.log(
-            "form: " + verbBuilder.present_transitive_form(
-                "First",
-                "Singular",
-                "Statement"
+            "form: " + verbBuilder.presentTransitiveForm(
+                GrammarPerson.First,
+                GrammarNumber.Singular,
+                SentenceType.Statement
             )
         );
         console.log(
-            "negative form: " + verbBuilder.present_transitive_form(
-                "Second",
-                "Plural",
-                "Negative"
+            "negative form: " + verbBuilder.presentTransitiveForm(
+                GrammarPerson.Second,
+                GrammarNumber.Plural,
+                SentenceType.Negative
             )
         );
         console.log(
-            "question form: " + verbBuilder.present_transitive_form(
-                "First",
-                "Singular",
-                "Question"
+            "question form: " + verbBuilder.presentTransitiveForm(
+                GrammarPerson.First,
+                GrammarNumber.Singular,
+                SentenceType.Question
             )
         );
     }

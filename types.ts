@@ -1,5 +1,20 @@
-type Face = "First" | "Second" | "SecondPolite" | "Third";
+enum GrammarPerson {
+    First = "First",
+    Second = "Second",
+    SecondPolite = "SecondPolite",
+    Third = "Third",
+}
 
-type Plurality = "Singular" | "Plural";
+enum GrammarNumber {
+    Singular = "Singular",
+    Plural = "Plural",
+}
 
-type SentenceType = "Statement" | "Negative" | "Question";
+enum SentenceType {
+    Statement = "Statement",
+    Negative = "Negative",
+    Question = "Question",
+}
+
+const GrammarPersons: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
+const GrammarNumbers: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];

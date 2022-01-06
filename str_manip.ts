@@ -13,7 +13,7 @@ function checkCharPresence(c: string, target: string): boolean {
     return false;
 }
 
-function check_string_in_list(s: string, targets: string[]): boolean {
+function checkStringInList(s: string, targets: string[]): boolean {
     for (let i = 0; i < targets.length; i++) {
         if (targets[i] == s) {
             return true;

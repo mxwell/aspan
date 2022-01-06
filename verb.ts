@@ -12,17 +12,17 @@ class VerbBuilder {
         this.verb_dict_form = verb_dict_form;
         this.verb_base = verb_dict_form.slice(0, verb_dict_form.length - 1);
         this.base_last = getLastItem(this.verb_base);
-        this.soft = word_is_soft(this.verb_base);
+        this.soft = wordIsSoft(this.verb_base);
         this.soft_offset = this.soft ? 1 : 0;
     }
-    present_transitive_suffix(): string {
-        if (check_string_in_list(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS1)) {
+    presentTransitiveSuffix(): string {
+        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS1)) {
             return "и";
         }
-        if (check_string_in_list(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
+        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
             return "я";
         }
-        if (check_string_in_list(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS3)) {
+        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS3)) {
             return "йе";
         }
         if (vowel(this.base_last)) {
@@ -33,10 +33,9 @@ class VerbBuilder {
         }
         return "а";
     }
-
-    present_transitive_form(face: Face, plurality: Plurality, sentence_type: SentenceType): string {
+    presentTransitiveForm(face: GrammarPerson, plurality: GrammarNumber, sentence_type: SentenceType): string {
         if (sentence_type == "Statement") {
-            let affix = this.present_transitive_suffix();
+            let affix = this.presentTransitiveSuffix();
             let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
             return `${this.verb_base}${affix}${pers_affix}`;
         } else if (sentence_type == "Negative") {
@@ -45,7 +44,7 @@ class VerbBuilder {
             return `${this.verb_base}${particle}й${pers_affix}`
         } else if (sentence_type == "Question") {
             let verb: string;
-            let affix = this.present_transitive_suffix();
+            let affix = this.presentTransitiveSuffix();
             if (face == "Third") {
                 verb = `${this.verb_base}${affix}`;
             } else {
