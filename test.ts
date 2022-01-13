@@ -1,5 +1,5 @@
 function test001() {
-    let verbs = ["алу", "беру"];
+    let verbs = ["алу", "беру", "құю", "сүю", "кию"];
     for (const verb of verbs) {
         let verbBuilder = new VerbBuilder(verb);
         console.log("base: " + verbBuilder.verb_base);

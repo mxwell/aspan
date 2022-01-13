@@ -1,3 +1,11 @@
+function validateVerb(verb_dict_form: string): boolean {
+    if (verb_dict_form.length < 2) {
+        return false;
+    }
+    let last = getLastItem(verb_dict_form);
+    return last == "у" || last == "ю";
+}
+
 class VerbBuilder {
     verb_dict_form: string
     verb_base: string
@@ -5,9 +13,8 @@ class VerbBuilder {
     soft: boolean
     soft_offset: number
     constructor(verb_dict_form: string) {
-        let last = getLastItem(verb_dict_form);
-        if (!(last == "у" || last == "ю")) {
-            throw new Error("verb must end with either 'у' or 'ю'");
+        if (!validateVerb(verb_dict_form)) {
+            throw new Error("verb dictionary form must end with -у/-ю");
         }
         this.verb_dict_form = verb_dict_form;
         this.verb_base = verb_dict_form.slice(0, verb_dict_form.length - 1);
@@ -24,6 +31,9 @@ class VerbBuilder {
         }
         if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS3)) {
             return "йе";
+        }
+        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS4)) {
+            return "е";
         }
         if (vowel(this.base_last)) {
             return "й";

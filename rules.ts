@@ -4,8 +4,9 @@ const CONS_GROUP1 = "руйл";
 const CONS_GROUP2 = "жзмнң";
 
 const PRESENT_TRANSITIVE_EXCEPT_VERBS1 = ["оқу", "аршу", "тану", "ренжу", "есту"];
-const PRESENT_TRANSITIVE_EXCEPT_VERBS2 = ["қою", "құю"];
+const PRESENT_TRANSITIVE_EXCEPT_VERBS2 = ["қою", "құю", "қию"];
 const PRESENT_TRANSITIVE_EXCEPT_VERBS3 = ["сүю"];
+const PRESENT_TRANSITIVE_EXCEPT_VERBS4 = ["кию"];
 const PRESENT_TRANSITIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
     First: {
         Singular: ["мын", "мін"],
