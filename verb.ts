@@ -2,6 +2,12 @@ function validateVerb(verb_dict_form: string): boolean {
     if (verb_dict_form.length < 2) {
         return false;
     }
+    if (verb_dict_form.length > 100) {
+        return false;
+    }
+    if (verb_dict_form.toLowerCase() != verb_dict_form) {
+        return false;
+    }
     let last = getLastItem(verb_dict_form);
     return last == "у" || last == "ю";
 }
