@@ -15,3 +15,10 @@ function wordIsSoft(w: string): boolean {
     }
     return false;
 }
+
+function fixBigrams(w: string): string {
+    return (w
+        .replace("бп", "пп")
+        .replace("гп", "кп")
+    );
+}
