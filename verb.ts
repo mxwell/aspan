@@ -24,23 +24,22 @@ class VerbBuilder {
         }
         this.verb_dict_form = verb_dict_form;
         this.verb_base = verb_dict_form.slice(0, verb_dict_form.length - 1);
-        this.base_last = getLastItem(this.verb_base);
-        this.soft = wordIsSoft(this.verb_base);
+        this.soft = (
+            wordIsSoft(this.verb_base)
+            || FORCED_SOFT_VERBS.has(verb_dict_form)
+        );
         this.soft_offset = this.soft ? 1 : 0;
+
+        /* exceptions */
+        if (VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET.has(verb_dict_form)) {
+            this.verb_base = this.verb_base + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
+        } else if (checkStringInList(verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
+            this.verb_base = this.verb_base + "й";
+        }
+
+        this.base_last = getLastItem(this.verb_base);
     }
     presentTransitiveSuffix(): string {
-        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS1)) {
-            return "и";
-        }
-        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
-            return "я";
-        }
-        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS3)) {
-            return "йе";
-        }
-        if (checkStringInList(this.verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS4)) {
-            return "е";
-        }
         if (vowel(this.base_last)) {
             return "й";
         }
@@ -53,7 +52,7 @@ class VerbBuilder {
         if (sentence_type == "Statement") {
             let affix = this.presentTransitiveSuffix();
             let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
-            return `${this.verb_base}${affix}${pers_affix}`;
+            return fixShortIBigrams(`${this.verb_base}${affix}${pers_affix}`);
         } else if (sentence_type == "Negative") {
             let particle = getQuestionParticle(this.base_last, this.soft_offset);
             let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
@@ -68,7 +67,7 @@ class VerbBuilder {
                 verb = `${this.verb_base}${affix}${pers_affix}`;
             }
             let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
-            return `${verb} ${particle}?`;
+            return fixShortIBigrams(`${verb} ${particle}?`);
         }
         return "unsupported";
     }

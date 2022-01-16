@@ -1,16 +1,14 @@
 ## How to run
 
 1. Launch docker container: `make builder`
-2. Compile Typescript to Javascript:
+2. Compile Typescript to Javascript library:
 
-  - for testing
-
-  `tsc types.ts str_manip.ts rules.ts phonetics.ts question.ts verb.ts test.ts -outFile BUILD/test.js`
-
-  - for use as library
-
-  ```
+  ```bash
   ./build_aspan.sh
   ```
 
-3. Run Javascript for testing: `node BUILD/test.js`
+  or compile as Javascript and test:
+
+  ```bash
+  ./test.sh
+  ```
