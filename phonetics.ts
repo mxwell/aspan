@@ -2,6 +2,10 @@ function vowel(c: string): boolean {
     return checkCharPresence(c, VOWELS);
 }
 
+function genuineVowel(c: string): boolean {
+    return checkCharPresence(c, VOWELS_EXCEPT_U);
+}
+
 function isSoftVowel(c: string): boolean {
     return checkCharPresence(c, SOFT_VOWELS);
 }

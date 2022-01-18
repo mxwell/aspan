@@ -1,4 +1,5 @@
 const VOWELS = "аәеиоөуүұыіэюя";
+const VOWELS_EXCEPT_U = "аәеиоөүұыіэюя";
 const SOFT_VOWELS = "әеөүі";
 const HARD_VOWELS = "аоұы";
 const CONS_GROUP1 = "руйл";
@@ -86,7 +87,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "аунақшу",
     "ауытқу",
     "аярсу",
-    "ашу",
     "аяқсу",
     "әзілдегенсу",
     "әкімсу",
@@ -150,7 +150,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "еркесу",
     "еркінсу",
     "ерсу",
-    "еру",
     "есту",
     "есіркегенсу",
     "жағымсу",
@@ -163,7 +162,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "жалқу",
     "жану",
     "жаншу",
-    "жару",
     "жасу",
     "жаталақшу",
     "жеку",
@@ -176,7 +174,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "жосу",
     "жөңку",
     "жуасу",
-    "жуу",
     "жұлқу",
     "жүйтку",
     "жүнжу",
@@ -221,7 +218,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "кінәзсу",
     "кісімсу",
     "қабаржу",
-    "қабу",
     "қағып-сілку",
     "қағылжу",
     "қажу",
@@ -252,7 +248,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "құйқылжу",
     "құлазу",
     "құрғақсу",
-    "құру",
     "қылғу",
     "қылпу",
     "қылымсу",
@@ -315,7 +310,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "пақырсу",
     "палуансу",
     "паңсу",
-    "пысу",
     "пысықсу",
     "ренжу",
     "салақсу",
@@ -331,7 +325,6 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "сарқу",
     "сарсу",
     "сару",
-    "сасу",
     "саябырсу",
     "саяқсу",
     "сәнсу",
@@ -362,11 +355,9 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "талықсу",
     "тамылжу",
     "танту",
-    "тану",
     "тарпу",
     "тартқансу",
     "тасу",
-    "тату",
     "тәкаппарсу",
     "тәлімсу",
     "тәңірсу",
@@ -431,10 +422,23 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
     "ыңырсу",
     "ырғу",
     "ыршу",
-    "ысу",
     "ытқу",
     "ілбу",
     "іру",
+]);
+
+const VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET = new Set([
+    "ашу",
+    "еру",
+    "жару",
+    "жуу",
+    "қабу",
+    "құру",
+    "пысу",
+    "сасу",
+    "тану",
+    "тату",
+    "ысу",
 ]);
 
 const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX = ["ы", "і"];

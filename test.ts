@@ -135,6 +135,7 @@ ALL_TESTS.push(["trickyCasesTest", function() {
     T_EQ_ASSERT("ки ме?", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Question), "Tricky question form: ");
     T_EQ_ASSERT("оқимын", new VerbBuilder("оқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("сүйемін", new VerbBuilder("сүю").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
+    T_EQ_ASSERT("ажуады", new VerbBuilder("ажуу").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement), "Tricky form of an imaginary verb: ");
 }]);
 
 ALL_TESTS.push(["verbExceptionsTest", function() {
@@ -160,7 +161,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["аунақшу", "аунақшиды"],
         ["ауытқу", "ауытқиды"],
         ["аярсу", "аярсиды"],
-        ["ашу", "ашиды"],
         ["аяқсу", "аяқсиды"],
         ["әзілдегенсу", "әзілдегенсиді"],
         ["әкімсу", "әкімсиді"],
@@ -224,7 +224,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["еркесу", "еркесиді"],
         ["еркінсу", "еркінсиді"],
         ["ерсу", "ерсиді"],
-        ["еру", "ериді"],
         ["есту", "естиді"],
         ["есіркегенсу", "есіркегенсиді"],
         ["жағымсу", "жағымсиды"],
@@ -237,7 +236,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["жалқу", "жалқиды"],
         ["жану", "жаниды"],
         ["жаншу", "жаншиды"],
-        ["жару", "жариды"],
         ["жасу", "жасиды"],
         ["жаталақшу", "жаталақшиды"],
         ["жеку", "жекиді"],
@@ -250,7 +248,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["жосу", "жосиды"],
         ["жөңку", "жөңкиді"],
         ["жуасу", "жуасиды"],
-        ["жуу", "жуиды"],
         ["жұлқу", "жұлқиды"],
         ["жүйтку", "жүйткиді"],
         ["жүнжу", "жүнжиді"],
@@ -295,7 +292,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["кінәзсу", "кінәзсиді"],
         ["кісімсу", "кісімсиді"],
         ["қабаржу", "қабаржиды"],
-        ["қабу", "қабиды"],
         ["қағып-сілку", "қағып-сілкиді"],
         ["қағылжу", "қағылжиды"],
         ["қажу", "қажиды"],
@@ -326,7 +322,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["құйқылжу", "құйқылжиды"],
         ["құлазу", "құлазиды"],
         ["құрғақсу", "құрғақсиды"],
-        ["құру", "құриды"],
         ["қылғу", "қылғиды"],
         ["қылпу", "қылпиды"],
         ["қылымсу", "қылымсиды"],
@@ -389,7 +384,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["пақырсу", "пақырсиды"],
         ["палуансу", "палуансиды"],
         ["паңсу", "паңсиды"],
-        ["пысу", "пысиды"],
         ["пысықсу", "пысықсиды"],
         ["ренжу", "ренжиді"],
         ["салақсу", "салақсиды"],
@@ -405,7 +399,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["сарқу", "сарқиды"],
         ["сарсу", "сарсиды"],
         ["сару", "сариды"],
-        ["сасу", "сасиды"],
         ["саябырсу", "саябырсиды"],
         ["саяқсу", "саяқсиды"],
         ["сәнсу", "сәнсиді"],
@@ -436,11 +429,9 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["талықсу", "талықсиды"],
         ["тамылжу", "тамылжиды"],
         ["танту", "тантиды"],
-        ["тану", "таниды"],
         ["тарпу", "тарпиды"],
         ["тартқансу", "тартқансиды"],
         ["тасу", "тасиды"],
-        ["тату", "татиды"],
         ["тәкаппарсу", "тәкаппарсиды"],
         ["тәлімсу", "тәлімсиді"],
         ["тәңірсу", "тәңірсиді"],
@@ -505,7 +496,6 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         ["ыңырсу", "ыңырсиды"],
         ["ырғу", "ырғиды"],
         ["ыршу", "ыршиды"],
-        ["ысу", "ысиды"],
         ["ытқу", "ытқиды"],
         ["ілбу", "ілбиді"],
         ["іру", "іриді"],
@@ -514,6 +504,30 @@ ALL_TESTS.push(["verbExceptionsTest", function() {
         const verbBuilder = new VerbBuilder(verbDictForm);
         const form = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
         T_EQ_ASSERT(thirdPerson, form, "Exception verb 3rd person form: ");
+    }
+}]);
+
+ALL_TESTS.push(["verbOptionalExceptionsTest", function() {
+    let dictFormToThirdPerson = [
+        ["ашу", "ашады", "ашиды"],
+        ["еру", "ереді", "ериді"],
+        ["жару", "жарады", "жариды"],
+        ["жуу", "жуады", "жуиды"],
+        ["қабу", "қабады", "қабиды"],
+        ["құру", "құрады", "құриды"],
+        ["пысу", "пысады", "пысиды"],
+        ["сасу", "сасады", "сасиды"],
+        ["тану", "танады", "таниды"],
+        ["тату", "татады", "татиды"],
+        ["ысу", "ысады", "ысиды"],
+    ];
+    for (const [verbDictForm, thirdPersonRegular, thirdPersonException] of dictFormToThirdPerson) {
+        const verbBuilderRegular = new VerbBuilder(verbDictForm);
+        const formRegular = verbBuilderRegular.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
+        T_EQ_ASSERT(thirdPersonRegular, formRegular, "Optional exception verb, 3rd person regular form: ");
+        const verbBuilderException = new VerbBuilder(verbDictForm, true);
+        const formException = verbBuilderException.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
+        T_EQ_ASSERT(thirdPersonException, formException, "Optional exception verb, 3rd person exception form: ");
     }
 }]);
 

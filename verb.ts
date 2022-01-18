@@ -12,13 +12,21 @@ function validateVerb(verb_dict_form: string): boolean {
     return last == "у" || last == "ю";
 }
 
+function isVerbException(verb_dict_form: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET.has(verb_dict_form);
+}
+
+function isVerbOptionalException(verb_dict_form): boolean {
+    return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verb_dict_form);
+}
+
 class VerbBuilder {
     verb_dict_form: string
     verb_base: string
     base_last: string
     soft: boolean
     soft_offset: number
-    constructor(verb_dict_form: string) {
+    constructor(verb_dict_form: string, force_exceptional = false) {
         if (!validateVerb(verb_dict_form)) {
             throw new Error("verb dictionary form must end with -у/-ю");
         }
@@ -31,7 +39,7 @@ class VerbBuilder {
         this.soft_offset = this.soft ? 1 : 0;
 
         /* exceptions */
-        if (VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET.has(verb_dict_form)) {
+        if (isVerbException(verb_dict_form) || (isVerbOptionalException(verb_dict_form) && force_exceptional)) {
             this.verb_base = this.verb_base + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
         } else if (checkStringInList(verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
             this.verb_base = this.verb_base + "й";
@@ -40,7 +48,7 @@ class VerbBuilder {
         this.base_last = getLastItem(this.verb_base);
     }
     presentTransitiveSuffix(): string {
-        if (vowel(this.base_last)) {
+        if (genuineVowel(this.base_last)) {
             return "й";
         }
         if (this.soft) {
