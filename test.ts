@@ -136,6 +136,29 @@ ALL_TESTS.push(["trickyCasesTest", function() {
     T_EQ_ASSERT("оқимын", new VerbBuilder("оқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("сүйемін", new VerbBuilder("сүю").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("ажуады", new VerbBuilder("ажуу").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement), "Tricky form of an imaginary verb: ");
+
+    // negative tricky
+    T_EQ_ASSERT("қоймаймын", new VerbBuilder("қою").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative), "Tricky negative form: ");
+    T_EQ_ASSERT("естімеймін", new VerbBuilder("есту").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative), "Tricky negative form: ");
+    T_EQ_ASSERT("дамымайсыз", new VerbBuilder("даму").presentTransitiveForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Negative), "Tricky negative form: ");
+}]);
+
+ALL_TESTS.push(["consonantChangeInNegativeFormsTest", function() {
+    let dictFormToThirdPerson = [
+        ["кешігу", "кешігеді", "кешікпейді"],
+        ["тігу", "тігеді", "тікпейді"],
+        ["шығу", "шығады", "шықпайды"],
+        ["қызығу", "қызығады", "қызықпайды"],
+        ["тебу", "тебеді", "теппейді"],
+        ["жабу", "жабады", "жаппайды"],
+    ];
+    for (const [verbDictForm, statement, negative] of dictFormToThirdPerson) {
+        let verbBuilder = new VerbBuilder(verbDictForm);
+        let formStatement = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
+        T_EQ_ASSERT(statement, formStatement, "3rd person form of verb ending with -гу/-ғу/-бу: ");
+        let formNegative = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative);
+        T_EQ_ASSERT(negative, formNegative, "3rd person negative form of verb ending with -гу/-ғу/-бу: ");
+    }
 }]);
 
 ALL_TESTS.push(["verbExceptionsTest", function() {

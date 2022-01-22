@@ -27,11 +27,11 @@ function wordIsSoft(w: string): boolean {
     return false;
 }
 
-// TODO better name and more cases
-function fixBigrams(w: string): string {
+function fixBgBigrams(w: string): string {
     return (w
         .replace("бп", "пп")
         .replace("гп", "кп")
+        .replace("ғп", "қп")
     );
 }
 

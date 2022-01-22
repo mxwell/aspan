@@ -84,7 +84,7 @@ class VerbBuilder {
         } else if (sentence_type == "Negative") {
             let particle = getQuestionParticle(this.base_last, this.soft_offset);
             let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
-            return fixBigrams(`${this.verb_base}${particle}й${pers_affix}`);
+            return fixBgBigrams(`${this.verb_base}${particle}й${pers_affix}`);
         } else if (sentence_type == "Question") {
             let verb: string;
             let affix = this.presentTransitiveSuffix();
