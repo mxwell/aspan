@@ -3,7 +3,7 @@ function vowel(c: string): boolean {
 }
 
 function genuineVowel(c: string): boolean {
-    return checkCharPresence(c, VOWELS_EXCEPT_U);
+    return checkCharPresence(c, VOWELS_EXCEPT_U_I);
 }
 
 function isSoftVowel(c: string): boolean {

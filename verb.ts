@@ -13,16 +13,21 @@ function validateVerb(verb_dict_form: string): boolean {
 }
 
 function isVerbException(verb_dict_form: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET.has(verb_dict_form);
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verb_dict_form);
 }
 
 function isVerbOptionalException(verb_dict_form): boolean {
     return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verb_dict_form);
 }
 
+function isVerbException2(verb_dict_form: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verb_dict_form);
+}
+
 class VerbBuilder {
     verb_dict_form: string
     verb_base: string
+    needs_ya_suffix: boolean
     base_last: string
     soft: boolean
     soft_offset: number
@@ -32,6 +37,7 @@ class VerbBuilder {
         }
         this.verb_dict_form = verb_dict_form;
         this.verb_base = verb_dict_form.slice(0, verb_dict_form.length - 1);
+        this.needs_ya_suffix = false;
         this.soft = (
             wordIsSoft(this.verb_base)
             || FORCED_SOFT_VERBS.has(verb_dict_form)
@@ -41,13 +47,27 @@ class VerbBuilder {
         /* exceptions */
         if (isVerbException(verb_dict_form) || (isVerbOptionalException(verb_dict_form) && force_exceptional)) {
             this.verb_base = this.verb_base + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
-        } else if (checkStringInList(verb_dict_form, PRESENT_TRANSITIVE_EXCEPT_VERBS2)) {
-            this.verb_base = this.verb_base + "й";
+        } else if (isVerbException2(verb_dict_form)) {
+            this.verb_base = this.verb_base + "й" + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
+        } else if (verb_dict_form.endsWith("ю")) {
+            if (verb_dict_form.endsWith("ию")) {
+                if (!this.soft) {
+                    this.needs_ya_suffix = true;
+                } else {
+                    // nothing special here
+                }
+            } else {
+                this.verb_base = this.verb_base + "й";
+            }
         }
 
         this.base_last = getLastItem(this.verb_base);
     }
+    /* used only for Statement/Question sentence types */
     presentTransitiveSuffix(): string {
+        if (this.needs_ya_suffix) {
+            return "я";
+        }
         if (genuineVowel(this.base_last)) {
             return "й";
         }

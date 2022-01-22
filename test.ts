@@ -131,8 +131,8 @@ ALL_TESTS.push(["trickyCasesTest", function() {
     T_EQ_ASSERT("ішпейміз", new VerbBuilder("ішу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative), "Tricky negative form: ");
     T_EQ_ASSERT("қиямын", new VerbBuilder("қию").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("киемін", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
-    T_EQ_ASSERT("кимеміз", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative), "Tricky negative form: ");
-    T_EQ_ASSERT("ки ме?", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Question), "Tricky question form: ");
+    T_EQ_ASSERT("кимеймін", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative), "Tricky negative form: ");
+    T_EQ_ASSERT("кие ме?", new VerbBuilder("кию").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Question), "Tricky question form: ");
     T_EQ_ASSERT("оқимын", new VerbBuilder("оқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("сүйемін", new VerbBuilder("сүю").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement), "Tricky form: ");
     T_EQ_ASSERT("ажуады", new VerbBuilder("ажуу").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement), "Tricky form of an imaginary verb: ");
@@ -528,6 +528,58 @@ ALL_TESTS.push(["verbOptionalExceptionsTest", function() {
         const verbBuilderException = new VerbBuilder(verbDictForm, true);
         const formException = verbBuilderException.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
         T_EQ_ASSERT(thirdPersonException, formException, "Optional exception verb, 3rd person exception form: ");
+    }
+}]);
+
+ALL_TESTS.push(["verbExceptionsWithEndingYu", function() {
+    let dictFormToThirdPerson = [
+        // hard sound cases
+        ["азаю", "азай", "азаяды"],
+        ["жаю", "жай", "жаяды"],
+        ["зораю", "зорай", "зораяды"],
+        ["қартаю", "қартай", "қартаяды"],
+        ["құю", "құй", "құяды"],
+        ["қыжыраю", "қыжырай", "қыжыраяды"],
+        ["масаю", "масай", "масаяды"],
+        ["тою", "той", "тояды"],
+        // soft sound cases
+        ["бәсею", "бәсей", "бәсейеді"],
+        ["еңкею", "еңкей", "еңкейеді"],
+        ["ересею", "ересей", "ересейеді"],
+        ["көбею", "көбей", "көбейеді"],
+        ["көркею", "көркей", "көркейеді"],
+        ["күю", "күй", "күйеді"],
+        ["серею", "серей", "серейеді"],
+        ["сүю", "сүй", "сүйеді"],
+        // exceptions
+        ["баю", "байы", "байиды"],
+        ["кею", "кейі", "кейиді"],
+        ["қаю", "қайы", "қайиды"],
+        ["мою", "мойы", "мойиды"],
+        ["ұю", "ұйы", "ұйиды"],
+        // ending with -ию, hard sound cases
+        ["аңқию", "аңқи", "аңқияды"],
+        ["қию", "қи", "қияды"],
+        ["балпию", "балпи", "балпияды"],
+        ["дардию", "дарди", "дардияды"],
+        ["жарбию", "жарби", "жарбияды"],
+        ["қалтию", "қалти", "қалтияды"],
+        // ending with -ию, soft sound cases
+        ["дүмпию", "дүмпи", "дүмпиеді"],
+        ["ербию", "ерби", "ербиеді"],
+        ["итию", "ити", "итиеді"],
+        ["кіржию", "кіржи", "кіржиеді"],
+        ["сербию", "серби", "сербиеді"],
+    ];
+    for (const [verbDictForm, verbBase, thirdPersonStatement] of dictFormToThirdPerson) {
+        const verbBuilder = new VerbBuilder(verbDictForm);
+        const formNegative = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative);
+        T_ASSERT(
+            formNegative.startsWith(verbBase),
+            "Negative form of exception verb " + verbDictForm + " must start with " + verbBase + " but got " + formNegative
+        );
+        const formStatement = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
+        T_EQ_ASSERT(thirdPersonStatement, formStatement, "Exception verb (ending with -ю), 3rd person form: ");
     }
 }]);
 

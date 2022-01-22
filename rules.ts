@@ -1,25 +1,15 @@
 const VOWELS = "аәеиоөуүұыіэюя";
-const VOWELS_EXCEPT_U = "аәеиоөүұыіэюя";
+const VOWELS_EXCEPT_U_I = "аәеоөүұыіэюя";
 const SOFT_VOWELS = "әеөүі";
 const HARD_VOWELS = "аоұы";
 const CONS_GROUP1 = "руйл";
 const CONS_GROUP2 = "жзмнң";
 
-/* we should add й to the base for the following: */
-const PRESENT_TRANSITIVE_EXCEPT_VERBS2 = [
-    "жаю",
-    "қию",
-    "қою",
-    "құю",
-    "сою",
-    "сүю",
-    "шаю",
-];
-
 const FORCED_SOFT_VERBS = new Set([
     "кию",  // киемің is a quite frequent form
     "жиду", // https://kaz-tili.kz/gl04.htm
     "тобарсу", // https://kaz-tili.kz/gl04.htm
+    "итию", // https://kaz-tili.kz/gl04.htm
 ]);
 
 const PRESENT_TRANSITIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
@@ -65,7 +55,7 @@ const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, Stri
 };
 
 /* we should add і/ы to the base for the following: */
-const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_SET = new Set([
+const VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET = new Set([
     "абыржу",
     "ағайынсу",
     "адалсу",
@@ -442,3 +432,11 @@ const VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET = new Set([
 ]);
 
 const VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX = ["ы", "і"];
+
+const VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET = new Set([
+    "баю",
+    "кею",
+    "қаю",
+    "мою",
+    "ұю",
+]);
