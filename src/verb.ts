@@ -24,6 +24,24 @@ function isVerbException2(verb_dict_form: string): boolean {
     return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verb_dict_form);
 }
 
+const NOT_SUPPORTED: string = "<not supported>";
+
+class PresentContinuousContext {
+    verb_base: string
+    constructor(verb_dict_form: string) {
+        this.verb_base = VERB_PRESENT_CONT_BASE_MAP.get(verb_dict_form);
+    }
+}
+
+type MaybePresentContinuousContext = PresentContinuousContext | null;
+
+function createPresentContinuousContext(verb_dict_form: string): MaybePresentContinuousContext {
+    if (VERB_PRESENT_CONT_BASE_MAP.has(verb_dict_form)) {
+        return new PresentContinuousContext(verb_dict_form);
+    }
+    return null;
+}
+
 class VerbBuilder {
     verb_dict_form: string
     verb_base: string
@@ -31,6 +49,7 @@ class VerbBuilder {
     base_last: string
     soft: boolean
     soft_offset: number
+    cont_context: MaybePresentContinuousContext
     constructor(verb_dict_form: string, force_exceptional = false) {
         if (!validateVerb(verb_dict_form)) {
             throw new Error("verb dictionary form must end with -у/-ю");
@@ -62,6 +81,14 @@ class VerbBuilder {
         }
 
         this.base_last = getLastItem(this.verb_base);
+
+        this.cont_context = createPresentContinuousContext(verb_dict_form);
+    }
+    getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber): string {
+        if (person == "Third") {
+            return "";
+        }
+        return VERB_PERS_AFFIXES1[person][number][this.soft_offset];
     }
     /* used only for Statement/Question sentence types */
     presentTransitiveSuffix(): string {
@@ -76,27 +103,34 @@ class VerbBuilder {
         }
         return "а";
     }
-    presentTransitiveForm(face: GrammarPerson, plurality: GrammarNumber, sentence_type: SentenceType): string {
-        if (sentence_type == "Statement") {
+    /* Ауыспалы осы/келер шақ */
+    presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
+        if (sentenceType == "Statement") {
             let affix = this.presentTransitiveSuffix();
-            let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
-            return fixShortIBigrams(`${this.verb_base}${affix}${pers_affix}`);
-        } else if (sentence_type == "Negative") {
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+            return fixShortIBigrams(`${this.verb_base}${affix}${persAffix}`);
+        } else if (sentenceType == "Negative") {
             let particle = getQuestionParticle(this.base_last, this.soft_offset);
-            let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
-            return fixBgBigrams(`${this.verb_base}${particle}й${pers_affix}`);
-        } else if (sentence_type == "Question") {
-            let verb: string;
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+            return fixBgBigrams(`${this.verb_base}${particle}й${persAffix}`);
+        } else if (sentenceType == "Question") {
             let affix = this.presentTransitiveSuffix();
-            if (face == "Third") {
-                verb = `${this.verb_base}${affix}`;
-            } else {
-                let pers_affix = PRESENT_TRANSITIVE_AFFIXES[face][plurality][this.soft_offset];
-                verb = `${this.verb_base}${affix}${pers_affix}`;
-            }
+            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
+            let verb = `${this.verb_base}${affix}${persAffix}`;
             let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
             return fixShortIBigrams(`${verb} ${particle}?`);
         }
-        return "unsupported";
+        return NOT_SUPPORTED;
+    }
+    /* Нақ осы шақ */
+    presentSimpleContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
+        if (this.cont_context == null) {
+            return NOT_SUPPORTED;
+        }
+        if (sentenceType == "Statement") {
+            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
+            return `${this.cont_context.verb_base}${persAffix}`;
+        }
+        return NOT_SUPPORTED;
     }
 }

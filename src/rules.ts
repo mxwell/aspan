@@ -12,7 +12,7 @@ const FORCED_SOFT_VERBS = new Set([
     "итию", // https://kaz-tili.kz/gl04.htm
 ]);
 
-const PRESENT_TRANSITIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
+const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["мын", "мін"],
         Plural: ["мыз", "міз"],
@@ -439,4 +439,11 @@ const VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET = new Set([
     "қаю",
     "мою",
     "ұю",
+]);
+
+const VERB_PRESENT_CONT_BASE_MAP: Map<string, string> = new Map([
+    ["тұру", "тұр"],
+    ["жүру", "жүр"],
+    ["отыру", "отыр"],
+    ["жату", "жатыр"],
 ]);

@@ -622,6 +622,46 @@ ALL_TESTS.push(["softTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["simplePresentTest", function() {
+    const table: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
+        First: {
+            Singular: ["тұрмын", "жүрмін", "отырмын", "жатырмын"],
+            Plural: ["тұрмыз", "жүрміз", "отырмыз", "жатырмыз"],
+        },
+        Second: {
+            Singular: ["тұрсың", "жүрсің", "отырсың", "жатырсың"],
+            Plural: ["тұрсыңдар", "жүрсіңдер", "отырсыңдар", "жатырсыңдар"],
+        },
+        SecondPolite: {
+            Singular: ["тұрсыз", "жүрсіз", "отырсыз", "жатырсыз"],
+            Plural: ["тұрсыздар", "жүрсіздер", "отырсыздар", "жатырсыздар"],
+        },
+        Third: {
+            Singular: ["тұр", "жүр", "отыр", "жатыр"],
+            Plural: ["тұр", "жүр", "отыр", "жатыр"],
+        },
+    };
+    let verbBuilders = [];
+    let verbDictForms = ["тұру", "жүру", "отыру", "жату"];
+    for (const verb of verbDictForms) {
+        verbBuilders.push(new VerbBuilder(verb));
+    }
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const expectedForms = table[person][number];
+            for (var i = 0; i < expectedForms.length; ++i) {
+                const form = verbBuilders[i].presentSimpleContinuousForm(person, number, SentenceType.Statement);
+                T_EQ_ASSERT(expectedForms[i], form, "Simple present tense of " + person + " person, " + number + ": ");
+            }
+        }
+    }
+    T_EQ_ASSERT(
+        "<not supported>",
+        new VerbBuilder("алу").presentSimpleContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Only 4 verbs can have present simple continuous form: "
+    );
+}]);
+
 /* End of tests */
 
 testAll();
