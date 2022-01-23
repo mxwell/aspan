@@ -4,6 +4,9 @@ const SOFT_VOWELS = "әеөүі";
 const HARD_VOWELS = "аоұы";
 const CONS_GROUP1 = "руйл";
 const CONS_GROUP2 = "жзмнң";
+const CONS_GROUP3 = "жз";
+const CONS_GROUP4 = "кқпстфхцчшщ";  // қатаң дыбыстар from https://qazaq-til-asar.livejournal.com/2594.html
+const CONS_GROUP5 = "бвгғд";
 
 const FORCED_SOFT_VERBS = new Set([
     "кию",  // киемің is a quite frequent form
@@ -31,9 +34,33 @@ const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>>
     }
 };
 
+const FIRST_PERS_AFFIXES1: Record<GrammarNumber, Record<PersAffix1LetterGroup, string[]>> = {
+    Singular: {
+        PersAffix1DefaultGroup: ["мын", "мін"],
+        PersAffix1GzGroup: ["бын", "бін"],
+        PersAffixUnvoicedGroup: ["пын", "пін"],
+    },
+    Plural: {
+        PersAffix1DefaultGroup: ["мыз", "міз"],
+        PersAffix1GzGroup: ["быз", "біз"],
+        PersAffixUnvoicedGroup: ["пыз", "піз"]
+    },
+};
+const SECOND_PERS_AFFIXES1: Record<GrammarNumber, string[]> = {
+    Singular: ["сың", "сің"],
+    Plural: ["сыңдар", "сіңдер"],
+};
+const SECOND_POLITE_PERS_AFFIXES1: Record<GrammarNumber, string[]> = {
+    Singular: ["сыз", "сіз"],
+    Plural: ["сыздар", "сіздер"],
+};
+
 const MAME = ["ма", "ме"];
 const BABE = ["ба", "бе"];
 const PAPE = ["па", "пе"];
+
+const GANGEN = ["ған", "ген"];
+const KANKEN = ["қан", "кен"];
 
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {

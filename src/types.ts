@@ -16,5 +16,11 @@ enum SentenceType {
     Question = "Question",
 }
 
+enum PersAffix1LetterGroup {
+    PersAffix1DefaultGroup = "PersAffix1DefaultGroup",
+    PersAffix1GzGroup = "PersAffix1GzGroup",
+    PersAffixUnvoicedGroup = "PersAffixUnvoicedGroup",
+}
+
 const GRAMMAR_PERSONS: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
 const GRAMMAR_NUMBERS: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];

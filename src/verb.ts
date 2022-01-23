@@ -130,6 +130,15 @@ class VerbBuilder {
         if (sentenceType == "Statement") {
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
             return `${this.cont_context.verb_base}${persAffix}`;
+        } else if (sentenceType == "Negative") {
+            let affix = getGangenKanken(this.base_last, this.soft_offset);
+
+            // parameters of "жоқ", not of the verb base
+            let gokLast = 'қ';
+            let gokSoftOffset = 0;
+
+            let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
+            return `${this.verb_base}${affix} жоқ${persAffix}`;
         }
         return NOT_SUPPORTED;
     }

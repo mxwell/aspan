@@ -622,7 +622,7 @@ ALL_TESTS.push(["softTest", function() {
     }
 }]);
 
-ALL_TESTS.push(["simplePresentTest", function() {
+ALL_TESTS.push(["simplePresentContTest", function() {
     const table: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
         First: {
             Singular: ["тұрмын", "жүрмін", "отырмын", "жатырмын"],
@@ -660,6 +660,41 @@ ALL_TESTS.push(["simplePresentTest", function() {
         new VerbBuilder("алу").presentSimpleContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
         "Only 4 verbs can have present simple continuous form: "
     );
+}]);
+
+ALL_TESTS.push(["negativePresentContTest", function() {
+    const table: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
+        First: {
+            Singular: ["тұрған жоқпын", "жүрген жоқпын", "отырған жоқпын", "жатқан жоқпын"],
+            Plural: ["тұрған жоқпыз", "жүрген жоқпыз", "отырған жоқпыз", "жатқан жоқпыз"],
+        },
+        Second: {
+            Singular: ["тұрған жоқсың", "жүрген жоқсың", "отырған жоқсың", "жатқан жоқсың"],
+            Plural: ["тұрған жоқсыңдар", "жүрген жоқсыңдар", "отырған жоқсыңдар", "жатқан жоқсыңдар"],
+        },
+        SecondPolite: {
+            Singular: ["тұрған жоқсыз", "жүрген жоқсыз", "отырған жоқсыз", "жатқан жоқсыз"],
+            Plural: ["тұрған жоқсыздар", "жүрген жоқсыздар", "отырған жоқсыздар", "жатқан жоқсыздар"],
+        },
+        Third: {
+            Singular: ["тұрған жоқ", "жүрген жоқ", "отырған жоқ", "жатқан жоқ"],
+            Plural: ["тұрған жоқ", "жүрген жоқ", "отырған жоқ", "жатқан жоқ"],
+        },
+    };
+    let verbBuilders = [];
+    let verbDictForms = ["тұру", "жүру", "отыру", "жату"];
+    for (const verb of verbDictForms) {
+        verbBuilders.push(new VerbBuilder(verb));
+    }
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const expectedForms = table[person][number];
+            for (var i = 0; i < expectedForms.length; ++i) {
+                const form = verbBuilders[i].presentSimpleContinuousForm(person, number, SentenceType.Negative);
+                T_EQ_ASSERT(expectedForms[i], form, "Simple present tense of " + person + " person, " + number + ", negative: ");
+            }
+        }
+    }
 }]);
 
 /* End of tests */
