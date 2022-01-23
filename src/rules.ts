@@ -474,3 +474,25 @@ const VERB_PRESENT_CONT_BASE_MAP: Map<string, string> = new Map([
     ["отыру", "отыр"],
     ["жату", "жатыр"],
 ]);
+
+const VERB_PRESENT_CONT_EXCEPTION_A_SET = new Set([
+    "бару",
+    "апару",
+]);
+
+const VERB_PRESENT_CONT_EXCEPTION_E_SET = new Set([
+    "келу",
+    "әкелу",
+]);
+
+const VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED = "жату";
+
+/* TODO are there more of them? */
+const VERB_PRESENT_CONT_EXCEPTION_U_SET = new Set([
+    "жабу",
+    "кебу",
+    "себу",
+    "тебу",
+    "табу",
+    "шабу",
+]);

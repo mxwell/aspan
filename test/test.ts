@@ -697,6 +697,80 @@ ALL_TESTS.push(["negativePresentContTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["presentContBasicTest", function() {
+    const verbBuilder = new VerbBuilder("сөйлеу");
+    const auxVerbToForm = [
+        ["тұру", "сөйлеп тұрмын"],
+        ["жүру", "сөйлеп жүрмін"],
+        ["отыру", "сөйлеп отырмын"],
+        ["жату", "сөйлеп жатырмын"],
+    ];
+
+    for (const [auxVerb, expectedForm] of auxVerbToForm) {
+        const auxVerbBuilder = new VerbBuilder(auxVerb);
+        const form = verbBuilder.presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxVerbBuilder);
+        T_EQ_ASSERT(expectedForm, form, "Present continuous form: ");
+    }
+}]);
+
+ALL_TESTS.push(["presentContTest", function() {
+    T_EQ_ASSERT(
+        "жуып тұр",
+        new VerbBuilder("жуу").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement, new VerbBuilder("тұру")),
+        "Present continuous form of 3rd person, plural: "
+    );
+    T_EQ_ASSERT(
+        "қарап тұрсың",
+        new VerbBuilder("қарау").presentContinuousForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("тұру")),
+        "Present continuous form of 2nd person, singular: "
+    );
+    T_EQ_ASSERT(
+        "қыдырып жүрмін",
+        new VerbBuilder("қыдыру").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("жүру")),
+        "Present continuous form of 1st person, singular: "
+    );
+    T_EQ_ASSERT(
+        "оқып жүрсіз",
+        new VerbBuilder("оқу").presentContinuousForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("жүру")),
+        "Present continuous form of 2nd polite person, singular: "
+    );
+    T_EQ_ASSERT(
+        "алып жатыр",
+        new VerbBuilder("алу").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("жату")),
+        "Present continuous form of 3rd person, singular: "
+    );
+    T_EQ_ASSERT(
+        "бара жатыр",
+        new VerbBuilder("бару").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("жату")),
+        "Present continuous form of 3rd person, singular: "
+    );
+    T_EQ_ASSERT(
+        "келе жатырмын",
+        new VerbBuilder("келу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, new VerbBuilder("жату")),
+        "Present continuous form of 1st person, singular: "
+    );
+    T_EQ_ASSERT(
+        "теуіп жүрміз",
+        new VerbBuilder("тебу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement, new VerbBuilder("жүру")),
+        "Present continuous form of 1st person, plural: "
+    );
+    T_EQ_ASSERT(
+        "шауып жүрсіңдер",
+        new VerbBuilder("шабу").presentContinuousForm(GrammarPerson.Second, GrammarNumber.Plural, SentenceType.Statement, new VerbBuilder("жүру")),
+        "Present continuous form of 2nd person, plural: "
+    );
+    T_EQ_ASSERT(
+        "қойып жатыр",
+        new VerbBuilder("қою").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement, new VerbBuilder("жату")),
+        "Present continuous form of 3rd person, plural: "
+    );
+    T_EQ_ASSERT(
+        "сүйіп жатыр",
+        new VerbBuilder("сүю").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement, new VerbBuilder("жату")),
+        "Present continuous form of 3rd person, plural: "
+    );
+}]);
+
 /* End of tests */
 
 testAll();

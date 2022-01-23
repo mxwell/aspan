@@ -21,3 +21,11 @@ function checkStringInList(s: string, targets: string[]): boolean {
     }
     return false;
 }
+
+function chopLast(s: string, k: number): string {
+    const n = s.length;
+    if (n > k) {
+        return s.slice(0, n - k);
+    }
+    return "";
+}

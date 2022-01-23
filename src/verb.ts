@@ -55,7 +55,7 @@ class VerbBuilder {
             throw new Error("verb dictionary form must end with -у/-ю");
         }
         this.verb_dict_form = verb_dict_form;
-        this.verb_base = verb_dict_form.slice(0, verb_dict_form.length - 1);
+        this.verb_base = chopLast(verb_dict_form, 1);
         this.needs_ya_suffix = false;
         this.soft = (
             wordIsSoft(this.verb_base)
@@ -140,6 +140,44 @@ class VerbBuilder {
             let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
             return `${this.verb_base}${affix} жоқ${persAffix}`;
         }
+        return NOT_SUPPORTED;
+    }
+    getPresentContinuousBase(): string {
+        if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verb_dict_form)) {
+            return chopLast(this.verb_base, 1) + "у";
+        }
+        return this.verb_base;
+    }
+    getPresentContinousAffix(): string {
+        if (VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verb_dict_form)) {
+            return "а";
+        }
+        if (VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verb_dict_form)) {
+            return "е";
+        }
+        if (genuineVowel(this.base_last)) {
+            return "п";
+        }
+        if (this.soft) {
+            return "іп";
+        }
+        return "ып";
+    }
+    presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder): string {
+        if (auxBuilder.cont_context == null) {
+            return NOT_SUPPORTED;
+        }
+        const aeException = VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verb_dict_form) || VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verb_dict_form);
+        if (aeException && auxBuilder.verb_dict_form != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
+            return NOT_SUPPORTED;
+        }
+        if (sentenceType == "Statement") {
+            const verbBase = this.getPresentContinuousBase();
+            const affix = this.getPresentContinousAffix();
+            const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
+            return `${verbBase}${affix} ${auxVerb}`;
+        }
+        // TODO negative case
         return NOT_SUPPORTED;
     }
 }
