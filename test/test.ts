@@ -771,6 +771,24 @@ ALL_TESTS.push(["presentContTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["presentContNegativeTest", function() {
+    T_EQ_ASSERT(
+        "жазып отырған жоқсың",
+        new VerbBuilder("жазу").presentContinuousForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("отыру")),
+        "Present continuous form of 2nd person, singular, negative: "
+    );
+    T_EQ_ASSERT(
+        "ішіп отырған жоқ",
+        new VerbBuilder("ішу").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("отыру")),
+        "Present continuous form of 3rd person, singular, negative: "
+    );
+    T_EQ_ASSERT(
+        "оқып жүрген жоқпын",
+        new VerbBuilder("оқу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("жүру")),
+        "Present continuous form of 1st person, singular, negative: "
+    );
+}]);
+
 /* End of tests */
 
 testAll();

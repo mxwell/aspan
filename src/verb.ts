@@ -171,13 +171,12 @@ class VerbBuilder {
         if (aeException && auxBuilder.verb_dict_form != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
             return NOT_SUPPORTED;
         }
-        if (sentenceType == "Statement") {
+        if (sentenceType == "Statement" || sentenceType == "Negative") {
             const verbBase = this.getPresentContinuousBase();
             const affix = this.getPresentContinousAffix();
             const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
             return `${verbBase}${affix} ${auxVerb}`;
         }
-        // TODO negative case
         return NOT_SUPPORTED;
     }
 }
