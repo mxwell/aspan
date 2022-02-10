@@ -789,6 +789,19 @@ ALL_TESTS.push(["presentContNegativeTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["presentContQuestionTest", function() {
+    T_EQ_ASSERT(
+        "жазып отырмын ба?",
+        new VerbBuilder("жазу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question, new VerbBuilder("отыру")),
+        "Present continuous form of 1st person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "бара жатыр ма?",
+        new VerbBuilder("бару").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question, new VerbBuilder("жату")),
+        "Present continuous form of 3rd person, singular, question"
+    );
+}]);
+
 /* End of tests */
 
 testAll();

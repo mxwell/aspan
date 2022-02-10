@@ -154,6 +154,11 @@ class VerbBuilder {
 
             let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
             return `${this.verb_base}${affix} жоқ${persAffix}`;
+        } else if (sentenceType == "Question") {
+            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
+            let verb = `${this.cont_context.verb_base}${persAffix}`;
+            let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
+            return `${verb} ${particle}?`;
         }
         return NOT_SUPPORTED;
     }
@@ -186,12 +191,9 @@ class VerbBuilder {
         if (aeException && auxBuilder.verb_dict_form != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
             return NOT_SUPPORTED;
         }
-        if (sentenceType == "Statement" || sentenceType == "Negative") {
-            const verbBase = this.getPresentContinuousBase();
-            const affix = this.getPresentContinousAffix();
-            const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
-            return `${verbBase}${affix} ${auxVerb}`;
-        }
-        return NOT_SUPPORTED;
+        const verbBase = this.getPresentContinuousBase();
+        const affix = this.getPresentContinousAffix();
+        const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
+        return `${verbBase}${affix} ${auxVerb}`;
     }
 }
