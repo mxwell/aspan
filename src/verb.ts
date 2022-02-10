@@ -49,6 +49,7 @@ function validPresentContPair(verb: string, auxVerb: string): boolean {
 }
 
 type MaybePresentContinuousContext = PresentContinuousContext | null;
+type MaybeVerbBuilder = VerbBuilder | null;
 
 function createPresentContinuousContext(verb_dict_form: string): MaybePresentContinuousContext {
     if (validPresentContAuxVerb(verb_dict_form)) {
@@ -65,6 +66,8 @@ class VerbBuilder {
     soft: boolean
     soft_offset: number
     cont_context: MaybePresentContinuousContext
+    want_aux_builder: MaybeVerbBuilder
+    default_continuous_builder: MaybeVerbBuilder
     constructor(verb_dict_form: string, force_exceptional = false) {
         if (!validateVerb(verb_dict_form)) {
             throw new Error("verb dictionary form must end with -у/-ю");
@@ -98,6 +101,8 @@ class VerbBuilder {
         this.base_last = getLastItem(this.verb_base);
 
         this.cont_context = createPresentContinuousContext(verb_dict_form);
+        this.want_aux_builder = null;
+        this.default_continuous_builder = null;
     }
     getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber): string {
         if (person == "Third") {
@@ -195,5 +200,44 @@ class VerbBuilder {
         const affix = this.getPresentContinousAffix();
         const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
         return `${verbBase}${affix} ${auxVerb}`;
+    }
+    getDefaultContinuousBuilder() {
+        if (this.default_continuous_builder == null) {
+            this.default_continuous_builder = new VerbBuilder("жату");
+        }
+        return this.default_continuous_builder;
+    }
+    getFormByShak(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
+        if (shak == "PresentTransitive") {
+            return this.presentTransitiveForm(person, number, sentenceType);
+        } else if (shak == "PresentContinuous") {
+            return this.presentContinuousForm(person, number, sentenceType, this.getDefaultContinuousBuilder());
+        }
+        return NOT_SUPPORTED;
+    }
+    /* Қалау рай */
+    getWantAuxBuilder(): VerbBuilder {
+        if (this.want_aux_builder == null) {
+            this.want_aux_builder = new VerbBuilder("келу");
+        }
+        return this.want_aux_builder;
+    }
+    getWantAuxVerb(sentenceType: SentenceType, shak: VerbShak): string {
+        if (shak == "PresentContinuous") {
+            if (sentenceType == SentenceType.Negative) {
+                let contAuxVerb = this.getDefaultContinuousBuilder().presentSimpleContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
+                return `келмей ${contAuxVerb}`;
+            }
+            let contAuxVerb = this.getDefaultContinuousBuilder().presentSimpleContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, sentenceType);
+            return `келіп ${contAuxVerb}`;
+        }
+        return this.getWantAuxBuilder().getFormByShak(GrammarPerson.Third, GrammarNumber.Singular, sentenceType, shak);
+    }
+    wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
+        let affix = getGygiKyki(this.base_last, this.soft_offset);
+        let partial = fixXkBigrams(`${this.verb_base}${affix}`);
+        let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.soft_offset];
+        let auxVerb = this.getWantAuxVerb(sentenceType, shak);
+        return `${partial}${persAffix} ${auxVerb}`;
     }
 }

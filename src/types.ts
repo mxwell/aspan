@@ -22,5 +22,11 @@ enum PersAffix1LetterGroup {
     PersAffixUnvoicedGroup = "PersAffixUnvoicedGroup",
 }
 
+/* shak = tense. Communicates time of the action. */
+enum VerbShak {
+    PresentTransitive = "PresentTransitive",
+    PresentContinuous = "PresentContinuous",
+}
+
 const GRAMMAR_PERSONS: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
 const GRAMMAR_NUMBERS: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];

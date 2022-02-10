@@ -802,6 +802,57 @@ ALL_TESTS.push(["presentContQuestionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["presentContQuestionTest", function() {
+    T_EQ_ASSERT(
+        "отырғым келеді",
+        new VerbBuilder("отыру").wantClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Want-clause of 1st person, singular, statement in present transitive"
+    );
+    T_EQ_ASSERT(
+        "көргіміз келіп жатыр",
+        new VerbBuilder("көру").wantClause(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement, VerbShak.PresentContinuous),
+        "Want-clause of 1st person, plural, statement in present continuous"
+    );
+    T_EQ_ASSERT(
+        "айтқың келіп жатыр ма?",
+        new VerbBuilder("айту").wantClause(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question, VerbShak.PresentContinuous),
+        "Want-clause of 2nd person, singular, question in present continuous"
+    );
+    T_EQ_ASSERT(
+        "айналысқың келе ме?",
+        new VerbBuilder("айналысу").wantClause(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question, VerbShak.PresentTransitive),
+        "Want-clause of 2nd person, singular, question in present transitive"
+    );
+
+    T_EQ_ASSERT(
+        "жапқыларың келеді",
+        new VerbBuilder("жабу").wantClause(GrammarPerson.Second, GrammarNumber.Plural, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Want-clause of 2nd person, plural, statement in present transitive"
+    );
+    T_EQ_ASSERT(
+        "оқығыңыз келе ме?",
+        new VerbBuilder("оқу").wantClause(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question, VerbShak.PresentTransitive),
+        "Want-clause of 2nd person polite, singular, question in present transitive"
+    );
+    T_EQ_ASSERT(
+        "тепкіміз келеді",
+        new VerbBuilder("тебу").wantClause(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Want-clause of 1st person, plural, statement in present transitive"
+    );
+
+    T_EQ_ASSERT(
+        "жазғыларыңыз келмейді",
+        new VerbBuilder("жазу").wantClause(GrammarPerson.SecondPolite, GrammarNumber.Plural, SentenceType.Negative, VerbShak.PresentTransitive),
+        "Want-clause of 2nd person polite, plural, negative in present transitive"
+    );
+
+    T_EQ_ASSERT(
+        "ішкісі келмей жатыр",
+        new VerbBuilder("ішу").wantClause(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative, VerbShak.PresentContinuous),
+        "Want-clause of 3rd person, singular, negative in present continuous"
+    );
+}]);
+
 /* End of tests */
 
 testAll();

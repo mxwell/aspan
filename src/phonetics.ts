@@ -35,6 +35,15 @@ function fixBgBigrams(w: string): string {
     );
 }
 
+function fixXkBigrams(w: string): string {
+    return (w
+        .replace("бқ", "пқ")
+        .replace("бк", "пк")
+        .replace("гк", "кк")
+        .replace("ғқ", "ққ")
+    );
+}
+
 function fixShortIBigrams(w: string): string {
     return (w
         .replace("йа", "я")

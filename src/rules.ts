@@ -34,6 +34,25 @@ const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>>
     }
 };
 
+const VERB_WANT_PERS_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
+    First: {
+        Singular: ["м", "м"],
+        Plural: ["мыз", "міз"],
+    },
+    Second: {
+        Singular: ["ң", "ң"],
+        Plural: ["ларың", "лерің"],
+    },
+    SecondPolite: {
+        Singular: ["ңыз", "ңіз"],
+        Plural: ["ларыңыз", "леріңіз"],
+    },
+    Third: {
+        Singular: ["сы", "сі"],
+        Plural: ["лары", "лері"]
+    }
+};
+
 const FIRST_PERS_AFFIXES1: Record<GrammarNumber, Record<PersAffix1LetterGroup, string[]>> = {
     Singular: {
         PersAffix1DefaultGroup: ["мын", "мін"],
@@ -61,6 +80,9 @@ const PAPE = ["па", "пе"];
 
 const GANGEN = ["ған", "ген"];
 const KANKEN = ["қан", "кен"];
+
+const GYGI = ["ғы", "гі"];
+const KYKI = ["қы", "кі"];
 
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {

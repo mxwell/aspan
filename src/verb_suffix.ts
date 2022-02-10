@@ -9,3 +9,14 @@ function getGangenKanken(c: string, soft_offset: number): string {
     }
     return KANKEN[soft_offset];
 }
+
+function kykiCompatible(c: string): boolean {
+    return checkCharPresence(c, CONS_GROUP4) || checkCharPresence(c, CONS_GROUP5);
+}
+
+function getGygiKyki(c: string, soft_offset: number): string {
+    if (kykiCompatible(c)) {
+        return KYKI[soft_offset];
+    }
+    return GYGI[soft_offset];
+}
