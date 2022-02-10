@@ -4,5 +4,6 @@ export {
     PRONOUN_BY_PERSON_NUMBER,
     validateVerb,
     isVerbOptionalException,
+    validPresentContPair,
     VerbBuilder
 }

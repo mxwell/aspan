@@ -33,10 +33,25 @@ class PresentContinuousContext {
     }
 }
 
+function validPresentContAuxVerb(verb_dict_form: string): boolean {
+    return VERB_PRESENT_CONT_BASE_MAP.has(verb_dict_form);
+}
+
+function validPresentContPair(verb: string, auxVerb: string): boolean {
+    if (!validPresentContAuxVerb(auxVerb)) {
+        return false;
+    }
+    const aeException = VERB_PRESENT_CONT_EXCEPTION_A_SET.has(verb) || VERB_PRESENT_CONT_EXCEPTION_E_SET.has(verb);
+    if (aeException && auxVerb != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
+        return false;
+    }
+    return true;
+}
+
 type MaybePresentContinuousContext = PresentContinuousContext | null;
 
 function createPresentContinuousContext(verb_dict_form: string): MaybePresentContinuousContext {
-    if (VERB_PRESENT_CONT_BASE_MAP.has(verb_dict_form)) {
+    if (validPresentContAuxVerb(verb_dict_form)) {
         return new PresentContinuousContext(verb_dict_form);
     }
     return null;
