@@ -67,6 +67,7 @@ class VerbBuilder {
     soft_offset: number
     cont_context: MaybePresentContinuousContext
     want_aux_builder: MaybeVerbBuilder
+    can_aux_builder: MaybeVerbBuilder
     default_continuous_builder: MaybeVerbBuilder
     constructor(verb_dict_form: string, force_exceptional = false) {
         if (!validateVerb(verb_dict_form)) {
@@ -102,6 +103,7 @@ class VerbBuilder {
 
         this.cont_context = createPresentContinuousContext(verb_dict_form);
         this.want_aux_builder = null;
+        this.can_aux_builder = null;
         this.default_continuous_builder = null;
     }
     getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber): string {
@@ -247,5 +249,18 @@ class VerbBuilder {
         let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.soft_offset];
         let auxVerb = this.getWantAuxVerb(sentenceType, shak);
         return `${partial}${persAffix} ${auxVerb}`;
+    }
+
+    getCanAuxBuilder(): VerbBuilder {
+        if (this.can_aux_builder == null) {
+            this.can_aux_builder = new VerbBuilder("алу");
+        }
+        return this.can_aux_builder;
+    }
+    canClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
+        let affix = this.presentTransitiveSuffix();
+        let verb = fixShortIBigrams(`${this.verb_base}${affix}`);
+        let auxVerb = this.getCanAuxBuilder().getFormByShak(person, number, sentenceType, shak);
+        return `${verb} ${auxVerb}`;
     }
 }

@@ -883,6 +883,50 @@ ALL_TESTS.push(["wantClauseTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["canClauseTest", function() {
+    T_EQ_ASSERT(
+        "аулай аламын",
+        new VerbBuilder("аулау").canClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Can-clause of 1st person, singular in present transitive"
+    );
+    T_EQ_ASSERT(
+        "жаза алмаймын",
+        new VerbBuilder("жазу").canClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, VerbShak.PresentTransitive),
+        "Can-clause of 1st person, singular, negative in present transitive"
+    );
+    T_EQ_ASSERT(
+        "пісіре ала ма?",
+        new VerbBuilder("пісіру").canClause(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question, VerbShak.PresentTransitive),
+        "Can-clause of 3rd person, singular, question in present transitive"
+    );
+    T_EQ_ASSERT(
+        "оқи алады",
+        new VerbBuilder("оқу").canClause(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Can-clause of 3rd person, singular, statement in present transitive"
+    );
+    T_EQ_ASSERT(
+        "тоқи аламын",
+        new VerbBuilder("тоқу").canClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Can-clause of 1st person, singular, statement in present transitive"
+    );
+    T_EQ_ASSERT(
+        "қоя аламын",
+        new VerbBuilder("қою").canClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
+        "Can-clause of 1st person, singular, statement in present transitive"
+    );
+
+    T_EQ_ASSERT(
+        "көмектесе алмай жатырмын",
+        new VerbBuilder("көмектесу").canClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, VerbShak.PresentContinuous),
+        "Can-clause of 1st person, singular, negative in present continuous"
+    );
+    T_EQ_ASSERT(
+        "үлгере алмай жатыр",
+        new VerbBuilder("үлгеру").canClause(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative, VerbShak.PresentContinuous),
+        "Can-clause of 3rd person, singular, negative in present continuous"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
