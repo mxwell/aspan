@@ -201,6 +201,15 @@ class VerbBuilder {
         const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
         return `${verbBase}${affix} ${auxVerb}`;
     }
+    /* XXX should this form be used by default? */
+    presentContinuousSimpleNegativeForm(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): string {
+        if (auxBuilder.cont_context == null) {
+            return NOT_SUPPORTED;
+        }
+        let particle = getQuestionParticle(this.base_last, this.soft_offset);
+        const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, SentenceType.Statement);
+        return fixBgBigrams(`${this.verb_base}${particle}й ${auxVerb}`);
+    }
     getDefaultContinuousBuilder() {
         if (this.default_continuous_builder == null) {
             this.default_continuous_builder = new VerbBuilder("жату");
@@ -211,6 +220,9 @@ class VerbBuilder {
         if (shak == "PresentTransitive") {
             return this.presentTransitiveForm(person, number, sentenceType);
         } else if (shak == "PresentContinuous") {
+            if (sentenceType == SentenceType.Negative) {
+                return this.presentContinuousSimpleNegativeForm(person, number, this.getDefaultContinuousBuilder());
+            }
             return this.presentContinuousForm(person, number, sentenceType, this.getDefaultContinuousBuilder());
         }
         return NOT_SUPPORTED;
@@ -223,11 +235,7 @@ class VerbBuilder {
         return this.want_aux_builder;
     }
     getWantAuxVerb(sentenceType: SentenceType, shak: VerbShak): string {
-        if (shak == "PresentContinuous") {
-            if (sentenceType == SentenceType.Negative) {
-                let contAuxVerb = this.getDefaultContinuousBuilder().presentSimpleContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
-                return `келмей ${contAuxVerb}`;
-            }
+        if (shak == VerbShak.PresentContinuous && sentenceType != SentenceType.Negative) {
             let contAuxVerb = this.getDefaultContinuousBuilder().presentSimpleContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, sentenceType);
             return `келіп ${contAuxVerb}`;
         }

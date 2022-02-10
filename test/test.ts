@@ -19,10 +19,18 @@ function testAll() {
     let testsStarted = 0;
     let testsFailed = 0;
     let testsPassed = 0;
+    let testsBad = 0;
+    let usedNames = new Set();
     for (const testDescr of ALL_TESTS) {
         testsStarted += 1;
         const failsBefore = assertFails;
         const name = testDescr[0];
+        if (usedNames.has(name)) {
+            console.log("Test " + name + " has duplicate name!");
+            testsBad += 1;
+        } else {
+            usedNames.add(name);
+        }
         const test = testDescr[1];
         test();
         if (failsBefore != assertFails) {
@@ -37,6 +45,9 @@ function testAll() {
     console.log(String(testsPassed) + " tests passed out of " + String(testsStarted) + " started tests");
     if (testsFailed > 0) {
         console.log(String(testsFailed) + " tests failed out of " + String(testsStarted) + " started tests");
+    }
+    if (testsBad > 0) {
+        console.log(String(testsBad) + " tests are malformed!");
     }
     console.log("=====\n");
 }
@@ -802,7 +813,26 @@ ALL_TESTS.push(["presentContQuestionTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["presentContQuestionTest", function() {
+ALL_TESTS.push(["presentContSimpleNegativeTest", function() {
+    T_EQ_ASSERT(
+        "жазбай отырсың",
+        new VerbBuilder("жазу").presentContinuousSimpleNegativeForm(GrammarPerson.Second, GrammarNumber.Singular, new VerbBuilder("отыру")),
+        "Present continuous form of 2nd person, singular, simple negative"
+    );
+    T_EQ_ASSERT(
+        "ұйықтамай жатырмыз",
+        new VerbBuilder("ұйықтау").presentContinuousSimpleNegativeForm(GrammarPerson.First, GrammarNumber.Plural, new VerbBuilder("жату")),
+        "Present continuous form of 1st person, plural, simple negative"
+    );
+
+    T_EQ_ASSERT(
+        "алмай жүрмін",
+        new VerbBuilder("алу").presentContinuousSimpleNegativeForm(GrammarPerson.First, GrammarNumber.Singular, new VerbBuilder("жүру")),
+        "Present continuous form of 1st person, singular, simple negative"
+    );
+}]);
+
+ALL_TESTS.push(["wantClauseTest", function() {
     T_EQ_ASSERT(
         "отырғым келеді",
         new VerbBuilder("отыру").wantClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, VerbShak.PresentTransitive),
