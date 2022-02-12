@@ -34,6 +34,25 @@ const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>>
     }
 };
 
+const VERB_PERS_AFFIXES2: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
+    First: {
+        Singular: ["м", "м"],
+        Plural: ["қ", "к"],
+    },
+    Second: {
+        Singular: ["ң", "ң"],
+        Plural: ["ңдар", "ңдер"],
+    },
+    SecondPolite: {
+        Singular: ["ңыз", "ңіз"],
+        Plural: ["ңыздар", "ңіздер"],
+    },
+    Third: {
+        Singular: ["", ""],
+        Plural: ["", ""]
+    }
+};
+
 const VERB_WANT_PERS_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["м", "м"],
@@ -83,6 +102,9 @@ const KANKEN = ["қан", "кен"];
 
 const GYGI = ["ғы", "гі"];
 const KYKI = ["қы", "кі"];
+
+const DYDI = ["ды", "ді"];
+const TYTI = ["ты", "ті"];
 
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {

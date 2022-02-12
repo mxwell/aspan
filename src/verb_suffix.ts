@@ -20,3 +20,14 @@ function getGygiKyki(c: string, soft_offset: number): string {
     }
     return GYGI[soft_offset];
 }
+
+function tytiCompatible(c: string): boolean {
+    return kykiCompatible(c);
+}
+
+function getDydiTyti(c: string, soft_offset: number): string {
+    if (tytiCompatible(c)) {
+        return TYTI[soft_offset];
+    }
+    return DYDI[soft_offset];
+}

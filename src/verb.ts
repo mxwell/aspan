@@ -125,6 +125,14 @@ class VerbBuilder {
         }
         return "а";
     }
+    getNegativeBase(): string {
+        let particle = getQuestionParticle(this.base_last, this.soft_offset);
+        return `${this.verb_base}${particle}`;
+    }
+    getQuestionForm(phrase: string): string {
+        let particle = getQuestionParticle(getLastItem(phrase), this.soft_offset);
+        return `${phrase} ${particle}?`;
+    }
     /* Ауыспалы осы/келер шақ */
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == "Statement") {
@@ -132,15 +140,13 @@ class VerbBuilder {
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
             return fixShortIBigrams(`${this.verb_base}${affix}${persAffix}`);
         } else if (sentenceType == "Negative") {
-            let particle = getQuestionParticle(this.base_last, this.soft_offset);
+            let negativeBase = this.getNegativeBase();
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
-            return fixBgBigrams(`${this.verb_base}${particle}й${persAffix}`);
+            return fixBgBigrams(`${negativeBase}й${persAffix}`);
         } else if (sentenceType == "Question") {
             let affix = this.presentTransitiveSuffix();
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            let verb = `${this.verb_base}${affix}${persAffix}`;
-            let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
-            return fixShortIBigrams(`${verb} ${particle}?`);
+            return fixShortIBigrams(this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`));
         }
         return NOT_SUPPORTED;
     }
@@ -163,9 +169,7 @@ class VerbBuilder {
             return `${this.verb_base}${affix} жоқ${persAffix}`;
         } else if (sentenceType == "Question") {
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            let verb = `${this.cont_context.verb_base}${persAffix}`;
-            let particle = getQuestionParticle(getLastItem(verb), this.soft_offset);
-            return `${verb} ${particle}?`;
+            return this.getQuestionForm(`${this.cont_context.verb_base}${persAffix}`);
         }
         return NOT_SUPPORTED;
     }
@@ -208,9 +212,9 @@ class VerbBuilder {
         if (auxBuilder.cont_context == null) {
             return NOT_SUPPORTED;
         }
-        let particle = getQuestionParticle(this.base_last, this.soft_offset);
+        let negativeBase = this.getNegativeBase();
         const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, SentenceType.Statement);
-        return fixBgBigrams(`${this.verb_base}${particle}й ${auxVerb}`);
+        return fixBgBigrams(`${negativeBase}й ${auxVerb}`);
     }
     getDefaultContinuousBuilder() {
         if (this.default_continuous_builder == null) {
@@ -262,5 +266,21 @@ class VerbBuilder {
         let verb = fixShortIBigrams(`${this.verb_base}${affix}`);
         let auxVerb = this.getCanAuxBuilder().getFormByShak(person, number, sentenceType, shak);
         return `${verb} ${auxVerb}`;
+    }
+    /* Жедел өткен шақ */
+    pastForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
+        let persAffix = VERB_PERS_AFFIXES2[person][number][this.soft_offset];
+        if (sentenceType == SentenceType.Statement) {
+            let affix = getDydiTyti(this.base_last, this.soft_offset);
+            return `${this.verb_base}${affix}${persAffix}`;
+        } else if (sentenceType == SentenceType.Negative) {
+            let negativeBase = this.getNegativeBase();
+            let affix = DYDI[this.soft_offset];
+            return `${negativeBase}${affix}${persAffix}`;
+        } else if (sentenceType == SentenceType.Question) {
+            let affix = getDydiTyti(this.base_last, this.soft_offset);
+            return this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`);
+        }
+        return NOT_SUPPORTED;
     }
 }

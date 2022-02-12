@@ -927,6 +927,61 @@ ALL_TESTS.push(["canClauseTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["pastTenseTest", function() {
+    T_EQ_ASSERT(
+        "жаздым",
+        new VerbBuilder("жазу").pastForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Past tense form of 1st person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "биледік",
+        new VerbBuilder("билеу").pastForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
+        "Past tense form of 1st person, plural, statement"
+    );
+    T_EQ_ASSERT(
+        "отырдың",
+        new VerbBuilder("отыру").pastForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement),
+        "Past tense form of 2nd person, singular, statement"
+    );
+
+    T_EQ_ASSERT(
+        "пісірді ме?",
+        new VerbBuilder("пісіру").pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        "Past tense form of 3rd person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "болдыңдар ма?",
+        new VerbBuilder("болу").pastForm(GrammarPerson.Second, GrammarNumber.Plural, SentenceType.Question),
+        "Past tense form of 2nd person, plural, question"
+    );
+    T_EQ_ASSERT(
+        "істедіңіздер ме?",
+        new VerbBuilder("істеу").pastForm(GrammarPerson.SecondPolite, GrammarNumber.Plural, SentenceType.Question),
+        "Past tense form of 2nd person polite, plural, question"
+    );
+    T_EQ_ASSERT(
+        "оқыдыңыз ба?",
+        new VerbBuilder("оқу").pastForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
+        "Past tense form of 2nd person polite, singular, question"
+    );
+
+    T_EQ_ASSERT(
+        "тыңдамады",
+        new VerbBuilder("тыңдау").pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative),
+        "Past tense form of 3rd person, singular, negative"
+    );
+    T_EQ_ASSERT(
+        "ішпедік",
+        new VerbBuilder("ішу").pastForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
+        "Past tense form of 1st person, plural, negative"
+    );
+    T_EQ_ASSERT(
+        "оқымадың",
+        new VerbBuilder("оқу").pastForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative),
+        "Past tense form of 2nd person, singular, negative"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
