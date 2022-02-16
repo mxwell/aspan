@@ -125,6 +125,25 @@ const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, Stri
     }
 };
 
+const POSSESSIVE_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
+    First: {
+        Singular: "менің",
+        Plural: "біздің"
+    },
+    Second: {
+        Singular: "сенің",
+        Plural: "сендердің"
+    },
+    SecondPolite: {
+        Singular: "Сіздің",
+        Plural: "Сіздердің"
+    },
+    Third: {
+        Singular: "оның",
+        Plural: "олардың"
+    }
+};
+
 /* we should add і/ы to the base for the following: */
 const VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET = new Set([
     "абыржу",
