@@ -51,3 +51,16 @@ function fixShortIBigrams(w: string): string {
         .replace("ый", "и")
     );
 }
+
+function fixGgbInPastBase(c: string): string {
+    if (c == 'г') {
+        return 'к';
+    }
+    if ( c == 'ғ') {
+        return 'қ';
+    }
+    if (c == 'б') {
+        return 'п';
+    }
+    return c;
+}

@@ -980,6 +980,12 @@ ALL_TESTS.push(["pastTenseTest", function() {
         new VerbBuilder("оқу").pastForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative),
         "Past tense form of 2nd person, singular, negative"
     );
+    T_EQ_ASSERT(
+        "шықты",
+        new VerbBuilder("шығу").pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Past tense form of 3rd person, singular, negative; consonant softening"
+    );
+    // TODO case with 'аңду'
 }]);
 
 /* End of tests */

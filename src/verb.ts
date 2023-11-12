@@ -133,6 +133,9 @@ class VerbBuilder {
         let particle = getQuestionParticle(getLastItem(phrase), this.soft_offset);
         return `${phrase} ${particle}?`;
     }
+    getPastBase(): string {
+        return `${chopLast(this.verb_base, 1)}${fixGgbInPastBase(this.base_last)}`;
+    }
     /* Ауыспалы осы/келер шақ */
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == "Statement") {
@@ -271,8 +274,10 @@ class VerbBuilder {
     pastForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         let persAffix = VERB_PERS_AFFIXES2[person][number][this.soft_offset];
         if (sentenceType == SentenceType.Statement) {
-            let affix = getDydiTyti(this.base_last, this.soft_offset);
-            return `${this.verb_base}${affix}${persAffix}`;
+            let pastBase = this.getPastBase()
+            let pastBaseLast = getLastItem(pastBase)
+            let affix = getDydiTyti(pastBaseLast, this.soft_offset);
+            return `${pastBase}${affix}${persAffix}`;
         } else if (sentenceType == SentenceType.Negative) {
             let negativeBase = this.getNegativeBase();
             let affix = DYDI[this.soft_offset];
