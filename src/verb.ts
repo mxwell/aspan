@@ -125,6 +125,23 @@ class VerbBuilder {
         }
         return "а";
     }
+    possibleFutureSuffix(): string {
+        if (genuineVowel(this.base_last)) {
+            return "р";
+        }
+        if (this.soft) {
+            return "ер";
+        }
+        return "ар";
+    }
+    possibleFutureBaseWithSuffix(): string {
+        let affix = this.possibleFutureSuffix();
+        if (this.base_last == "й" && affix == "ар") {
+            let chopped = chopLast(this.verb_base, 1)
+            return `${chopped}яр`;
+        }
+        return `${this.verb_base}${affix}`;
+    }
     getNegativeBase(): string {
         let particle = getQuestionParticle(this.base_last, this.soft_offset);
         return `${this.verb_base}${particle}`;
@@ -286,6 +303,24 @@ class VerbBuilder {
             let affix = getDydiTyti(this.base_last, this.soft_offset);
             return this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`);
         }
+        return NOT_SUPPORTED;
+    }
+    /* Болжалды келер шақ */
+    possibleFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
+        if (sentenceType == SentenceType.Statement) {
+            let baseWithSuffix = this.possibleFutureBaseWithSuffix();
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+            if (person == GrammarPerson.Third) {
+                persAffix = "";
+            }
+            return `${baseWithSuffix}${persAffix}`;
+        } else if (sentenceType == SentenceType.Negative) {
+            let negativeBase = this.getNegativeBase();
+            let formSuffix = "с";
+            let persAffix = getPersAffix1(person, number, formSuffix, this.soft_offset);
+            return `${negativeBase}${formSuffix}${persAffix}`;
+        }
+        // TODO question
         return NOT_SUPPORTED;
     }
 }

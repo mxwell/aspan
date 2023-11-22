@@ -983,9 +983,93 @@ ALL_TESTS.push(["pastTenseTest", function() {
     T_EQ_ASSERT(
         "шықты",
         new VerbBuilder("шығу").pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
-        "Past tense form of 3rd person, singular, negative; consonant softening"
+        "Past tense form of 3rd person, singular, statement; consonant softening"
     );
     // TODO case with 'аңду'
+}]);
+
+ALL_TESTS.push(["possibleFutureTenseTest", function() {
+    T_EQ_ASSERT(
+        "жазармын",
+        new VerbBuilder("жазу").possibleFutureForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 1st person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "айтарсың",
+        new VerbBuilder("айту").possibleFutureForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 2nd person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "көрер",
+        new VerbBuilder("көру").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "көрер",
+        new VerbBuilder("көру").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "демаларсыз",
+        new VerbBuilder("демалу").possibleFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 2nd polite person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "аударарсыздар",
+        new VerbBuilder("аудару").possibleFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Plural, SentenceType.Statement),
+        "Possible future form of 2nd polite person, plural, statement"
+    );
+    T_EQ_ASSERT(
+        "келер",
+        new VerbBuilder("келу").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement),
+        "Possible future form of 3rd person, plural, statement"
+    );
+    T_EQ_ASSERT(
+        "жаяр",
+        new VerbBuilder("жаю").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement),
+        "Possible future form of 3rd person, plural, statement; special case"
+    );
+    T_EQ_ASSERT(
+        "қояр",
+        new VerbBuilder("қою").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement; special case"
+    );
+    T_EQ_ASSERT(
+        "сүйер",
+        new VerbBuilder("сүю").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement; special case"
+    );
+    T_EQ_ASSERT(
+        "оқыр",
+        new VerbBuilder("оқу").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement; special case"
+    );
+    T_EQ_ASSERT(
+        "ренжір",
+        new VerbBuilder("ренжу").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Possible future form of 3rd person, singular, statement; special case"
+    );
+    T_EQ_ASSERT(
+        "көрмес",
+        new VerbBuilder("көру").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative),
+        "Possible future form of 3rd person, singular, negative"
+    );
+    T_EQ_ASSERT(
+        "көрмес",
+        new VerbBuilder("көру").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Negative),
+        "Possible future form of 3rd person, plural, negative"
+    );
+    T_EQ_ASSERT(
+        "демалмассыз",
+        new VerbBuilder("демалу").possibleFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Negative),
+        "Possible future form of 2nd polite person, singular, negative"
+    );
+    T_EQ_ASSERT(
+        "бармаспыз",
+        new VerbBuilder("бару").possibleFutureForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
+        "Possible future form of 1st person, plural, negative"
+    );
+
 }]);
 
 /* End of tests */
