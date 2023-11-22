@@ -298,7 +298,7 @@ class VerbBuilder {
         } else if (sentenceType == SentenceType.Negative) {
             let negativeBase = this.getNegativeBase();
             let affix = DYDI[this.soft_offset];
-            return `${negativeBase}${affix}${persAffix}`;
+            return fixBgBigrams(`${negativeBase}${affix}${persAffix}`);
         } else if (sentenceType == SentenceType.Question) {
             let affix = getDydiTyti(this.base_last, this.soft_offset);
             return this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`);
@@ -318,7 +318,7 @@ class VerbBuilder {
             let negativeBase = this.getNegativeBase();
             let formSuffix = "с";
             let persAffix = getPersAffix1(person, number, formSuffix, this.soft_offset);
-            return `${negativeBase}${formSuffix}${persAffix}`;
+            return fixBgBigrams(`${negativeBase}${formSuffix}${persAffix}`);
         }
         // TODO question
         return NOT_SUPPORTED;

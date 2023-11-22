@@ -981,6 +981,11 @@ ALL_TESTS.push(["pastTenseTest", function() {
         "Past tense form of 2nd person, singular, negative"
     );
     T_EQ_ASSERT(
+        "жаппадық",
+        new VerbBuilder("жабу").pastForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
+        "Past tense form of 1st person, plural, negative; special case"
+    );
+    T_EQ_ASSERT(
         "шықты",
         new VerbBuilder("шығу").pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
         "Past tense form of 3rd person, singular, statement; consonant softening"
@@ -1069,7 +1074,16 @@ ALL_TESTS.push(["possibleFutureTenseTest", function() {
         new VerbBuilder("бару").possibleFutureForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
         "Possible future form of 1st person, plural, negative"
     );
-
+    T_EQ_ASSERT(
+        "жаппассыңдар",
+        new VerbBuilder("жабу").possibleFutureForm(GrammarPerson.Second, GrammarNumber.Plural, SentenceType.Negative),
+        "Possible future form of 2nd person, plural, negative; special case"
+    );
+    T_EQ_ASSERT(
+        "теппес",
+        new VerbBuilder("тебу").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Negative),
+        "Possible future form of 3rd person, plural, negative; special case"
+    );
 }]);
 
 /* End of tests */
