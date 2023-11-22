@@ -52,6 +52,19 @@ function testAll() {
     console.log("=====\n");
 }
 
+function testAllCases(testName, verbDictForm, sentenceType, callback, expectedForms) {
+    let verbBuilder = new VerbBuilder(verbDictForm);
+    let position = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            let result = callback(verbBuilder, person, number, sentenceType);
+            let expected = expectedForms[position];
+            position += 1;
+            T_EQ_ASSERT(expected, result, `Test ${testName}, ${person}, ${number}, ${sentenceType}: `);
+        }
+    }
+}
+
 /* Tests go below */
 
 /** Template:
@@ -63,78 +76,39 @@ ALL_TESTS.push(["name", function() {
 **/
 
 ALL_TESTS.push(["basicStatementFormsTest", function() {
-    let verbDictForm = "алу";
-    let verbBuilder = new VerbBuilder(verbDictForm);
-    const sentenceType = SentenceType.Statement;
-    const expectedForms = [
-        "аламын",
-        "аламыз",
-        "аласың",
-        "аласыңдар",
-        "аласыз",
-        "аласыздар",
-        "алады",
-        "алады",
-    ];
-    let position = 0;
-    for (const person of GRAMMAR_PERSONS) {
-        for (const number of GRAMMAR_NUMBERS) {
-            let s = verbBuilder.presentTransitiveForm(person, number, sentenceType);
-            let expected = expectedForms[position];
-            position += 1;
-            T_EQ_ASSERT(expected, s, sentenceType + " forms of the verb " + verbDictForm + ": ");
-        }
-    }
+    testAllCases(
+        "basicStatementAllForms",
+        "алу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        [ "аламын", "аламыз", "аласың", "аласыңдар", "аласыз", "аласыздар", "алады", "алады" ],
+    );
 }]);
 
 ALL_TESTS.push(["basicNegativeFormsTest", function() {
-    let verbDictForm = "келу";
-    let verbBuilder = new VerbBuilder(verbDictForm);
-    const sentenceType = SentenceType.Negative;
-    const expectedForms = [
-        "келмеймін",
-        "келмейміз",
-        "келмейсің",
-        "келмейсіңдер",
-        "келмейсіз",
-        "келмейсіздер",
-        "келмейді",
-        "келмейді",
-    ];
-    let position = 0;
-    for (const person of GRAMMAR_PERSONS) {
-        for (const number of GRAMMAR_NUMBERS) {
-            let s = verbBuilder.presentTransitiveForm(person, number, sentenceType);
-            let expected = expectedForms[position];
-            position += 1;
-            T_EQ_ASSERT(expected, s, sentenceType + " forms of the verb " + verbDictForm + ": ");
-        }
-    }
+    testAllCases(
+        "basicNegativeAllForms",
+        "келу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        [ "келмеймін", "келмейміз", "келмейсің", "келмейсіңдер", "келмейсіз", "келмейсіздер", "келмейді", "келмейді" ],
+    );
 }]);
 
 ALL_TESTS.push(["basicQuestionFormsTest", function() {
-    let verbDictForm = "ренжу";
-    let verbBuilder = new VerbBuilder(verbDictForm);
-    const sentenceType = SentenceType.Question;
-    const expectedForms = [
-        "ренжимін бе?",
-        "ренжиміз бе?",
-        "ренжисің бе?",
-        "ренжисіңдер ме?",
-        "ренжисіз бе?",
-        "ренжисіздер ме?",
-        "ренжи ме?",
-        "ренжи ме?",
-    ];
-    let position = 0;
-    for (const person of GRAMMAR_PERSONS) {
-        for (const number of GRAMMAR_NUMBERS) {
-            let s = verbBuilder.presentTransitiveForm(person, number, sentenceType);
-            let expected = expectedForms[position];
-            position += 1;
-            T_EQ_ASSERT(expected, s, sentenceType + " forms of the verb " + verbDictForm + ": ");
-        }
-    }
+    testAllCases(
+        "basicQuestionAllForms",
+        "ренжу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        [ "ренжимін бе?", "ренжиміз бе?", "ренжисің бе?", "ренжисіңдер ме?", "ренжисіз бе?", "ренжисіздер ме?", "ренжи ме?", "ренжи ме?" ],
+    );
 }]);
 
 ALL_TESTS.push(["trickyCasesTest", function() {
@@ -991,6 +965,28 @@ ALL_TESTS.push(["pastTenseTest", function() {
         "Past tense form of 3rd person, singular, statement; consonant softening"
     );
     // TODO case with 'аңду'
+}]);
+
+ALL_TESTS.push(["pastTenseAllCasesTest", function() {
+    testAllCases(
+        "PastTense special case",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықтым", "қорықтық", "қорықтың", "қорықтыңдар", "қорықтыңыз", "қорықтыңыздар", "қорықты", "қорықты"]
+    );
+
+    testAllCases(
+        "PastTense special case",
+        "ірку",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["іріктім", "ірікірік", "іріктің", "іріктіңдер", "іріктіңіз", "іріктіңіздер", "ірікті", "ірікті"]
+    );
 }]);
 
 ALL_TESTS.push(["possibleFutureTenseTest", function() {
