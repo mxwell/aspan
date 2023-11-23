@@ -97,6 +97,10 @@ const MAME = ["ма", "ме"];
 const BABE = ["ба", "бе"];
 const PAPE = ["па", "пе"];
 
+const MAKMEK = ["мақ", "мек"];
+const BAKBEK = ["бақ", "бек"];
+const PAKPEK = ["пақ", "пек"];
+
 const GANGEN = ["ған", "ген"];
 const KANKEN = ["қан", "кен"];
 

@@ -323,4 +323,15 @@ class VerbBuilder {
         // TODO question
         return NOT_SUPPORTED;
     }
+    /* Мақсатты келер шақ */
+    intentionFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
+        if (sentenceType == SentenceType.Statement) {
+            let tenseAffix = getIntentionFutureAffix(this.base_last, this.soft_offset);
+            let affixLast = getLastItem(tenseAffix);
+            let persAffix = getPersAffix1(person, number, affixLast, this.soft_offset);
+            return `${this.verb_base}${tenseAffix}${persAffix}`;
+        }
+        // TODO
+        return NOT_SUPPORTED;
+    }
 }

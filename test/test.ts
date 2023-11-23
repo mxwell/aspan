@@ -1082,6 +1082,45 @@ ALL_TESTS.push(["possibleFutureTenseTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["IntentionFutureTenseTest", function() {
+    testAllCases(
+        "Intention Future Tense",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбақпын", "жазбақпыз", "жазбақсың", "жазбақсыңдар", "жазбақсыз", "жазбақсыздар", "жазбақ", "жазбақ"]
+    );
+    testAllCases(
+        "Intention Future Tense",
+        "ішу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ішпекпін", "ішпекпіз", "ішпексің", "ішпексіңдер", "ішпексіз", "ішпексіздер", "ішпек", "ішпек"]
+    );
+    testAllCases(
+        "Intention Future Tense",
+        "төлеу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["төлемекпін", "төлемекпіз", "төлемексің", "төлемексіңдер", "төлемексіз", "төлемексіздер", "төлемек", "төлемек"]
+    );
+    testAllCases(
+        "Intention Future Tense",
+        "оқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқымақпын", "оқымақпыз", "оқымақсың", "оқымақсыңдар", "оқымақсыз", "оқымақсыздар", "оқымақ", "оқымақ"]
+    );
+}]);
+
 /* End of tests */
 
 testAll();
