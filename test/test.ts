@@ -7,11 +7,11 @@ function T_ASSERT(condition: boolean, message: string) {
     }
 }
 
-function T_EQ_ASSERT(expected, got, message) {
+function T_EQ_ASSERT(expected: any, got: any, message: string) {
     T_ASSERT(expected == got, message + "Expected [" + expected + "], but got [" + got + "]");
 }
 
-let ALL_TESTS = [];
+let ALL_TESTS: [string, () => void][] = [];
 
 function testAll() {
     console.log("Starting testing...\n");
@@ -52,7 +52,9 @@ function testAll() {
     console.log("=====\n");
 }
 
-function testAllCases(testName, verbDictForm, sentenceType, callback, expectedForms) {
+type VerbFormProducer = (verbBuilder: VerbBuilder, grammarPerson: GrammarPerson, grammarNumber: GrammarNumber, sentenceType: SentenceType) => string;
+
+function testAllCases(testName: string, verbDictForm: string, sentenceType: SentenceType, callback: VerbFormProducer, expectedForms: string[]) {
     let verbBuilder = new VerbBuilder(verbDictForm);
     let position = 0;
     for (const person of GRAMMAR_PERSONS) {

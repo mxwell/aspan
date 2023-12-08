@@ -16,7 +16,7 @@ function isVerbException(verb_dict_form: string): boolean {
     return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verb_dict_form);
 }
 
-function isVerbOptionalException(verb_dict_form): boolean {
+function isVerbOptionalException(verb_dict_form: string): boolean {
     return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verb_dict_form);
 }
 
@@ -28,8 +28,8 @@ const NOT_SUPPORTED: string = "<not supported>";
 
 class PresentContinuousContext {
     verb_base: string
-    constructor(verb_dict_form: string) {
-        this.verb_base = VERB_PRESENT_CONT_BASE_MAP.get(verb_dict_form);
+    constructor(verb_dict_form_base: string) {
+        this.verb_base = verb_dict_form_base;
     }
 }
 
@@ -52,8 +52,9 @@ type MaybePresentContinuousContext = PresentContinuousContext | null;
 type MaybeVerbBuilder = VerbBuilder | null;
 
 function createPresentContinuousContext(verb_dict_form: string): MaybePresentContinuousContext {
-    if (validPresentContAuxVerb(verb_dict_form)) {
-        return new PresentContinuousContext(verb_dict_form);
+    let verb_dict_form_base = VERB_PRESENT_CONT_BASE_MAP.get(verb_dict_form);
+    if (verb_dict_form_base != null) {
+        return new PresentContinuousContext(verb_dict_form_base);
     }
     return null;
 }
