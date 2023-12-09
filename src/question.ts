@@ -1,3 +1,3 @@
-function getQuestionParticle(c: string, soft_offset: number): string {
-    return chooseMBP(c, soft_offset, MAME, BABE, PAPE);
+function getQuestionParticle(c: string, softOffset: number): string {
+    return chooseMBP(c, softOffset, MAME, BABE, PAPE);
 }

@@ -1,3 +1,3 @@
-function getIntentionFutureAffix(c: string, soft_offset: number): string {
-    return chooseMBP(c, soft_offset, MAKMEK, BAKBEK, PAKPEK);
+function getIntentionFutureAffix(c: string, softOffset: number): string {
+    return chooseMBP(c, softOffset, MAKMEK, BAKBEK, PAKPEK);
 }

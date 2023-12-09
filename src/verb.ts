@@ -1,40 +1,40 @@
-function validateVerb(verb_dict_form: string): boolean {
-    if (verb_dict_form.length < 2) {
+function validateVerb(verbDictForm: string): boolean {
+    if (verbDictForm.length < 2) {
         return false;
     }
-    if (verb_dict_form.length > 100) {
+    if (verbDictForm.length > 100) {
         return false;
     }
-    if (verb_dict_form.toLowerCase() != verb_dict_form) {
+    if (verbDictForm.toLowerCase() != verbDictForm) {
         return false;
     }
-    let last = getLastItem(verb_dict_form);
+    let last = getLastItem(verbDictForm);
     return last == "у" || last == "ю";
 }
 
-function isVerbException(verb_dict_form: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verb_dict_form);
+function isVerbException(verbDictForm: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verbDictForm);
 }
 
-function isVerbOptionalException(verb_dict_form: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verb_dict_form);
+function isVerbOptionalException(verbDictForm: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verbDictForm);
 }
 
-function isVerbException2(verb_dict_form: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verb_dict_form);
+function isVerbException2(verbDictForm: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verbDictForm);
 }
 
 const NOT_SUPPORTED: string = "<not supported>";
 
 class PresentContinuousContext {
-    verb_base: string
-    constructor(verb_dict_form_base: string) {
-        this.verb_base = verb_dict_form_base;
+    verbBase: string
+    constructor(verbDictFormBase: string) {
+        this.verbBase = verbDictFormBase;
     }
 }
 
-function validPresentContAuxVerb(verb_dict_form: string): boolean {
-    return VERB_PRESENT_CONT_BASE_MAP.has(verb_dict_form);
+function validPresentContAuxVerb(verbDictForm: string): boolean {
+    return VERB_PRESENT_CONT_BASE_MAP.has(verbDictForm);
 }
 
 function validPresentContPair(verb: string, auxVerb: string): boolean {
@@ -51,74 +51,74 @@ function validPresentContPair(verb: string, auxVerb: string): boolean {
 type MaybePresentContinuousContext = PresentContinuousContext | null;
 type MaybeVerbBuilder = VerbBuilder | null;
 
-function createPresentContinuousContext(verb_dict_form: string): MaybePresentContinuousContext {
-    let verb_dict_form_base = VERB_PRESENT_CONT_BASE_MAP.get(verb_dict_form);
-    if (verb_dict_form_base != null) {
-        return new PresentContinuousContext(verb_dict_form_base);
+function createPresentContinuousContext(verbDictForm: string): MaybePresentContinuousContext {
+    let verbDictFormBase = VERB_PRESENT_CONT_BASE_MAP.get(verbDictForm);
+    if (verbDictFormBase != null) {
+        return new PresentContinuousContext(verbDictFormBase);
     }
     return null;
 }
 
 class VerbBuilder {
-    verb_dict_form: string
-    verb_base: string
-    needs_ya_suffix: boolean
-    base_last: string
+    verbDictForm: string
+    verbBase: string
+    needsYaSuffix: boolean
+    baseLast: string
     soft: boolean
-    soft_offset: number
-    cont_context: MaybePresentContinuousContext
-    want_aux_builder: MaybeVerbBuilder
-    can_aux_builder: MaybeVerbBuilder
-    default_continuous_builder: MaybeVerbBuilder
-    constructor(verb_dict_form: string, force_exceptional = false) {
-        if (!validateVerb(verb_dict_form)) {
+    softOffset: number
+    contContext: MaybePresentContinuousContext
+    wantAuxBuilder: MaybeVerbBuilder
+    canAuxBuilder: MaybeVerbBuilder
+    defaultContinuousBuilder: MaybeVerbBuilder
+    constructor(verbDictForm: string, forceExceptional = false) {
+        if (!validateVerb(verbDictForm)) {
             throw new Error("verb dictionary form must end with -у/-ю");
         }
-        this.verb_dict_form = verb_dict_form;
-        this.verb_base = chopLast(verb_dict_form, 1);
-        this.needs_ya_suffix = false;
+        this.verbDictForm = verbDictForm;
+        this.verbBase = chopLast(verbDictForm, 1);
+        this.needsYaSuffix = false;
         this.soft = (
-            wordIsSoft(this.verb_base)
-            || FORCED_SOFT_VERBS.has(verb_dict_form)
+            wordIsSoft(this.verbBase)
+            || FORCED_SOFT_VERBS.has(verbDictForm)
         );
-        this.soft_offset = this.soft ? 1 : 0;
+        this.softOffset = this.soft ? 1 : 0;
 
         /* exceptions */
-        if (isVerbException(verb_dict_form) || (isVerbOptionalException(verb_dict_form) && force_exceptional)) {
-            this.verb_base = this.verb_base + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
-        } else if (isVerbException2(verb_dict_form)) {
-            this.verb_base = this.verb_base + "й" + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.soft_offset];
-        } else if (verb_dict_form.endsWith("ю")) {
-            if (verb_dict_form.endsWith("ию")) {
+        if (isVerbException(verbDictForm) || (isVerbOptionalException(verbDictForm) && forceExceptional)) {
+            this.verbBase = this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+        } else if (isVerbException2(verbDictForm)) {
+            this.verbBase = this.verbBase + "й" + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+        } else if (verbDictForm.endsWith("ю")) {
+            if (verbDictForm.endsWith("ию")) {
                 if (!this.soft) {
-                    this.needs_ya_suffix = true;
+                    this.needsYaSuffix = true;
                 } else {
                     // nothing special here
                 }
             } else {
-                this.verb_base = this.verb_base + "й";
+                this.verbBase = this.verbBase + "й";
             }
         }
 
-        this.base_last = getLastItem(this.verb_base);
+        this.baseLast = getLastItem(this.verbBase);
 
-        this.cont_context = createPresentContinuousContext(verb_dict_form);
-        this.want_aux_builder = null;
-        this.can_aux_builder = null;
-        this.default_continuous_builder = null;
+        this.contContext = createPresentContinuousContext(verbDictForm);
+        this.wantAuxBuilder = null;
+        this.canAuxBuilder = null;
+        this.defaultContinuousBuilder = null;
     }
     getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber): string {
         if (person == "Third") {
             return "";
         }
-        return VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+        return VERB_PERS_AFFIXES1[person][number][this.softOffset];
     }
     /* used only for Statement/Question sentence types */
     presentTransitiveSuffix(): string {
-        if (this.needs_ya_suffix) {
+        if (this.needsYaSuffix) {
             return "я";
         }
-        if (genuineVowel(this.base_last)) {
+        if (genuineVowel(this.baseLast)) {
             return "й";
         }
         if (this.soft) {
@@ -127,7 +127,7 @@ class VerbBuilder {
         return "а";
     }
     possibleFutureSuffix(): string {
-        if (genuineVowel(this.base_last)) {
+        if (genuineVowel(this.baseLast)) {
             return "р";
         }
         if (this.soft) {
@@ -137,85 +137,85 @@ class VerbBuilder {
     }
     possibleFutureBaseWithSuffix(): string {
         let affix = this.possibleFutureSuffix();
-        if (this.base_last == "й" && affix == "ар") {
-            let chopped = chopLast(this.verb_base, 1)
+        if (this.baseLast == "й" && affix == "ар") {
+            let chopped = chopLast(this.verbBase, 1)
             return `${chopped}яр`;
         }
-        return `${this.verb_base}${affix}`;
+        return `${this.verbBase}${affix}`;
     }
     getNegativeBaseOf(base: string): string {
         let baseLast = getLastItem(base);
-        let particle = getQuestionParticle(baseLast, this.soft_offset);
+        let particle = getQuestionParticle(baseLast, this.softOffset);
         return `${base}${particle}`;
     }
     getNegativeBase(): string {
-        return this.getNegativeBaseOf(this.verb_base);
+        return this.getNegativeBaseOf(this.verbBase);
     }
     getQuestionForm(phrase: string): string {
-        let particle = getQuestionParticle(getLastItem(phrase), this.soft_offset);
+        let particle = getQuestionParticle(getLastItem(phrase), this.softOffset);
         return `${phrase} ${particle}?`;
     }
     getPastBase(): string {
-        let specialPast = VERB_EXCEPTION_VOWEL_IN_PAST_MAP.get(this.verb_dict_form)
+        let specialPast = VERB_EXCEPTION_VOWEL_IN_PAST_MAP.get(this.verbDictForm)
         if (specialPast != null) {
             return specialPast
         }
-        return `${chopLast(this.verb_base, 1)}${fixGgbInPastBase(this.base_last)}`;
+        return `${chopLast(this.verbBase, 1)}${fixGgbInPastBase(this.baseLast)}`;
     }
     /* Ауыспалы осы/келер шақ */
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == "Statement") {
             let affix = this.presentTransitiveSuffix();
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
-            return fixShortIBigrams(`${this.verb_base}${affix}${persAffix}`);
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
+            return fixShortIBigrams(`${this.verbBase}${affix}${persAffix}`);
         } else if (sentenceType == "Negative") {
             let negativeBase = this.getNegativeBase();
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
             return fixBgBigrams(`${negativeBase}й${persAffix}`);
         } else if (sentenceType == "Question") {
             let affix = this.presentTransitiveSuffix();
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            return fixShortIBigrams(this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`));
+            return fixShortIBigrams(this.getQuestionForm(`${this.verbBase}${affix}${persAffix}`));
         }
         return NOT_SUPPORTED;
     }
     /* Нақ осы шақ */
     presentSimpleContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
-        if (this.cont_context == null) {
+        if (this.contContext == null) {
             return NOT_SUPPORTED;
         }
         if (sentenceType == "Statement") {
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            return `${this.cont_context.verb_base}${persAffix}`;
+            return `${this.contContext.verbBase}${persAffix}`;
         } else if (sentenceType == "Negative") {
-            let affix = getGangenKanken(this.base_last, this.soft_offset);
+            let affix = getGangenKanken(this.baseLast, this.softOffset);
 
             // parameters of "жоқ", not of the verb base
             let gokLast = 'қ';
             let gokSoftOffset = 0;
 
             let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
-            return `${this.verb_base}${affix} жоқ${persAffix}`;
+            return `${this.verbBase}${affix} жоқ${persAffix}`;
         } else if (sentenceType == "Question") {
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            return this.getQuestionForm(`${this.cont_context.verb_base}${persAffix}`);
+            return this.getQuestionForm(`${this.contContext.verbBase}${persAffix}`);
         }
         return NOT_SUPPORTED;
     }
     getPresentContinuousBase(): string {
-        if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verb_dict_form)) {
-            return chopLast(this.verb_base, 1) + "у";
+        if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
+            return chopLast(this.verbBase, 1) + "у";
         }
-        return this.verb_base;
+        return this.verbBase;
     }
     getPresentContinousAffix(): string {
-        if (VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verb_dict_form)) {
+        if (VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verbDictForm)) {
             return "а";
         }
-        if (VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verb_dict_form)) {
+        if (VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verbDictForm)) {
             return "е";
         }
-        if (genuineVowel(this.base_last)) {
+        if (genuineVowel(this.baseLast)) {
             return "п";
         }
         if (this.soft) {
@@ -224,11 +224,11 @@ class VerbBuilder {
         return "ып";
     }
     presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder): string {
-        if (auxBuilder.cont_context == null) {
+        if (auxBuilder.contContext == null) {
             return NOT_SUPPORTED;
         }
-        const aeException = VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verb_dict_form) || VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verb_dict_form);
-        if (aeException && auxBuilder.verb_dict_form != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
+        const aeException = VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verbDictForm) || VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verbDictForm);
+        if (aeException && auxBuilder.verbDictForm != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
             return NOT_SUPPORTED;
         }
         const verbBase = this.getPresentContinuousBase();
@@ -238,7 +238,7 @@ class VerbBuilder {
     }
     /* XXX should this form be used by default? */
     presentContinuousSimpleNegativeForm(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): string {
-        if (auxBuilder.cont_context == null) {
+        if (auxBuilder.contContext == null) {
             return NOT_SUPPORTED;
         }
         let negativeBase = this.getNegativeBase();
@@ -246,10 +246,10 @@ class VerbBuilder {
         return fixBgBigrams(`${negativeBase}й ${auxVerb}`);
     }
     getDefaultContinuousBuilder() {
-        if (this.default_continuous_builder == null) {
-            this.default_continuous_builder = new VerbBuilder("жату");
+        if (this.defaultContinuousBuilder == null) {
+            this.defaultContinuousBuilder = new VerbBuilder("жату");
         }
-        return this.default_continuous_builder;
+        return this.defaultContinuousBuilder;
     }
     getFormByShak(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
         if (shak == "PresentTransitive") {
@@ -264,10 +264,10 @@ class VerbBuilder {
     }
     /* Қалау рай */
     getWantAuxBuilder(): VerbBuilder {
-        if (this.want_aux_builder == null) {
-            this.want_aux_builder = new VerbBuilder("келу");
+        if (this.wantAuxBuilder == null) {
+            this.wantAuxBuilder = new VerbBuilder("келу");
         }
-        return this.want_aux_builder;
+        return this.wantAuxBuilder;
     }
     getWantAuxVerb(sentenceType: SentenceType, shak: VerbShak): string {
         if (shak == VerbShak.PresentContinuous && sentenceType != SentenceType.Negative) {
@@ -277,41 +277,41 @@ class VerbBuilder {
         return this.getWantAuxBuilder().getFormByShak(GrammarPerson.Third, GrammarNumber.Singular, sentenceType, shak);
     }
     wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
-        let affix = getGygiKyki(this.base_last, this.soft_offset);
-        let partial = fixXkBigrams(`${this.verb_base}${affix}`);
-        let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.soft_offset];
+        let affix = getGygiKyki(this.baseLast, this.softOffset);
+        let partial = fixXkBigrams(`${this.verbBase}${affix}`);
+        let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.softOffset];
         let auxVerb = this.getWantAuxVerb(sentenceType, shak);
         return `${partial}${persAffix} ${auxVerb}`;
     }
 
     getCanAuxBuilder(): VerbBuilder {
-        if (this.can_aux_builder == null) {
-            this.can_aux_builder = new VerbBuilder("алу");
+        if (this.canAuxBuilder == null) {
+            this.canAuxBuilder = new VerbBuilder("алу");
         }
-        return this.can_aux_builder;
+        return this.canAuxBuilder;
     }
     canClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): string {
         let affix = this.presentTransitiveSuffix();
-        let verb = fixShortIBigrams(`${this.verb_base}${affix}`);
+        let verb = fixShortIBigrams(`${this.verbBase}${affix}`);
         let auxVerb = this.getCanAuxBuilder().getFormByShak(person, number, sentenceType, shak);
         return `${verb} ${auxVerb}`;
     }
     /* Жедел өткен шақ */
     pastForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
-        let persAffix = VERB_PERS_AFFIXES2[person][number][this.soft_offset];
+        let persAffix = VERB_PERS_AFFIXES2[person][number][this.softOffset];
         if (sentenceType == SentenceType.Statement) {
             let pastBase = this.getPastBase()
             let pastBaseLast = getLastItem(pastBase)
-            let affix = getDydiTyti(pastBaseLast, this.soft_offset);
+            let affix = getDydiTyti(pastBaseLast, this.softOffset);
             return `${pastBase}${affix}${persAffix}`;
         } else if (sentenceType == SentenceType.Negative) {
             let pastBase = this.getPastBase()
             let negativeBase = this.getNegativeBaseOf(pastBase);
-            let affix = DYDI[this.soft_offset];
+            let affix = DYDI[this.softOffset];
             return fixBgBigrams(`${negativeBase}${affix}${persAffix}`);
         } else if (sentenceType == SentenceType.Question) {
-            let affix = getDydiTyti(this.base_last, this.soft_offset);
-            return this.getQuestionForm(`${this.verb_base}${affix}${persAffix}`);
+            let affix = getDydiTyti(this.baseLast, this.softOffset);
+            return this.getQuestionForm(`${this.verbBase}${affix}${persAffix}`);
         }
         return NOT_SUPPORTED;
     }
@@ -319,7 +319,7 @@ class VerbBuilder {
     possibleFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == SentenceType.Statement) {
             let baseWithSuffix = this.possibleFutureBaseWithSuffix();
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.soft_offset];
+            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
             if (person == GrammarPerson.Third) {
                 persAffix = "";
             }
@@ -327,7 +327,7 @@ class VerbBuilder {
         } else if (sentenceType == SentenceType.Negative) {
             let negativeBase = this.getNegativeBase();
             let formSuffix = "с";
-            let persAffix = getPersAffix1(person, number, formSuffix, this.soft_offset);
+            let persAffix = getPersAffix1(person, number, formSuffix, this.softOffset);
             return fixBgBigrams(`${negativeBase}${formSuffix}${persAffix}`);
         }
         // TODO question
@@ -336,10 +336,10 @@ class VerbBuilder {
     /* Мақсатты келер шақ */
     intentionFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == SentenceType.Statement) {
-            let tenseAffix = getIntentionFutureAffix(this.base_last, this.soft_offset);
+            let tenseAffix = getIntentionFutureAffix(this.baseLast, this.softOffset);
             let affixLast = getLastItem(tenseAffix);
-            let persAffix = getPersAffix1(person, number, affixLast, this.soft_offset);
-            return `${this.verb_base}${tenseAffix}${persAffix}`;
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return `${this.verbBase}${tenseAffix}${persAffix}`;
         }
         // TODO
         return NOT_SUPPORTED;

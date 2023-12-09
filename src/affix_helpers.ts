@@ -6,12 +6,12 @@ function babeCompatible(c: string): boolean {
     return checkCharPresence(c, CONS_GROUP2);
 }
 
-function chooseMBP(c: string, soft_offset: number, m_affixes: string[], b_affixes: string[], p_affixes: string[]): string {
+function chooseMBP(c: string, softOffset: number, mAffixes: string[], bAffixes: string[], pAffixes: string[]): string {
     if (mameCompatible(c)) {
-        return m_affixes[soft_offset];
+        return mAffixes[softOffset];
     }
     if (babeCompatible(c)) {
-        return b_affixes[soft_offset];
+        return bAffixes[softOffset];
     }
-    return p_affixes[soft_offset];
+    return pAffixes[softOffset];
 }
