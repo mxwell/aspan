@@ -979,6 +979,15 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         },
         ["қорықтым", "қорықтық", "қорықтың", "қорықтыңдар", "қорықтыңыз", "қорықтыңыздар", "қорықты", "қорықты"]
     );
+    testAllCases(
+        "PastTense special case, negative",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпадым", "қорықпадық", "қорықпадың", "қорықпадыңдар", "қорықпадыңыз", "қорықпадыңыздар", "қорықпады", "қорықпады"]
+    );
 
     testAllCases(
         "PastTense special case",
@@ -987,8 +996,17 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
-        ["іріктім", "ірікірік", "іріктің", "іріктіңдер", "іріктіңіз", "іріктіңіздер", "ірікті", "ірікті"]
+        ["іріктім", "іріктік", "іріктің", "іріктіңдер", "іріктіңіз", "іріктіңіздер", "ірікті", "ірікті"]
     );
+    testAllCases(
+        "PastTense special case, negative",
+        "ірку",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ірікпедім", "ірікпедік", "ірікпедің", "ірікпедіңдер", "ірікпедіңіз", "ірікпедіңіздер", "ірікпеді", "ірікпеді"]
+    )
 }]);
 
 ALL_TESTS.push(["possibleFutureTenseTest", function() {

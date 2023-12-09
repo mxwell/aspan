@@ -563,3 +563,10 @@ const VERB_PRESENT_CONT_EXCEPTION_U_SET = new Set([
     "табу",
     "шабу",
 ]);
+
+const VERB_EXCEPTION_VOWEL_IN_PAST_MAP = new Map([
+    ["қорқу", "қорық"],
+    ["қырқу", "қырық"],
+    ["ірку", "ірік"],
+    ["бүрку", "бүрік"],
+]);

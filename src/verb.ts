@@ -143,15 +143,23 @@ class VerbBuilder {
         }
         return `${this.verb_base}${affix}`;
     }
+    getNegativeBaseOf(base: string): string {
+        let baseLast = getLastItem(base);
+        let particle = getQuestionParticle(baseLast, this.soft_offset);
+        return `${base}${particle}`;
+    }
     getNegativeBase(): string {
-        let particle = getQuestionParticle(this.base_last, this.soft_offset);
-        return `${this.verb_base}${particle}`;
+        return this.getNegativeBaseOf(this.verb_base);
     }
     getQuestionForm(phrase: string): string {
         let particle = getQuestionParticle(getLastItem(phrase), this.soft_offset);
         return `${phrase} ${particle}?`;
     }
     getPastBase(): string {
+        let specialPast = VERB_EXCEPTION_VOWEL_IN_PAST_MAP.get(this.verb_dict_form)
+        if (specialPast != null) {
+            return specialPast
+        }
         return `${chopLast(this.verb_base, 1)}${fixGgbInPastBase(this.base_last)}`;
     }
     /* Ауыспалы осы/келер шақ */
@@ -297,7 +305,8 @@ class VerbBuilder {
             let affix = getDydiTyti(pastBaseLast, this.soft_offset);
             return `${pastBase}${affix}${persAffix}`;
         } else if (sentenceType == SentenceType.Negative) {
-            let negativeBase = this.getNegativeBase();
+            let pastBase = this.getPastBase()
+            let negativeBase = this.getNegativeBaseOf(pastBase);
             let affix = DYDI[this.soft_offset];
             return fixBgBigrams(`${negativeBase}${affix}${persAffix}`);
         } else if (sentenceType == SentenceType.Question) {
