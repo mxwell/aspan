@@ -39,7 +39,9 @@ class PhrasalBuilder {
         this.parts = [];
     }
     addPart(part: PhrasalPart): PhrasalBuilder {
-        this.parts.push(part);
+        if (part.content.length > 0) {
+            this.parts.push(part);
+        }
         return this;
     }
     unclassified(s: string): PhrasalBuilder {

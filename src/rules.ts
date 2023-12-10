@@ -570,3 +570,9 @@ const VERB_EXCEPTION_VOWEL_IN_PAST_MAP = new Map([
     ["ірку", "ірік"],
     ["бүрку", "бүрік"],
 ]);
+
+const VERB_LAST_NEGATIVE_CONVERSION = new Map([
+    ["б", "п"],
+    ["г", "к"],
+    ["ғ", "қ"],
+]);

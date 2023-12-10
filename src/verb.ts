@@ -173,34 +173,49 @@ class VerbBuilder {
         }
         return `${chopLast(this.verbBase, 1)}${fixGgbInPastBase(this.baseLast)}`;
     }
+    presentTransitiveCommonBuilder(): PhrasalBuilder {
+        var verbBase = this.verbBase;
+        var affix = this.presentTransitiveSuffix();
+        if (verbBase.endsWith("й") && affix == "а") {
+            verbBase = chopLast(verbBase, 1);
+            affix = "я";
+        } else if ((verbBase.endsWith("ы") || verbBase.endsWith("і")) && affix == "й") {
+            verbBase = chopLast(verbBase, 1);
+            affix = "и";
+        }
+        return new PhrasalBuilder()
+            .verbBase(verbBase)
+            .tenseAffix(affix);
+    }
     /* Ауыспалы осы/келер шақ */
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == "Statement") {
-            var verbBase = this.verbBase;
-            var affix = this.presentTransitiveSuffix();
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
-            if (verbBase.endsWith("й") && affix == "а") {
-                verbBase = chopLast(verbBase, 1);
-                affix = "я";
-            } else if ((verbBase.endsWith("ы") || verbBase.endsWith("і")) && affix == "й") {
-                verbBase = chopLast(verbBase, 1);
-                affix = "и";
-            }
-            return new PhrasalBuilder()
-                .verbBase(verbBase)
-                .tenseAffix(affix)
+            return this.presentTransitiveCommonBuilder()
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == "Negative") {
-            let negativeBase = this.getNegativeBase();
+            var verbBase = this.verbBase;
+            var baseLast = getLastItem(verbBase);
+            let lastReplacement = VERB_LAST_NEGATIVE_CONVERSION.get(baseLast);
+            if (lastReplacement != null) {
+                verbBase = `${chopLast(verbBase, 1)}${lastReplacement}`;
+                baseLast = lastReplacement;
+            }
+            let particle = getQuestionParticle(baseLast, this.softOffset);
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
-            let res = fixBgBigrams(`${negativeBase}й${persAffix}`);
-            return this.buildUnclassified(res);
+            return new PhrasalBuilder()
+                .verbBase(verbBase)
+                .negation(particle)
+                .tenseAffix("й")
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == "Question") {
-            let affix = this.presentTransitiveSuffix();
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            let res = fixShortIBigrams(this.getQuestionForm(`${this.verbBase}${affix}${persAffix}`));
-            return this.buildUnclassified(res);
+            return this.buildQuestionForm(
+                    this.presentTransitiveCommonBuilder()
+                        .personalAffix(persAffix)
+                ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
