@@ -7,6 +7,7 @@ enum PHRASAL_PART_TYPE {
     VerbPersonalAffix = "VerbPersonalAffix",
     VerbNegation = "VerbNegation",
     QuestionParticle = "QuestionParticle",
+    AuxVerb = "AuxVerb",
 }
 
 class PhrasalPart {
@@ -82,6 +83,11 @@ class PhrasalBuilder {
     questionParticle(particle: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.QuestionParticle, particle)
+        );
+    }
+    auxVerb(verb: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.AuxVerb, verb)
         );
     }
     getLastItem(): string {

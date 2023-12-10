@@ -219,15 +219,20 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    presentSimpleContinuousCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
+        return new PhrasalBuilder()
+            .verbBase(this.contContext.verbBase)
+            .personalAffix(persAffix);
+    }
     /* Нақ осы шақ */
     presentSimpleContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (this.contContext == null) {
             return NOT_SUPPORTED_PHRASAL;
         }
         if (sentenceType == "Statement") {
-            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            let res = `${this.contContext.verbBase}${persAffix}`;
-            return this.buildUnclassified(res);
+            return this.presentSimpleContinuousCommonBuilder(person, number)
+                .build();
         } else if (sentenceType == "Negative") {
             let affix = getGangenKanken(this.baseLast, this.softOffset);
 
@@ -236,12 +241,17 @@ class VerbBuilder {
             let gokSoftOffset = 0;
 
             let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
-            let res = `${this.verbBase}${affix} жоқ${persAffix}`;
-            return this.buildUnclassified(res);
+            return new PhrasalBuilder()
+                .verbBase(this.verbBase)
+                .tenseAffix(affix)
+                .space()
+                .negation("жоқ")
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == "Question") {
-            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
-            let res = this.getQuestionForm(`${this.contContext.verbBase}${persAffix}`);
-            return this.buildUnclassified(res);
+            return this.buildQuestionForm(
+                    this.presentSimpleContinuousCommonBuilder(person, number)
+                ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
