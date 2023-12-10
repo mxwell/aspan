@@ -340,8 +340,17 @@ class VerbBuilder {
             let affixLast = getLastItem(tenseAffix);
             let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
             return `${this.verbBase}${tenseAffix}${persAffix}`;
+        } else if (sentenceType == SentenceType.Negative) {
+            let tenseAffix = getIntentionFutureAffix(this.baseLast, this.softOffset);
+            // last sound and softness come from "емес"
+            let persAffix = getPersAffix1(person, number, "с", 1);
+            return `${this.verbBase}${tenseAffix} емес${persAffix}`;
+        } else if (sentenceType == SentenceType.Question) {
+            let tenseAffix = getIntentionFutureAffix(this.baseLast, this.softOffset);
+            let affixLast = getLastItem(tenseAffix);
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return this.getQuestionForm(`${this.verbBase}${tenseAffix}${persAffix}`);
         }
-        // TODO
         return NOT_SUPPORTED;
     }
 }

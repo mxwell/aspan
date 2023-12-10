@@ -1,9 +1,12 @@
 let assertFails = 0;
+let assertOks = 0;
 
 function T_ASSERT(condition: boolean, message: string) {
     if (!condition) {
         console.log("Condition violated: " + message);
         assertFails += 1;
+    } else {
+        assertOks += 1;
     }
 }
 
@@ -24,6 +27,7 @@ function testAll() {
     for (const testDescr of ALL_TESTS) {
         testsStarted += 1;
         const failsBefore = assertFails;
+        const oksBefore = assertOks;
         const name = testDescr[0];
         if (usedNames.has(name)) {
             console.log("Test " + name + " has duplicate name!");
@@ -33,13 +37,18 @@ function testAll() {
         }
         const test = testDescr[1];
         test();
-        if (failsBefore != assertFails) {
+        const gainedFails = assertFails - failsBefore;
+        const gainedOks = assertOks - oksBefore;
+        const denominator = gainedFails + gainedOks;
+        const testFailed = failsBefore != assertFails;
+        const status = testFailed ? "FAILED" : "PASSED";
+        if (testFailed) {
             testsFailed += 1;
-            console.log("\n------ TEST [" + name + "] FAILED! ------");
+            console.log("\n");
         } else {
             testsPassed += 1;
-            console.log("------ TEST [" + name + "] PASSED! ------");
         }
+        console.log(`------ TEST [${name} - ${gainedOks}/${denominator}] ${status}! ------`);
     }
     console.log("\n=====");
     console.log(String(testsPassed) + " tests passed out of " + String(testsStarted) + " started tests");
@@ -1138,6 +1147,55 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["оқымақпын", "оқымақпыз", "оқымақсың", "оқымақсыңдар", "оқымақсыз", "оқымақсыздар", "оқымақ", "оқымақ"]
+    );
+}]);
+
+ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
+    testAllCases(
+        "Regular negative of intention future",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбақ емеспін", "жазбақ емеспіз", "жазбақ емессің", "жазбақ емессіңдер", "жазбақ емессіз", "жазбақ емессіздер", "жазбақ емес", "жазбақ емес"]
+    );
+    testAllCases(
+        "Regular negative of intention future",
+        "ішу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ішпек емеспін", "ішпек емеспіз", "ішпек емессің", "ішпек емессіңдер", "ішпек емессіз", "ішпек емессіздер", "ішпек емес", "ішпек емес"]
+    );
+}]);
+
+ALL_TESTS.push(["IntentionFutureQuestionTest", function() {
+    T_EQ_ASSERT(
+        "ұйықтамақсыз ба?",
+        new VerbBuilder("ұйықтау").intentionFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
+        "Intention future form of 2nd polite person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "тамақтанбақсыз ба?",
+        new VerbBuilder("тамақтану").intentionFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
+        "Intention future form of 2nd polite person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "сөйлеспексің бе?",
+        new VerbBuilder("сөйлесу").intentionFutureForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question),
+        "Intention future form of 2nd person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "көмектеспексіздер ме?",
+        new VerbBuilder("көмектесу").intentionFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Plural, SentenceType.Question),
+        "Intention future form of 2nd person, plural, question"
+    );
+    T_EQ_ASSERT(
+        "шешпексіз бе?",
+        new VerbBuilder("шешу").intentionFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
+        "Intention future form of 2nd polite person, singular, question"
     );
 }]);
 
