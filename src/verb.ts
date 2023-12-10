@@ -319,18 +319,20 @@ class VerbBuilder {
     possibleFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): string {
         if (sentenceType == SentenceType.Statement) {
             let baseWithSuffix = this.possibleFutureBaseWithSuffix();
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
-            if (person == GrammarPerson.Third) {
-                persAffix = "";
-            }
+            let affixLast = getLastItem(baseWithSuffix);
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
             return `${baseWithSuffix}${persAffix}`;
         } else if (sentenceType == SentenceType.Negative) {
             let negativeBase = this.getNegativeBase();
             let formSuffix = "с";
             let persAffix = getPersAffix1(person, number, formSuffix, this.softOffset);
             return fixBgBigrams(`${negativeBase}${formSuffix}${persAffix}`);
+        } else if (sentenceType == SentenceType.Question) {
+            let baseWithSuffix = this.possibleFutureBaseWithSuffix();
+            let affixLast = getLastItem(baseWithSuffix);
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return this.getQuestionForm(`${baseWithSuffix}${persAffix}`);
         }
-        // TODO question
         return NOT_SUPPORTED;
     }
     /* Мақсатты келер шақ */

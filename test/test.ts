@@ -1111,6 +1111,21 @@ ALL_TESTS.push(["possibleFutureTenseTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["possibleFutureTenseQuestionTest", function() {
+    // No sources, just a guess.
+
+    T_EQ_ASSERT(
+        "жазармын ба?",
+        new VerbBuilder("жазу").possibleFutureForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        "Possible future form of 1st person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "көрер ме?",
+        new VerbBuilder("көру").possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        "Possible future form of 3rd person, singular, question"
+    );
+}]);
+
 ALL_TESTS.push(["IntentionFutureTenseTest", function() {
     testAllCases(
         "Intention Future Tense",
