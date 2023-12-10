@@ -10,8 +10,9 @@ function T_ASSERT(condition: boolean, message: string) {
     }
 }
 
-function T_EQ_ASSERT(expected: any, got: any, message: string) {
-    T_ASSERT(expected == got, message + "Expected [" + expected + "], but got [" + got + "]");
+function T_EQ_ASSERT(expected: string, got: Phrasal, message: string) {
+    let gotString = got.raw;
+    T_ASSERT(expected == gotString, message + "Expected [" + expected + "], but got [" + gotString + "]");
 }
 
 let ALL_TESTS: [string, () => void][] = [];
@@ -61,7 +62,7 @@ function testAll() {
     console.log("=====\n");
 }
 
-type VerbFormProducer = (verbBuilder: VerbBuilder, grammarPerson: GrammarPerson, grammarNumber: GrammarNumber, sentenceType: SentenceType) => string;
+type VerbFormProducer = (verbBuilder: VerbBuilder, grammarPerson: GrammarPerson, grammarNumber: GrammarNumber, sentenceType: SentenceType) => Phrasal;
 
 function testAllCases(testName: string, verbDictForm: string, sentenceType: SentenceType, callback: VerbFormProducer, expectedForms: string[]) {
     let verbBuilder = new VerbBuilder(verbDictForm);
@@ -91,7 +92,7 @@ ALL_TESTS.push(["basicStatementFormsTest", function() {
         "basicStatementAllForms",
         "алу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
         },
         [ "аламын", "аламыз", "аласың", "аласыңдар", "аласыз", "аласыздар", "алады", "алады" ],
@@ -103,7 +104,7 @@ ALL_TESTS.push(["basicNegativeFormsTest", function() {
         "basicNegativeAllForms",
         "келу",
         SentenceType.Negative,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
         },
         [ "келмеймін", "келмейміз", "келмейсің", "келмейсіңдер", "келмейсіз", "келмейсіздер", "келмейді", "келмейді" ],
@@ -115,7 +116,7 @@ ALL_TESTS.push(["basicQuestionFormsTest", function() {
         "basicQuestionAllForms",
         "ренжу",
         SentenceType.Question,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
         },
         [ "ренжимін бе?", "ренжиміз бе?", "ренжисің бе?", "ренжисіңдер ме?", "ренжисіз бе?", "ренжисіздер ме?", "ренжи ме?", "ренжи ме?" ],
@@ -594,7 +595,7 @@ ALL_TESTS.push(["verbExceptionsWithEndingYu", function() {
         const verbBuilder = new VerbBuilder(verbDictForm);
         const formNegative = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative);
         T_ASSERT(
-            formNegative.startsWith(verbBase),
+            formNegative.raw.startsWith(verbBase),
             "Negative form of exception verb " + verbDictForm + " must start with " + verbBase + " but got " + formNegative
         );
         const formStatement = verbBuilder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement);
@@ -619,7 +620,7 @@ ALL_TESTS.push(["softTest", function() {
 }]);
 
 ALL_TESTS.push(["simplePresentContTest", function() {
-    const table: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
+    const table: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
         First: {
             Singular: ["тұрмын", "жүрмін", "отырмын", "жатырмын"],
             Plural: ["тұрмыз", "жүрміз", "отырмыз", "жатырмыз"],
@@ -644,7 +645,7 @@ ALL_TESTS.push(["simplePresentContTest", function() {
     }
     for (const person of GRAMMAR_PERSONS) {
         for (const number of GRAMMAR_NUMBERS) {
-            const expectedForms = table[person][number];
+            const expectedForms: string[] = table[person][number];
             for (var i = 0; i < expectedForms.length; ++i) {
                 const form = verbBuilders[i].presentSimpleContinuousForm(person, number, SentenceType.Statement);
                 T_EQ_ASSERT(expectedForms[i], form, "Simple present tense of " + person + " person, " + number + ": ");
@@ -659,7 +660,7 @@ ALL_TESTS.push(["simplePresentContTest", function() {
 }]);
 
 ALL_TESTS.push(["negativePresentContTest", function() {
-    const table: Record<GrammarPerson, Record<GrammarNumber, String[]>> = {
+    const table: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
         First: {
             Singular: ["тұрған жоқпын", "жүрген жоқпын", "отырған жоқпын", "жатқан жоқпын"],
             Plural: ["тұрған жоқпыз", "жүрген жоқпыз", "отырған жоқпыз", "жатқан жоқпыз"],
@@ -983,7 +984,7 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         "PastTense special case",
         "қорқу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["қорықтым", "қорықтық", "қорықтың", "қорықтыңдар", "қорықтыңыз", "қорықтыңыздар", "қорықты", "қорықты"]
@@ -992,7 +993,7 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         "PastTense special case, negative",
         "қорқу",
         SentenceType.Negative,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["қорықпадым", "қорықпадық", "қорықпадың", "қорықпадыңдар", "қорықпадыңыз", "қорықпадыңыздар", "қорықпады", "қорықпады"]
@@ -1002,7 +1003,7 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         "PastTense special case",
         "ірку",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["іріктім", "іріктік", "іріктің", "іріктіңдер", "іріктіңіз", "іріктіңіздер", "ірікті", "ірікті"]
@@ -1011,7 +1012,7 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         "PastTense special case, negative",
         "ірку",
         SentenceType.Negative,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["ірікпедім", "ірікпедік", "ірікпедің", "ірікпедіңдер", "ірікпедіңіз", "ірікпедіңіздер", "ірікпеді", "ірікпеді"]
@@ -1131,7 +1132,7 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
         "Intention Future Tense",
         "жазу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["жазбақпын", "жазбақпыз", "жазбақсың", "жазбақсыңдар", "жазбақсыз", "жазбақсыздар", "жазбақ", "жазбақ"]
@@ -1140,7 +1141,7 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
         "Intention Future Tense",
         "ішу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["ішпекпін", "ішпекпіз", "ішпексің", "ішпексіңдер", "ішпексіз", "ішпексіздер", "ішпек", "ішпек"]
@@ -1149,7 +1150,7 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
         "Intention Future Tense",
         "төлеу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["төлемекпін", "төлемекпіз", "төлемексің", "төлемексіңдер", "төлемексіз", "төлемексіздер", "төлемек", "төлемек"]
@@ -1158,7 +1159,7 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
         "Intention Future Tense",
         "оқу",
         SentenceType.Statement,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["оқымақпын", "оқымақпыз", "оқымақсың", "оқымақсыңдар", "оқымақсыз", "оқымақсыздар", "оқымақ", "оқымақ"]
@@ -1170,7 +1171,7 @@ ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
         "Regular negative of intention future",
         "жазу",
         SentenceType.Negative,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["жазбақ емеспін", "жазбақ емеспіз", "жазбақ емессің", "жазбақ емессіңдер", "жазбақ емессіз", "жазбақ емессіздер", "жазбақ емес", "жазбақ емес"]
@@ -1179,7 +1180,7 @@ ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
         "Regular negative of intention future",
         "ішу",
         SentenceType.Negative,
-        function(verbBuilder, grammarPerson, grammarNumber, sentenceType) {
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["ішпек емеспін", "ішпек емеспіз", "ішпек емессің", "ішпек емессіңдер", "ішпек емессіз", "ішпек емессіздер", "ішпек емес", "ішпек емес"]
