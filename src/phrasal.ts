@@ -7,16 +7,17 @@ enum PHRASAL_PART_TYPE {
     VerbPersonalAffix = "VerbPersonalAffix",
     VerbNegation = "VerbNegation",
     QuestionParticle = "QuestionParticle",
-    AuxVerb = "AuxVerb",
 }
 
 class PhrasalPart {
     partType: PHRASAL_PART_TYPE;
     content: string;
+    aux: boolean;
 
-    constructor(partType: PHRASAL_PART_TYPE, content: string) {
+    constructor(partType: PHRASAL_PART_TYPE, content: string, aux: boolean = false) {
         this.partType = partType;
         this.content = content;
+        this.aux = aux;
     }
 }
 
@@ -85,10 +86,14 @@ class PhrasalBuilder {
             new PhrasalPart(PHRASAL_PART_TYPE.QuestionParticle, particle)
         );
     }
-    auxVerb(verb: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.AuxVerb, verb)
-        );
+    auxVerb(phrasal: Phrasal): PhrasalBuilder {
+        for (let i = 0; i < phrasal.parts.length; ++i) {
+            let part = phrasal.parts[i];
+            this.addPart(
+                new PhrasalPart(part.partType, part.content, /* aux */ true)
+            );
+        }
+        return this;
     }
     getLastItem(): string {
         let parts = this.parts;

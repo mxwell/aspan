@@ -220,6 +220,9 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     presentSimpleContinuousCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        if (this.contContext == null) {
+            return new PhrasalBuilder();
+        }
         let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
         return new PhrasalBuilder()
             .verbBase(this.contContext.verbBase)
@@ -286,9 +289,13 @@ class VerbBuilder {
         }
         const verbBase = this.getPresentContinuousBase();
         const affix = this.getPresentContinousAffix();
-        const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType).raw;
-        let res = `${verbBase}${affix} ${auxVerb}`;
-        return this.buildUnclassified(res);
+        const auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
+        return new PhrasalBuilder()
+            .verbBase(verbBase)
+            .tenseAffix(affix)
+            .space()
+            .auxVerb(auxVerbPhrasal)
+            .build();
     }
     /* XXX should this form be used by default? */
     presentContinuousSimpleNegativeForm(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): Phrasal {
