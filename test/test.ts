@@ -1148,6 +1148,15 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
     );
     testAllCases(
         "Intention Future Tense",
+        "тебу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппекпін", "теппекпіз", "теппексің", "теппексіңдер", "теппексіз", "теппексіздер", "теппек", "теппек"]
+    );
+    testAllCases(
+        "Intention Future Tense",
         "ішу",
         SentenceType.Statement,
         function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
@@ -1186,6 +1195,15 @@ ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
         ["жазбақ емеспін", "жазбақ емеспіз", "жазбақ емессің", "жазбақ емессіңдер", "жазбақ емессіз", "жазбақ емессіздер", "жазбақ емес", "жазбақ емес"]
     );
     testAllCases(
+        "Tricky negative of intention future",
+        "тебу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппек емеспін", "теппек емеспіз", "теппек емессің", "теппек емессіңдер", "теппек емессіз", "теппек емессіздер", "теппек емес", "теппек емес"]
+    );
+    testAllCases(
         "Regular negative of intention future",
         "ішу",
         SentenceType.Negative,
@@ -1221,6 +1239,16 @@ ALL_TESTS.push(["IntentionFutureQuestionTest", function() {
         "шешпексіз бе?",
         new VerbBuilder("шешу").intentionFutureForm(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
         "Intention future form of 2nd polite person, singular, question"
+    );
+
+    testAllCases(
+        "Tricky question of intention future",
+        "тебу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппекпін бе?", "теппекпіз бе?", "теппексің бе?", "теппексіңдер ме?", "теппексіз бе?", "теппексіздер ме?", "теппек пе?", "теппек пе?"]
     );
 }]);
 
