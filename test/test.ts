@@ -1025,7 +1025,17 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
             return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["ірікпедім", "ірікпедік", "ірікпедің", "ірікпедіңдер", "ірікпедіңіз", "ірікпедіңіздер", "ірікпеді", "ірікпеді"]
-    )
+    );
+
+    testAllCases(
+        "PastTense special case",
+        "тебу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["тептім бе?", "тептік пе?", "тептің бе?", "тептіңдер ме?", "тептіңіз бе?", "тептіңіздер ме?", "тепті ме?", "тепті ме?"]
+    );
 }]);
 
 ALL_TESTS.push(["possibleFutureTenseTest", function() {

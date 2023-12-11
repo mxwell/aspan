@@ -374,16 +374,19 @@ class VerbBuilder {
         let res = `${verb} ${auxVerb}`;
         return this.buildUnclassified(res);
     }
+    pastCommonBuilder(): PhrasalBuilder {
+        let pastBase = this.getPastBase();
+        let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
+        let affix = getDydiTyti(baseAndLast.last, this.softOffset);
+        return new PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix);
+    }
     /* Жедел өткен шақ */
     pastForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         let persAffix = VERB_PERS_AFFIXES2[person][number][this.softOffset];
         if (sentenceType == SentenceType.Statement) {
-            let pastBase = this.getPastBase();
-            let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
-            let affix = getDydiTyti(baseAndLast.last, this.softOffset);
-            return new PhrasalBuilder()
-                .verbBase(baseAndLast.base)
-                .tenseAffix(affix)
+            return this.pastCommonBuilder()
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
@@ -398,13 +401,9 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Question) {
-            let pastBase = this.getPastBase();
-            let pastBaseLast = getLastItem(pastBase);
-            let affix = getDydiTyti(pastBaseLast, this.softOffset);
-            return this.buildQuestionForm(new PhrasalBuilder()
-                    .verbBase(pastBase)
-                    .tenseAffix(affix)
-                    .personalAffix(persAffix)
+            return this.buildQuestionForm(
+                    this.pastCommonBuilder()
+                        .personalAffix(persAffix)
                 ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
