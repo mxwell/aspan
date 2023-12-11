@@ -366,20 +366,38 @@ class VerbBuilder {
         let persAffix = VERB_PERS_AFFIXES2[person][number][this.softOffset];
         if (sentenceType == SentenceType.Statement) {
             let pastBase = this.getPastBase()
-            let pastBaseLast = getLastItem(pastBase)
+            let pastBaseLast = getLastItem(pastBase);
             let affix = getDydiTyti(pastBaseLast, this.softOffset);
-            let res = `${pastBase}${affix}${persAffix}`;
-            return this.buildUnclassified(res);
+            return new PhrasalBuilder()
+                .verbBase(pastBase)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let pastBase = this.getPastBase()
-            let negativeBase = this.getNegativeBaseOf(pastBase);
+            var verbBase = this.getPastBase();
+            var baseLast = getLastItem(verbBase);
+            var lastReplacement = VERB_LAST_NEGATIVE_CONVERSION.get(baseLast);
+            if (lastReplacement != null) {
+                verbBase = `${chopLast(verbBase, 1)}${lastReplacement}`;
+                baseLast = lastReplacement;
+            }
+            let particle = getQuestionParticle(baseLast, this.softOffset);
             let affix = DYDI[this.softOffset];
-            let res = fixBgBigrams(`${negativeBase}${affix}${persAffix}`);
-            return this.buildUnclassified(res);
+            return new PhrasalBuilder()
+                .verbBase(verbBase)
+                .negation(particle)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == SentenceType.Question) {
-            let affix = getDydiTyti(this.baseLast, this.softOffset);
-            let res = this.getQuestionForm(`${this.verbBase}${affix}${persAffix}`);
-            return this.buildUnclassified(res);
+            let pastBase = this.getPastBase();
+            let pastBaseLast = getLastItem(pastBase);
+            let affix = getDydiTyti(pastBaseLast, this.softOffset);
+            return this.buildQuestionForm(new PhrasalBuilder()
+                    .verbBase(pastBase)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }

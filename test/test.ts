@@ -998,6 +998,15 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
         },
         ["қорықпадым", "қорықпадық", "қорықпадың", "қорықпадыңдар", "қорықпадыңыз", "қорықпадыңыздар", "қорықпады", "қорықпады"]
     );
+    testAllCases(
+        "PastTense special case",
+        "қорқу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықтым ба?", "қорықтық па?", "қорықтың ба?", "қорықтыңдар ма?", "қорықтыңыз ба?", "қорықтыңыздар ма?", "қорықты ма?", "қорықты ма?"]
+    );
 
     testAllCases(
         "PastTense special case",
