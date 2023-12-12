@@ -142,14 +142,6 @@ class VerbBuilder {
         }
         return "ар";
     }
-    possibleFutureBaseWithSuffix(): string {
-        let affix = this.possibleFutureSuffix();
-        if (this.baseLast == "й" && affix == "ар") {
-            let chopped = chopLast(this.verbBase, 1)
-            return `${chopped}яр`;
-        }
-        return `${this.verbBase}${affix}`;
-    }
     getNegativeBaseOf(base: string): string {
         let baseLast = getLastItem(base);
         let particle = getQuestionParticle(baseLast, this.softOffset);
@@ -175,10 +167,10 @@ class VerbBuilder {
             .unclassified(phrase)
             .build();
     }
-    getPastBase(): string {
-        let specialPast = VERB_EXCEPTION_VOWEL_IN_PAST_MAP.get(this.verbDictForm)
-        if (specialPast != null) {
-            return specialPast
+    fixUpSpecialBaseForConsonant(): string {
+        let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
+        if (specialBase != null) {
+            return specialBase
         }
         return this.verbBase;
     }
@@ -200,7 +192,7 @@ class VerbBuilder {
         let replacement = VERB_LAST_NEGATIVE_CONVERSION.get(last);
         if (replacement != null) {
             return new BaseAndLast(
-                `${chopLast(base, 1)}${replacement}`,
+                replaceLast(base, replacement),
                 replacement
             );
         }
@@ -214,7 +206,8 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == "Negative") {
-            let baseAndLast = this.fixUpBaseForConsonant(this.verbBase, this.baseLast);
+            let pastBase = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
             return new PhrasalBuilder()
@@ -273,7 +266,7 @@ class VerbBuilder {
     }
     getPresentContinuousBase(): string {
         if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
-            return chopLast(this.verbBase, 1) + "у";
+            return replaceLast(this.verbBase, "у");
         }
         return this.verbBase;
     }
@@ -375,7 +368,7 @@ class VerbBuilder {
         return this.buildUnclassified(res);
     }
     pastCommonBuilder(): PhrasalBuilder {
-        let pastBase = this.getPastBase();
+        let pastBase = this.fixUpSpecialBaseForConsonant();
         let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
         let affix = getDydiTyti(baseAndLast.last, this.softOffset);
         return new PhrasalBuilder()
@@ -390,7 +383,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let pastBase = this.getPastBase();
+            let pastBase = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = DYDI[this.softOffset];
@@ -408,31 +401,52 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    possibleFutureCommonBuilder(): PhrasalBuilder {
+        var base = this.verbBase;
+        var affix = this.possibleFutureSuffix();
+        if (base.endsWith("й") && affix == "ар") {
+            base = chopLast(base, 1);
+            affix = "яр";
+        }
+        return new PhrasalBuilder()
+            .verbBase(base)
+            .tenseAffix(affix);
+    }
     /* Болжалды келер шақ */
     possibleFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == SentenceType.Statement) {
-            let baseWithSuffix = this.possibleFutureBaseWithSuffix();
-            let affixLast = getLastItem(baseWithSuffix);
+            let builder = this.possibleFutureCommonBuilder();
+            let affixLast = builder.getLastItem();
             let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
-            let res = `${baseWithSuffix}${persAffix}`;
-            return this.buildUnclassified(res);
+            return builder
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let negativeBase = this.getNegativeBase();
-            let formSuffix = "с";
-            let persAffix = getPersAffix1(person, number, formSuffix, this.softOffset);
-            let res = fixBgBigrams(`${negativeBase}${formSuffix}${persAffix}`);
-            return this.buildUnclassified(res);
+            let specialBase = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let affix = "с";
+            let persAffix = getPersAffix1(person, number, affix, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
         } else if (sentenceType == SentenceType.Question) {
-            let baseWithSuffix = this.possibleFutureBaseWithSuffix();
-            let affixLast = getLastItem(baseWithSuffix);
+            let builder = this.possibleFutureCommonBuilder();
+            let affixLast = builder.getLastItem();
             let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
-            let res = this.getQuestionForm(`${baseWithSuffix}${persAffix}`);
-            return this.buildUnclassified(res);
+            return this.buildQuestionForm(
+                    builder.
+                        personalAffix(persAffix)
+                ).build()
         }
         return NOT_SUPPORTED_PHRASAL;
     }
     intentionFutureCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let baseAndLast = this.fixUpBaseForConsonant(this.verbBase, this.baseLast);
+        let specialBase = this.fixUpSpecialBaseForConsonant();
+        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
         let tenseAffix = getIntentionFutureAffix(baseAndLast.last, this.softOffset);
         let affixLast = getLastItem(tenseAffix);
         let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
@@ -447,7 +461,8 @@ class VerbBuilder {
             return this.intentionFutureCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let baseAndLast = this.fixUpBaseForConsonant(this.verbBase, this.baseLast);
+            let specialBase = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
             let tenseAffix = getIntentionFutureAffix(baseAndLast.last, this.softOffset);
             // last sound and softness come from "емес"
             let persAffix = getPersAffix1(person, number, "с", 1);

@@ -109,6 +109,15 @@ ALL_TESTS.push(["basicNegativeFormsTest", function() {
         },
         [ "келмеймін", "келмейміз", "келмейсің", "келмейсіңдер", "келмейсіз", "келмейсіздер", "келмейді", "келмейді" ],
     );
+    testAllCases(
+        "Present transitive negative, special verb, all cases",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпаймын", "қорықпаймыз", "қорықпайсың", "қорықпайсыңдар", "қорықпайсыз", "қорықпайсыздар", "қорықпайды", "қорықпайды"],
+    );
 }]);
 
 ALL_TESTS.push(["basicQuestionFormsTest", function() {
@@ -1038,6 +1047,27 @@ ALL_TESTS.push(["pastTenseAllCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["possibleFutureAllCasesTest", function() {
+    testAllCases(
+        "Possible future, special verb",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.possibleFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорқармын", "қорқармыз", "қорқарсың", "қорқарсыңдар", "қорқарсыз", "қорқарсыздар", "қорқар", "қорқар"]
+    );
+    testAllCases(
+        "Possible future negative, special verb",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.possibleFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпаспын", "қорықпаспыз", "қорықпассың", "қорықпассыңдар", "қорықпассыз", "қорықпассыздар", "қорықпас", "қорықпас"]
+    );
+}]);
+
 ALL_TESTS.push(["possibleFutureTenseTest", function() {
     T_EQ_ASSERT(
         "жазармын",
@@ -1192,6 +1222,15 @@ ALL_TESTS.push(["IntentionFutureTenseTest", function() {
         },
         ["оқымақпын", "оқымақпыз", "оқымақсың", "оқымақсыңдар", "оқымақсыз", "оқымақсыздар", "оқымақ", "оқымақ"]
     );
+    testAllCases(
+        "Intention Future Tense",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпақпын", "қорықпақпыз", "қорықпақсың", "қорықпақсыңдар", "қорықпақсыз", "қорықпақсыздар", "қорықпақ", "қорықпақ"]
+    );
 }]);
 
 ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
@@ -1221,6 +1260,15 @@ ALL_TESTS.push(["IntentionFutureNegativeTest", function() {
             return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
         },
         ["ішпек емеспін", "ішпек емеспіз", "ішпек емессің", "ішпек емессіңдер", "ішпек емессіз", "ішпек емессіздер", "ішпек емес", "ішпек емес"]
+    );
+    testAllCases(
+        "Special negative of intention future",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.intentionFutureForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпақ емеспін", "қорықпақ емеспіз", "қорықпақ емессің", "қорықпақ емессіңдер", "қорықпақ емессіз", "қорықпақ емессіздер", "қорықпақ емес", "қорықпақ емес"]
     );
 }]);
 

@@ -29,3 +29,11 @@ function chopLast(s: string, k: number): string {
     }
     return "";
 }
+
+function replaceLast(s: string, replacement: string): string {
+    const n = s.length;
+    if (n == 0) {
+        return replacement;
+    }
+    return `${s.slice(0, n - 1)}${replacement}`;
+}
