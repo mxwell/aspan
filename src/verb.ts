@@ -346,12 +346,18 @@ class VerbBuilder {
         return this.getWantAuxBuilder().getFormByShak(GrammarPerson.Third, GrammarNumber.Singular, sentenceType, shak);
     }
     wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): Phrasal {
-        let affix = getGygiKyki(this.baseLast, this.softOffset);
-        let partial = fixXkBigrams(`${this.verbBase}${affix}`);
+        let specialBase = this.fixUpSpecialBaseForConsonant();
+        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let affix = getGygiKyki(baseAndLast.last, this.softOffset);
         let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.softOffset];
-        let auxVerb = this.getWantAuxVerb(sentenceType, shak).raw;
-        let res = `${partial}${persAffix} ${auxVerb}`;
-        return this.buildUnclassified(res);
+        let auxVerbPhrasal = this.getWantAuxVerb(sentenceType, shak);
+        return new PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix)
+            .personalAffix(persAffix)
+            .space()
+            .auxVerb(auxVerbPhrasal)
+            .build();
     }
 
     getCanAuxBuilder(): VerbBuilder {

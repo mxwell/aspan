@@ -878,6 +878,28 @@ ALL_TESTS.push(["wantClauseTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["wantClauseAllCasesTest", function() {
+    testAllCases(
+        "Want clause special case",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.wantClause(grammarPerson, grammarNumber, sentenceType, VerbShak.PresentTransitive);
+        },
+        ["қорыққым келеді", "қорыққымыз келеді", "қорыққың келеді", "қорыққыларың келеді", "қорыққыңыз келеді", "қорыққыларыңыз келеді", "қорыққысы келеді", "қорыққылары келеді"]
+    );
+    testAllCases(
+        "Want clause special case",
+        "ірку",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.wantClause(grammarPerson, grammarNumber, sentenceType, VerbShak.PresentTransitive);
+        },
+        ["іріккім келеді", "іріккіміз келеді", "іріккің келеді", "іріккілерің келеді", "іріккіңіз келеді", "іріккілеріңіз келеді", "іріккісі келеді", "іріккілері келеді"]
+    );
+
+}]);
+
 ALL_TESTS.push(["canClauseTest", function() {
     T_EQ_ASSERT(
         "аулай аламын",
