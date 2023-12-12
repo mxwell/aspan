@@ -361,11 +361,11 @@ class VerbBuilder {
         return this.canAuxBuilder;
     }
     canClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): Phrasal {
-        let affix = this.presentTransitiveSuffix();
-        let verb = fixShortIBigrams(`${this.verbBase}${affix}`);
-        let auxVerb = this.getCanAuxBuilder().getFormByShak(person, number, sentenceType, shak).raw;
-        let res = `${verb} ${auxVerb}`;
-        return this.buildUnclassified(res);
+        let auxVerbPhrasal = this.getCanAuxBuilder().getFormByShak(person, number, sentenceType, shak);
+        return this.presentTransitiveCommonBuilder()
+            .space()
+            .auxVerb(auxVerbPhrasal)
+            .build();
     }
     pastCommonBuilder(): PhrasalBuilder {
         let pastBase = this.fixUpSpecialBaseForConsonant();
