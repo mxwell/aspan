@@ -1332,6 +1332,140 @@ ALL_TESTS.push(["IntentionFutureQuestionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["RemotePastAllCasesTest", function() {
+    testAllCases(
+        "Remote past, all cases",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазғанмын", "жазғанбыз", "жазғансың", "жазғансыңдар", "жазғансыз", "жазғансыздар", "жазған", "жазған"]
+    );
+    testAllCases(
+        "Negative remote past, all cases",
+        "жүзу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жүзгенмін", "жүзгенбіз", "жүзгенсің", "жүзгенсіңдер", "жүзгенсіз", "жүзгенсіздер", "жүзген", "жүзген"]
+    );
+    testAllCases(
+        "Remote past, all cases, special verb",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорыққанмын", "қорыққанбыз", "қорыққансың", "қорыққансыңдар", "қорыққансыз", "қорыққансыздар", "қорыққан", "қорыққан"]
+    );
+    testAllCases(
+        "Remote past, all cases, special verb",
+        "ірку",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["іріккенмін", "іріккенбіз", "іріккенсің", "іріккенсіңдер", "іріккенсіз", "іріккенсіздер", "іріккен", "іріккен"]
+    );
+}]);
+
+ALL_TESTS.push(["RemotePastNegativeAllCasesTest", function() {
+    testAllCases(
+        "Negative remote past, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазған жоқпын", "жазған жоқпыз", "жазған жоқсың", "жазған жоқсыңдар", "жазған жоқсыз", "жазған жоқсыздар", "жазған жоқ", "жазған жоқ"]
+    );
+    testAllCases(
+        "Negative remote past, all cases",
+        "жүзу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жүзген жоқпын", "жүзген жоқпыз", "жүзген жоқсың", "жүзген жоқсыңдар", "жүзген жоқсыз", "жүзген жоқсыздар", "жүзген жоқ", "жүзген жоқ"]
+    );
+    testAllCases(
+        "Negative remote past, all cases, special verb",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорыққан жоқпын", "қорыққан жоқпыз", "қорыққан жоқсың", "қорыққан жоқсыңдар", "қорыққан жоқсыз", "қорыққан жоқсыздар", "қорыққан жоқ", "қорыққан жоқ"]
+    );
+    testAllCases(
+        "Negative remote past, all cases, special verb",
+        "ірку",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["іріккен жоқпын", "іріккен жоқпыз", "іріккен жоқсың", "іріккен жоқсыңдар", "іріккен жоқсыз", "іріккен жоқсыздар", "іріккен жоқ", "іріккен жоқ"]
+    );
+}]);
+
+ALL_TESTS.push(["RemotePastQuestionAllCasesTest", function() {
+    // No sources, just a guess.
+
+    testAllCases(
+        "Remote past, all cases",
+        "жазу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазғанмын ба?", "жазғанбыз ба?", "жазғансың ба?", "жазғансыңдар ма?", "жазғансыз ба?", "жазғансыздар ма?", "жазған ба?", "жазған ба?"]
+    );
+    testAllCases(
+        "Negative remote past, all cases",
+        "жүзу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жүзгенмін бе?", "жүзгенбіз бе?", "жүзгенсің бе?", "жүзгенсіңдер ме?", "жүзгенсіз бе?", "жүзгенсіздер ме?", "жүзген бе?", "жүзген бе?"]
+    );
+}]);
+
+ALL_TESTS.push(["RemotePastTrickyCasesTest", function() {
+    T_EQ_ASSERT(
+        "жайған",
+        new VerbBuilder("жаю").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+    T_EQ_ASSERT(
+        "қойған",
+        new VerbBuilder("қою").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+    T_EQ_ASSERT(
+        "таныған",
+        new VerbBuilder("тану").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+    T_EQ_ASSERT(
+        "оқыған",
+        new VerbBuilder("оқу").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+    T_EQ_ASSERT(
+        "естігенмін",
+        new VerbBuilder("есту").remotePastTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+    T_EQ_ASSERT(
+        "естігенбіз",
+        new VerbBuilder("есту").remotePastTense(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
+        "Remote past, base modification"
+    );
+}]);
+
 /* End of tests */
 
 testAll();

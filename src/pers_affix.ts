@@ -5,6 +5,9 @@ function getFirstPersAffix1LetterGroup(c: string): PersAffix1LetterGroup {
     if (checkCharPresence(c, CONS_GROUP4) || checkCharPresence(c, CONS_GROUP5)) {
         return PersAffix1LetterGroup.PersAffixUnvoicedGroup;
     }
+    if (checkCharPresence(c, CONS_GROUP6)) {
+        return PersAffix1LetterGroup.PersAffix1MnGroup;
+    }
     return PersAffix1LetterGroup.PersAffix1DefaultGroup;
 }
 

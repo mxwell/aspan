@@ -19,6 +19,7 @@ enum SentenceType {
 enum PersAffix1LetterGroup {
     PersAffix1DefaultGroup = "PersAffix1DefaultGroup",
     PersAffix1GzGroup = "PersAffix1GzGroup",
+    PersAffix1MnGroup = "PersAffix1MnGroup",
     PersAffixUnvoicedGroup = "PersAffixUnvoicedGroup",
 }
 

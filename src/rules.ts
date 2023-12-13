@@ -7,6 +7,7 @@ const CONS_GROUP2 = "жзмнң";
 const CONS_GROUP3 = "жз";
 const CONS_GROUP4 = "кқпстфхцчшщ";  // қатаң дыбыстар from https://qazaq-til-asar.livejournal.com/2594.html
 const CONS_GROUP5 = "бвгғд";
+const CONS_GROUP6 = "мнң";
 
 const FORCED_SOFT_VERBS = new Set([
     "кию",  // киемің is a quite frequent form
@@ -76,11 +77,13 @@ const FIRST_PERS_AFFIXES1: Record<GrammarNumber, Record<PersAffix1LetterGroup, s
     Singular: {
         PersAffix1DefaultGroup: ["мын", "мін"],
         PersAffix1GzGroup: ["бын", "бін"],
+        PersAffix1MnGroup: ["мын", "мін"],
         PersAffixUnvoicedGroup: ["пын", "пін"],
     },
     Plural: {
         PersAffix1DefaultGroup: ["мыз", "міз"],
         PersAffix1GzGroup: ["быз", "біз"],
+        PersAffix1MnGroup: ["быз", "біз"],
         PersAffixUnvoicedGroup: ["пыз", "піз"]
     },
 };

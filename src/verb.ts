@@ -174,6 +174,16 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
+    fixUpSpecialBaseForConsonantAndForceExceptional(): string {
+        let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
+        if (specialBase != null) {
+            return specialBase
+        }
+        if (isVerbOptionalException(this.verbDictForm)) {
+            return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+        }
+        return this.verbBase;
+    }
     presentTransitiveCommonBuilder(): PhrasalBuilder {
         var verbBase = this.verbBase;
         var affix = this.presentTransitiveSuffix();
@@ -483,6 +493,47 @@ class VerbBuilder {
             return this.buildQuestionForm(
                     this.intentionFutureCommonBuilder(person, number)
                 ).build()
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    remotePastCommonBuilder(): PhrasalBuilder {
+        let specialBase = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let affix = getGangenKanken(baseAndLast.last, this.softOffset);
+        return new PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix);
+    }
+    /* Бұрынғы өткен шақ */
+    remotePastTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            let builder = this.remotePastCommonBuilder();
+            let affixLast = builder.getLastItem();
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return builder
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let builder = this.remotePastCommonBuilder();
+
+            // parameters of "жоқ", not of the verb base
+            let gokLast = 'қ';
+            let gokSoftOffset = 0;
+
+            let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
+            return builder
+                .space()
+                .negation("жоқ")
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            let builder = this.remotePastCommonBuilder();
+            let affixLast = builder.getLastItem();
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return this.buildQuestionForm(
+                builder
+                    .personalAffix(persAffix)
+            ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
