@@ -31,3 +31,10 @@ function getDydiTyti(c: string, softOffset: number): string {
     }
     return DYDI[softOffset];
 }
+
+function getYpip(c: string, softOffset: number): string {
+    if (genuineVowel(c)) {
+        return "п";
+    }
+    return YPIP[softOffset];
+}

@@ -1466,6 +1466,159 @@ ALL_TESTS.push(["RemotePastTrickyCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["RemoteUnwitnessedPastAllCasesTest", function() {
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазыппын", "жазыппыз", "жазыпсың", "жазыпсыңдар", "жазыпсыз", "жазыпсыздар", "жазыпты", "жазыпты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "көру",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көріппін", "көріппіз", "көріпсің", "көріпсіңдер", "көріпсіз", "көріпсіздер", "көріпті", "көріпті"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "ойнау",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ойнаппын", "ойнаппыз", "ойнапсың", "ойнапсыңдар", "ойнапсыз", "ойнапсыздар", "ойнапты", "ойнапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "оқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқыппын", "оқыппыз", "оқыпсың", "оқыпсыңдар", "оқыпсыз", "оқыпсыздар", "оқыпты", "оқыпты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "қою",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қойыппын", "қойыппыз", "қойыпсың", "қойыпсыңдар", "қойыпсыз", "қойыпсыздар", "қойыпты", "қойыпты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "қорқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорқыппын", "қорқыппыз", "қорқыпсың", "қорқыпсыңдар", "қорқыпсыз", "қорқыпсыздар", "қорқыпты", "қорқыпты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, all cases",
+        "ірку",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["іркіппін", "іркіппіз", "іркіпсің", "іркіпсіңдер", "іркіпсіз", "іркіпсіздер", "іркіпті", "іркіпті"]
+    );
+}]);
+
+ALL_TESTS.push(["RemoteUnwitnessedPastNegativeAllCasesTest", function() {
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбаппын", "жазбаппыз", "жазбапсың", "жазбапсыңдар", "жазбапсыз", "жазбапсыздар", "жазбапты", "жазбапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "көру",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көрмеппін", "көрмеппіз", "көрмепсің", "көрмепсіңдер", "көрмепсіз", "көрмепсіздер", "көрмепті", "көрмепті"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "ойнау",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ойнамаппын", "ойнамаппыз", "ойнамапсың", "ойнамапсыңдар", "ойнамапсыз", "ойнамапсыздар", "ойнамапты", "ойнамапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "оқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқымаппын", "оқымаппыз", "оқымапсың", "оқымапсыңдар", "оқымапсыз", "оқымапсыздар", "оқымапты", "оқымапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "қою",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қоймаппын", "қоймаппыз", "қоймапсың", "қоймапсыңдар", "қоймапсыз", "қоймапсыздар", "қоймапты", "қоймапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "қорқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қорықпаппын", "қорықпаппыз", "қорықпапсың", "қорықпапсыңдар", "қорықпапсыз", "қорықпапсыздар", "қорықпапты", "қорықпапты"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "ірку",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ірікпеппін", "ірікпеппіз", "ірікпепсің", "ірікпепсіңдер", "ірікпепсіз", "ірікпепсіздер", "ірікпепті", "ірікпепті"]
+    );
+}]);
+
+ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
+    testAllCases(
+        "Remote unwitnessed past, question, all cases",
+        "жазу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазыппын ба?", "жазыппыз ба?", "жазыпсың ба?", "жазыпсыңдар ма?", "жазыпсыз ба?", "жазыпсыздар ма?", "жазыпты ма?", "жазыпты ма?"]
+    );
+    testAllCases(
+        "Remote unwitnessed past, question, all cases",
+        "көру",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көріппін бе?", "көріппіз бе?", "көріпсің бе?", "көріпсіңдер ме?", "көріпсіз бе?", "көріпсіздер ме?", "көріпті ме?", "көріпті ме?"]
+    );
+}]);
+
 /* End of tests */
 
 testAll();

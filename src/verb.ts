@@ -184,6 +184,12 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
+    fixUpSpecialBaseForceExceptional(): string {
+        if (isVerbOptionalException(this.verbDictForm)) {
+            return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+        }
+        return this.verbBase;
+    }
     presentTransitiveCommonBuilder(): PhrasalBuilder {
         var verbBase = this.verbBase;
         var affix = this.presentTransitiveSuffix();
@@ -287,13 +293,7 @@ class VerbBuilder {
         if (VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verbDictForm)) {
             return "е";
         }
-        if (genuineVowel(this.baseLast)) {
-            return "п";
-        }
-        if (this.soft) {
-            return "іп";
-        }
-        return "ып";
+        return getYpip(this.baseLast, this.softOffset);
     }
     presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder): Phrasal {
         if (auxBuilder.contContext == null) {
@@ -532,6 +532,42 @@ class VerbBuilder {
             let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
             return this.buildQuestionForm(
                 builder
+                    .personalAffix(persAffix)
+            ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    pastUncertainCommonBuilder(): PhrasalBuilder {
+        let base = this.fixUpSpecialBaseForceExceptional();
+        let baseLast = getLastItem(base);
+        let affix = getYpip(baseLast, this.softOffset);
+        return new PhrasalBuilder()
+            .verbBase(base)
+            .tenseAffix(affix);
+    }
+    /* Күмәнді өткен шақ */
+    pastUncertainTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        let persAffix = getPersAffix3(person, number, this.softOffset);
+
+        if (sentenceType == SentenceType.Statement) {
+            return this.pastUncertainCommonBuilder()
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let baseLast = getLastItem(base);
+            let particle = getQuestionParticle(baseLast, this.softOffset);
+            let particleLast = getLastItem(particle);
+            let affix = getYpip(particleLast, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                this.pastUncertainCommonBuilder()
                     .personalAffix(persAffix)
             ).build();
         }

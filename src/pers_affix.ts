@@ -28,3 +28,17 @@ function getPersAffix1(person: GrammarPerson, number: GrammarNumber, c: string, 
     }
     return "";
 }
+
+/* Goes after "п". */
+function getPersAffix3(person: GrammarPerson, number: GrammarNumber, softOffset: number): string {
+    if (person == GrammarPerson.First) {
+        return FIRST_PERS_AFFIXES1[number][PersAffix1LetterGroup.PersAffixUnvoicedGroup][softOffset];
+    }
+    if (person == GrammarPerson.Second) {
+        return SECOND_PERS_AFFIXES1[number][softOffset];
+    }
+    if (person == GrammarPerson.SecondPolite) {
+        return SECOND_POLITE_PERS_AFFIXES1[number][softOffset];
+    }
+    return THIRD_PERS_AFFIXES3[number][softOffset];
+}

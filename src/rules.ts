@@ -96,6 +96,11 @@ const SECOND_POLITE_PERS_AFFIXES1: Record<GrammarNumber, string[]> = {
     Plural: ["сыздар", "сіздер"],
 };
 
+const THIRD_PERS_AFFIXES3: Record<GrammarNumber, string[]> = {
+    Singular: ["ты", "ті"],
+    Plural: ["ты", "ті"],
+}
+
 const MAME = ["ма", "ме"];
 const BABE = ["ба", "бе"];
 const PAPE = ["па", "пе"];
@@ -112,6 +117,8 @@ const KYKI = ["қы", "кі"];
 
 const DYDI = ["ды", "ді"];
 const TYTI = ["ты", "ті"];
+
+const YPIP = ["ып", "іп"];
 
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {
