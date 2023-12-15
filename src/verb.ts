@@ -142,6 +142,21 @@ class VerbBuilder {
         }
         return "ар";
     }
+    pastTransitiveSuffix(baseLast: string): string {
+        if (this.needsYaSuffix) {
+            return "ятын";
+        }
+        if (genuineVowel(baseLast)) {
+            if (this.soft) {
+                return "йтін"
+            }
+            return "йтын";
+        }
+        if (this.soft) {
+            return "етін";
+        }
+        return "атын";
+    }
     getNegativeBaseOf(base: string): string {
         let baseLast = getLastItem(base);
         let particle = getQuestionParticle(baseLast, this.softOffset);
@@ -190,19 +205,25 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
-    presentTransitiveCommonBuilder(): PhrasalBuilder {
-        var verbBase = this.verbBase;
-        var affix = this.presentTransitiveSuffix();
-        if (verbBase.endsWith("й") && affix == "а") {
-            verbBase = chopLast(verbBase, 1);
-            affix = "я";
-        } else if ((verbBase.endsWith("ы") || verbBase.endsWith("і")) && affix == "й") {
-            verbBase = chopLast(verbBase, 1);
-            affix = "и";
+    mergeBaseWithVowelAffix(origBase: string, origAffix: string): PhrasalBuilder {
+        var base = origBase;
+        var affix = origAffix;
+        if (base.endsWith("й") && affix.startsWith("а")) {
+            base = chopLast(base, 1);
+            affix = replaceFirst(affix, "я");
+        } else if ((base.endsWith("ы") || base.endsWith("і")) && affix.startsWith("й")) {
+            base = chopLast(base, 1);
+            affix = replaceFirst(affix, "и");
         }
         return new PhrasalBuilder()
-            .verbBase(verbBase)
+            .verbBase(base)
             .tenseAffix(affix);
+    }
+    presentTransitiveCommonBuilder(): PhrasalBuilder {
+        return this.mergeBaseWithVowelAffix(
+            this.verbBase,
+            this.presentTransitiveSuffix()
+        );
     }
     fixUpBaseForConsonant(base: string, last: string): BaseAndLast {
         let replacement = VERB_LAST_NEGATIVE_CONVERSION.get(last);
@@ -555,12 +576,12 @@ class VerbBuilder {
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
             let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
-            let baseLast = getLastItem(base);
-            let particle = getQuestionParticle(baseLast, this.softOffset);
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = getYpip(particleLast, this.softOffset);
             return new PhrasalBuilder()
-                .verbBase(base)
+                .verbBase(baseAndLast.base)
                 .negation(particle)
                 .tenseAffix(affix)
                 .personalAffix(persAffix)
@@ -569,6 +590,43 @@ class VerbBuilder {
             return this.buildQuestionForm(
                 this.pastUncertainCommonBuilder()
                     .personalAffix(persAffix)
+            ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let base = this.fixUpSpecialBaseForceExceptional();
+        let baseLast = getLastItem(base);
+        let builder = this.mergeBaseWithVowelAffix(
+            base, this.pastTransitiveSuffix(baseLast)
+        );
+        let affixLast = builder.getLastItem();
+        let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+        return builder
+            .personalAffix(persAffix);
+    }
+    /* Ауыспалы өткен шақ: -атын */
+    pastTransitiveTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.pastTransitiveCommonBuilder(person, number)
+                .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let particleLast = getLastItem(particle);
+            let affix = this.pastTransitiveSuffix(particleLast);
+            let affixLast = getLastItem(affix);
+            let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                this.pastTransitiveCommonBuilder(person, number)
             ).build();
         }
         return NOT_SUPPORTED_PHRASAL;

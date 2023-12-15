@@ -1596,6 +1596,15 @@ ALL_TESTS.push(["RemoteUnwitnessedPastNegativeAllCasesTest", function() {
         },
         ["ірікпеппін", "ірікпеппіз", "ірікпепсің", "ірікпепсіңдер", "ірікпепсіз", "ірікпепсіздер", "ірікпепті", "ірікпепті"]
     );
+    testAllCases(
+        "Remote unwitnessed past, negative, all cases",
+        "тебу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппеппін", "теппеппіз", "теппепсің", "теппепсіңдер", "теппепсіз", "теппепсіздер", "теппепті", "теппепті"]
+    );
 }]);
 
 ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
@@ -1616,6 +1625,139 @@ ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
             return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
         },
         ["көріппін бе?", "көріппіз бе?", "көріпсің бе?", "көріпсіңдер ме?", "көріпсіз бе?", "көріпсіздер ме?", "көріпті ме?", "көріпті ме?"]
+    );
+}]);
+
+ALL_TESTS.push(["PastTransitiveAllCasesTest", function() {
+    testAllCases(
+        "Past transitive, all cases",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазатынмын", "жазатынбыз", "жазатынсың", "жазатынсыңдар", "жазатынсыз", "жазатынсыздар", "жазатын", "жазатын"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "көру",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көретінмін", "көретінбіз", "көретінсің", "көретінсіңдер", "көретінсіз", "көретінсіздер", "көретін", "көретін"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "төлеу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["төлейтінмін", "төлейтінбіз", "төлейтінсің", "төлейтінсіңдер", "төлейтінсіз", "төлейтінсіздер", "төлейтін", "төлейтін"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "оқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқитынмын", "оқитынбыз", "оқитынсың", "оқитынсыңдар", "оқитынсыз", "оқитынсыздар", "оқитын", "оқитын"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "қою",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қоятынмын", "қоятынбыз", "қоятынсың", "қоятынсыңдар", "қоятынсыз", "қоятынсыздар", "қоятын", "қоятын"]
+    );
+}]);
+
+ALL_TESTS.push(["PastTransitiveNegativeAllCasesTest", function() {
+    testAllCases(
+        "Past transitive, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбайтынмын", "жазбайтынбыз", "жазбайтынсың", "жазбайтынсыңдар", "жазбайтынсыз", "жазбайтынсыздар", "жазбайтын", "жазбайтын"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "көру",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көрмейтінмін", "көрмейтінбіз", "көрмейтінсің", "көрмейтінсіңдер", "көрмейтінсіз", "көрмейтінсіздер", "көрмейтін", "көрмейтін"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "төлеу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["төлемейтінмін", "төлемейтінбіз", "төлемейтінсің", "төлемейтінсіңдер", "төлемейтінсіз", "төлемейтінсіздер", "төлемейтін", "төлемейтін"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "оқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқымайтынмын", "оқымайтынбыз", "оқымайтынсың", "оқымайтынсыңдар", "оқымайтынсыз", "оқымайтынсыздар", "оқымайтын", "оқымайтын"]
+    );
+    testAllCases(
+        "Past transitive, all cases",
+        "қою",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қоймайтынмын", "қоймайтынбыз", "қоймайтынсың", "қоймайтынсыңдар", "қоймайтынсыз", "қоймайтынсыздар", "қоймайтын", "қоймайтын"]
+    );
+    testAllCases(
+        "Past transitive, all cases, tricky verb",
+        "тебу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппейтінмін", "теппейтінбіз", "теппейтінсің", "теппейтінсіңдер", "теппейтінсіз", "теппейтінсіздер", "теппейтін", "теппейтін"]
+    );
+}]);
+
+ALL_TESTS.push(["PastTransitiveQuestionAllCasesTest", function() {
+    testAllCases(
+        "Past transitive, all cases",
+        "жазу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.pastTransitiveTense(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазатынмын ба?", "жазатынбыз ба?", "жазатынсың ба?", "жазатынсыңдар ма?", "жазатынсыз ба?", "жазатынсыздар ма?", "жазатын ба?", "жазатын ба?"]
+    );
+
+    T_EQ_ASSERT(
+        "болатынсың ба?",
+        new VerbBuilder("болу").pastTransitiveTense(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question),
+        "Past transitive, regular, question"
+    );
+    T_EQ_ASSERT(
+        "сөйлейтінсіз бе?",
+        new VerbBuilder("сөйлеу").pastTransitiveTense(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Question),
+        "Past transitive, regular, question"
+    );
+    T_EQ_ASSERT(
+        "әкелетін бе?",
+        new VerbBuilder("әкелу").pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        "Past transitive, regular, question"
     );
 }]);
 
