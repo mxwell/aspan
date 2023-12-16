@@ -38,3 +38,7 @@ function getYpip(c: string, softOffset: number): string {
     }
     return YPIP[softOffset];
 }
+
+function getSase(softOffset: number): string {
+    return SASE[softOffset];
+}

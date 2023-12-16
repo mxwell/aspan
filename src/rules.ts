@@ -120,6 +120,8 @@ const TYTI = ["ты", "ті"];
 
 const YPIP = ["ып", "іп"];
 
+const SASE = ["са", "се"];
+
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {
         Singular: "мен",

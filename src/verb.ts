@@ -631,4 +631,38 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    conditionalMoodCommonBuilder(): PhrasalBuilder {
+        let pastBase = this.fixUpSpecialBaseForConsonant();
+        let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
+        let affix = getSase(this.softOffset);
+        return new PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix);
+    }
+    /* Шартты рай: -са */
+    conditionalMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        let persAffix = VERB_PERS_AFFIXES2[person][number][this.softOffset];
+        if (sentenceType == SentenceType.Statement) {
+            return this.conditionalMoodCommonBuilder()
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let affix = getSase(this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .personalAffix(persAffix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                    this.conditionalMoodCommonBuilder()
+                        .personalAffix(persAffix)
+                ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

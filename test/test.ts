@@ -1761,6 +1761,156 @@ ALL_TESTS.push(["PastTransitiveQuestionAllCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["ConditionalMoodAllCasesTest", function() {
+    testAllCases(
+        "Conditional mood, all cases",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазсам", "жазсақ", "жазсаң", "жазсаңдар", "жазсаңыз", "жазсаңыздар", "жазса", "жазса"]
+    );
+    testAllCases(
+        "Conditional mood, all cases",
+        "айту",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["айтсам", "айтсақ", "айтсаң", "айтсаңдар", "айтсаңыз", "айтсаңыздар", "айтса", "айтса"]
+    );
+    testAllCases(
+        "Conditional mood, all cases",
+        "көру",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көрсем", "көрсек", "көрсең", "көрсеңдер", "көрсеңіз", "көрсеңіздер", "көрсе", "көрсе"]
+    );
+    testAllCases(
+        "Conditional mood, all cases",
+        "ішу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ішсем", "ішсек", "ішсең", "ішсеңдер", "ішсеңіз", "ішсеңіздер", "ішсе", "ішсе"]
+    );
+    testAllCases(
+        "Conditional mood, all cases",
+        "оқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқысам", "оқысақ", "оқысаң", "оқысаңдар", "оқысаңыз", "оқысаңыздар", "оқыса", "оқыса"]
+    );
+    testAllCases(
+        "Conditional mood, all cases",
+        "есту",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["естісем", "естісек", "естісең", "естісеңдер", "естісеңіз", "естісеңіздер", "естісе", "естісе"]
+    );
+}]);
+
+ALL_TESTS.push(["ConditionalMoodNegativeAllCasesTest", function() {
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбасам", "жазбасақ", "жазбасаң", "жазбасаңдар", "жазбасаңыз", "жазбасаңыздар", "жазбаса", "жазбаса"]
+    );
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "айту",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["айтпасам", "айтпасақ", "айтпасаң", "айтпасаңдар", "айтпасаңыз", "айтпасаңыздар", "айтпаса", "айтпаса"]
+    );
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "көру",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["көрмесем", "көрмесек", "көрмесең", "көрмесеңдер", "көрмесеңіз", "көрмесеңіздер", "көрмесе", "көрмесе"]
+    );
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "ішу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["ішпесем", "ішпесек", "ішпесең", "ішпесеңдер", "ішпесеңіз", "ішпесеңіздер", "ішпесе", "ішпесе"]
+    );
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "оқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқымасам", "оқымасақ", "оқымасаң", "оқымасаңдар", "оқымасаңыз", "оқымасаңыздар", "оқымаса", "оқымаса"]
+    );
+    testAllCases(
+        "Conditional mood, negative, all cases",
+        "есту",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["естімесем", "естімесек", "естімесең", "естімесеңдер", "естімесеңіз", "естімесеңіздер", "естімесе", "естімесе"]
+    );
+}]);
+
+ALL_TESTS.push(["ConditionalMoodQuestionAllCasesTest", function() {
+    // No sources, just a guess.
+
+    testAllCases(
+        "Conditional mood, all cases, question",
+        "жазу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазсам ба?", "жазсақ па?", "жазсаң ба?", "жазсаңдар ма?", "жазсаңыз ба?", "жазсаңыздар ма?", "жазса ма?", "жазса ма?"]
+    );
+    testAllCases(
+        "Conditional mood, all cases, question",
+        "айту",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.conditionalMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["айтсам ба?", "айтсақ па?", "айтсаң ба?", "айтсаңдар ма?", "айтсаңыз ба?", "айтсаңыздар ма?", "айтса ма?", "айтса ма?"]
+    );
+}]);
+
+ALL_TESTS.push(["ConditionalMoodSingleCasesTest", function() {
+    T_EQ_ASSERT(
+        "соқсам",
+        new VerbBuilder("соғу").conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Conditional mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "қойсаңыз",
+        new VerbBuilder("қою").conditionalMood(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Statement),
+        "Conditional mood, tricky verb"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
