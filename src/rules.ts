@@ -99,7 +99,29 @@ const SECOND_POLITE_PERS_AFFIXES1: Record<GrammarNumber, string[]> = {
 const THIRD_PERS_AFFIXES3: Record<GrammarNumber, string[]> = {
     Singular: ["ты", "ті"],
     Plural: ["ты", "ті"],
-}
+};
+
+const IMPERATIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
+    First: {
+        Singular: ["йын", "йін"],
+        Plural:   ["йық", "йік"],
+    },
+    Second: {
+        Singular: ["", ""],
+        Plural:   ["ңдар", "ңдер"],
+    },
+    SecondPolite: {
+        Singular: ["ңыз", "ңіз"],
+        Plural:   ["ңыздар", "ңіздер"],
+    },
+    Third: {
+        Singular: ["сын", "сін"],
+        Plural:   ["сын", "сін"],
+    }
+};
+
+const AE = ["а", "е"];
+const YI = ["ы", "і"];
 
 const MAME = ["ма", "ме"];
 const BABE = ["ба", "бе"];

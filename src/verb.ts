@@ -665,4 +665,33 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    imperativeMoodCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let base = this.fixUpSpecialBaseForceExceptional();
+        let baseLast = getLastItem(base);
+        let affix = getImperativeAffix(person, number, baseLast, this.softOffset);
+        return this.mergeBaseWithVowelAffix(base, affix);
+    }
+    /* Бұйрық рай */
+    imperativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.imperativeMoodCommonBuilder(person, number)
+                .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let particleLast = getLastItem(particle);
+            let affix = getImperativeAffix(person, number, particleLast, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                    this.imperativeMoodCommonBuilder(person, number)
+                ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

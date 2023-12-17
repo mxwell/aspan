@@ -1911,6 +1911,154 @@ ALL_TESTS.push(["ConditionalMoodSingleCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["ImperativeMoodAllCasesTest", function() {
+    testAllCases(
+        "Imperative mood, all cases",
+        "жазу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазайын", "жазайық", "жаз", "жазыңдар", "жазыңыз", "жазыңыздар", "жазсын", "жазсын"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "беру",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["берейін", "берейік", "бер", "беріңдер", "беріңіз", "беріңіздер", "берсін", "берсін"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "төлеу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["төлейін", "төлейік", "төле", "төлеңдер", "төлеңіз", "төлеңіздер", "төлесін", "төлесін"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "оқу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқиын", "оқиық", "оқы", "оқыңдар", "оқыңыз", "оқыңыздар", "оқысын", "оқысын"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "есту",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["естиін", "естиік", "есті", "естіңдер", "естіңіз", "естіңіздер", "естісін", "естісін"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "қою",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қояйын", "қояйық", "қой", "қойыңдар", "қойыңыз", "қойыңыздар", "қойсын", "қойсын"]
+    );
+}]);
+
+ALL_TESTS.push(["ImperativeMoodNegativeAllCasesTest", function() {
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбайын", "жазбайық", "жазба", "жазбаңдар", "жазбаңыз", "жазбаңыздар", "жазбасын", "жазбасын"]
+    );
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "беру",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["бермейін", "бермейік", "берме", "бермеңдер", "бермеңіз", "бермеңіздер", "бермесін", "бермесін"]
+    );
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "төлеу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["төлемейін", "төлемейік", "төлеме", "төлемеңдер", "төлемеңіз", "төлемеңіздер", "төлемесін", "төлемесін"]
+    );
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "оқу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["оқымайын", "оқымайық", "оқыма", "оқымаңдар", "оқымаңыз", "оқымаңыздар", "оқымасын", "оқымасын"]
+    );
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "есту",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["естімейін", "естімейік", "естіме", "естімеңдер", "естімеңіз", "естімеңіздер", "естімесін", "естімесін"]
+    );
+    testAllCases(
+        "Imperative mood, negative, all cases",
+        "қою",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["қоймайын", "қоймайық", "қойма", "қоймаңдар", "қоймаңыз", "қоймаңыздар", "қоймасын", "қоймасын"]
+    );
+}]);
+
+ALL_TESTS.push(["ImperativeMoodQuestionAllCasesTest", function() {
+    testAllCases(
+        "Imperative mood, question, all cases",
+        "жазу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазайын ба?", "жазайық па?", "жаз ба?", "жазыңдар ма?", "жазыңыз ба?", "жазыңыздар ма?", "жазсын ба?", "жазсын ба?"]
+    );
+    testAllCases(
+        "Imperative mood, question, all cases",
+        "беру",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["берейін бе?", "берейік пе?", "бер ме?", "беріңдер ме?", "беріңіз бе?", "беріңіздер ме?", "берсін бе?", "берсін бе?"]
+    );
+}]);
+
+ALL_TESTS.push(["ImperativeMoodSingleCasesTest", function() {
+    T_EQ_ASSERT(
+        "жаппа",
+        new VerbBuilder("жабу").imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "теппейік",
+        new VerbBuilder("тебу").imperativeMood(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
+        "Imperative mood, tricky verb"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
