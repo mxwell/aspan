@@ -591,6 +591,7 @@ const VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED = "жату";
 /* TODO are there more of them? */
 const VERB_PRESENT_CONT_EXCEPTION_U_SET = new Set([
     "жабу",
+    "қабу",
     "кебу",
     "себу",
     "тебу",

@@ -777,6 +777,75 @@ ALL_TESTS.push(["presentContTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["presentContReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жауып жатырмын"],
+        ["қабу", "қауып жатырмын"],
+        ["табу", "тауып жатырмын"],
+        ["шабу", "шауып жатырмын"],
+        ["кебу", "кеуіп жатырмын"],
+        ["себу", "сеуіп жатырмын"],
+        ["тебу", "теуіп жатырмын"],
+        ["өбу", "өбіп жатырмын"],
+    ];
+    const auxBuilder = new VerbBuilder("жату");
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "Present continuous, b-to-u replacement: "
+        );
+    }
+}]);
+
+ALL_TESTS.push(["presentContNegativeReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жауып жатқан жоқпын"],
+        ["қабу", "қауып жатқан жоқпын"],
+        ["табу", "тауып жатқан жоқпын"],
+        ["шабу", "шауып жатқан жоқпын"],
+        ["кебу", "кеуіп жатқан жоқпын"],
+        ["себу", "сеуіп жатқан жоқпын"],
+        ["тебу", "теуіп жатқан жоқпын"],
+        ["өбу", "өбіп жатқан жоқпын"],
+    ];
+    const auxBuilder = new VerbBuilder("жату");
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, auxBuilder),
+            "Present continuous, b-to-u replacement: "
+        );
+    }
+}]);
+
+ALL_TESTS.push(["presentContQuestionReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жауып жатырмын ба?"],
+        ["қабу", "қауып жатырмын ба?"],
+        ["табу", "тауып жатырмын ба?"],
+        ["шабу", "шауып жатырмын ба?"],
+        ["кебу", "кеуіп жатырмын ба?"],
+        ["себу", "сеуіп жатырмын ба?"],
+        ["тебу", "теуіп жатырмын ба?"],
+        ["өбу", "өбіп жатырмын ба?"],
+    ];
+    const auxBuilder = new VerbBuilder("жату");
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question, auxBuilder),
+            "Present continuous, b-to-u replacement: "
+        );
+    }
+}]);
+
 ALL_TESTS.push(["presentContNegativeTest", function() {
     T_EQ_ASSERT(
         "жазып отырған жоқсың",
@@ -1625,6 +1694,87 @@ ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
             return verbBuilder.pastUncertainTense(grammarPerson, grammarNumber, sentenceType);
         },
         ["көріппін бе?", "көріппіз бе?", "көріпсің бе?", "көріпсіңдер ме?", "көріпсіз бе?", "көріпсіздер ме?", "көріпті ме?", "көріпті ме?"]
+    );
+}]);
+
+
+ALL_TESTS.push(["pastUncertainReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жауыппын"],
+        ["қабу", "қауыппын"],
+        ["табу", "тауыппын"],
+        ["шабу", "шауыппын"],
+        ["кебу", "кеуіппін"],
+        ["себу", "сеуіппін"],
+        ["тебу", "теуіппін"],
+        ["өбу", "өбіппін"],
+    ];
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+            "Past uncertain, b-to-u replacement: "
+        );
+    }
+}]);
+
+ALL_TESTS.push(["pastUncertainNegativeReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жаппаппын"],
+        ["қабу", "қабымаппын"],  // TODO check
+        ["табу", "таппаппын"],
+        ["шабу", "шаппаппын"],
+        ["кебу", "кеппеппін"],
+        ["себу", "сеппеппін"],
+        ["тебу", "теппеппін"],
+        ["өбу", "өппеппін"],
+    ];
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+            "Past uncertain, b-to-u replacement: "
+        );
+    }
+}]);
+
+ALL_TESTS.push(["pastUncertainQuestionReplaceUTest", function() {
+    const relations = [
+        ["жабу", "жауыппын ба?"],
+        ["қабу", "қауыппын ба?"],
+        ["табу", "тауыппын ба?"],
+        ["шабу", "шауыппын ба?"],
+        ["кебу", "кеуіппін бе?"],
+        ["себу", "сеуіппін бе?"],
+        ["тебу", "теуіппін бе?"],
+        ["өбу", "өбіппін бе?"],
+    ];
+    for (let i in relations) {
+        let base = relations[i][0];
+        let form = relations[i][1];
+        T_EQ_ASSERT(
+            form,
+            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+            "Past uncertain, b-to-u replacement: "
+        );
+    }
+}]);
+
+ALL_TESTS.push(["pastUncertainTrickyTest", function() {
+    T_EQ_ASSERT(
+        "ашыппын",
+        new VerbBuilder("ашу").pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Past uncertain, tricky verb: "
+    );
+    // TODO check
+    T_EQ_ASSERT(
+        "ашымаппын",
+        new VerbBuilder("ашу").pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Past uncertain, tricky verb: "
     );
 }]);
 

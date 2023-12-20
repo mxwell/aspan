@@ -182,6 +182,32 @@ class VerbBuilder {
             .unclassified(phrase)
             .build();
     }
+    genericBaseModifier(nc: boolean, yp: boolean, fe: boolean): string {
+        if (nc) { /* next is consonant */
+            if (yp) {
+                throw new Error(`invalid arguments: ${nc}, ${yp}`)
+            }
+            /* force exception: ашу -> ашы */
+            if (fe) {
+                if (isVerbOptionalException(this.verbDictForm)) {
+                    let suffix = VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+                    return `${this.verbBase}${suffix}`;
+                }
+            }
+            /* оқу -> оқы */
+            let addVowel = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm);
+            if (addVowel) {
+                return addVowel;
+            }
+        } else if (yp) { /* next is -ып */
+            /* жабу -> жау */
+            if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
+                return replaceLast(this.verbBase, "у");
+            }
+        }
+        return this.verbBase;
+    }
+    // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForConsonant(): string {
         let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
         if (specialBase != null) {
@@ -189,6 +215,7 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
+    // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForConsonantAndForceExceptional(): string {
         let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
         if (specialBase != null) {
@@ -199,6 +226,7 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
+    // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForceExceptional(): string {
         if (isVerbOptionalException(this.verbDictForm)) {
             return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
@@ -301,6 +329,7 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    // TODO replace with genericBaseModifier()
     getPresentContinuousBase(): string {
         if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
             return replaceLast(this.verbBase, "у");
@@ -559,7 +588,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     pastUncertainCommonBuilder(): PhrasalBuilder {
-        let base = this.fixUpSpecialBaseForceExceptional();
+        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true, /* fe */ true);
         let baseLast = getLastItem(base);
         let affix = getYpip(baseLast, this.softOffset);
         return new PhrasalBuilder()
@@ -575,7 +604,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false, /* fe */ true);
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
