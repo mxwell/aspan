@@ -12,5 +12,5 @@ tsc --lib es2015 src/*.ts -t es6 -outFile $COMPILED
 cat $COMPILED module_export.js > $ASPAN_JS
 
 echo "Reading verbs from input.txt and writing forms to output.txt."
-node $GENERATOR
+node $GENERATOR data/verbs.txt data/verb_forms.csv
 echo "Generating has finished."

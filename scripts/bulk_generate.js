@@ -82,5 +82,9 @@ async function processLineByLine(inputFilePath, outputFilePath) {
   console.log(`Handled ${lineCounter} verb(s).`)
 }
 
-// TODO can we get them from cli args?
-processLineByLine("input.txt", "output.txt");
+let args = process.argv.slice(2)
+let EXPECTED_ARGS = 2;
+if (args.length != EXPECTED_ARGS) {
+    throw new Error(`Expected ${EXPECTED_ARGS} arguments but got ${args.length}.`)
+}
+processLineByLine(args[0], args[1]);
