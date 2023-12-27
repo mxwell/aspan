@@ -59,9 +59,81 @@ function createTenseForms(verb, auxBuilder) {
     return forms;
 }
 
-async function processLineByLine(inputFilePath, outputFilePath) {
-  const inputStream = fs.createReadStream(inputFilePath);
-  const outputStream = fs.createWriteStream(outputFilePath);
+class Args {
+    constructor(input, output, suggestFormat) {
+        this.input = input;
+        this.output = output;
+        this.suggestFormat = suggestFormat;
+    }
+}
+
+function writeSuggestLine(base, form, weight, outputStream) {
+    outputStream.write(`${form}\t${weight}\t{\"base\": \"${base}\"}\n`)
+}
+
+function simplify(form) {
+    let obvious = form
+        .replace(/[ң]/gi, 'н')
+        .replace(/[ғ]/gi, 'г')
+        .replace(/[үұ]/gi, 'у')
+        .replace(/[қ]/gi, 'к')
+        .replace(/[ө]/gi, 'о');
+
+    let result = [];
+    if (obvious.indexOf('ә') >= 0) {
+        if (obvious.indexOf('і') >= 0) {
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'я')
+                    .replace(/[і]/gi, 'и')
+            );
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'э')
+                    .replace(/[і]/gi, 'и')
+            );
+            /*
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'я')
+                    .replace(/[і]/gi, 'ы')
+            );
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'э')
+                    .replace(/[і]/gi, 'ы')
+            );
+            */
+        } else {
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'я')
+            );
+            result.push(
+                obvious
+                    .replace(/[ә]/gi, 'э')
+            );
+        }
+    } else if (obvious.indexOf('і') >= 0) {
+        result.push(
+            obvious
+                .replace(/[і]/gi, 'и')
+        );
+        /*
+        result.push(
+            obvious
+                .replace(/[і]/gi, 'ы')
+        );
+        */
+    } else if (obvious != form) {
+        result.push(obvious);
+    }
+    return result;
+}
+
+async function processLineByLine(args) {
+  const inputStream = fs.createReadStream(args.input);
+  const outputStream = fs.createWriteStream(args.output);
 
   let auxBuilder = new aspan.VerbBuilder("жату");
 
@@ -71,20 +143,59 @@ async function processLineByLine(inputFilePath, outputFilePath) {
   });
 
   let lineCounter = 0;
+  let outputCounter = 0;
   for await (const line of rl) {
     let forms = createTenseForms(line, auxBuilder);
-    outputStream.write(`${line}\t${forms.join('\t')}\n`);
+    if (args.suggestFormat) {
+        writeSuggestLine(line, line, 1.0, outputStream);
+        ++outputCounter;
+        let simpleBaseForms = simplify(line);
+        for (var j = 0; j < simpleBaseForms.length; ++j) {
+            writeSuggestLine(line, simpleBaseForms[j], 0.6, outputStream);
+            ++outputCounter;
+        }
+        for (var i = 0; i < forms.length; ++i) {
+            let form = forms[i];
+            writeSuggestLine(line, form, 0.8, outputStream);
+            ++outputCounter;
+            let simpleForms = simplify(form);
+            for (var j = 0; j < simpleForms.length; ++j) {
+                writeSuggestLine(line, simpleForms[j], 0.6, outputStream);
+                ++outputCounter;
+            }
+        }
+    } else {
+        outputStream.write(`${line}\t${forms.join('\t')}\n`);
+        outputCounter += forms.length;
+    }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
         console.log(`Handled ${lineCounter} verb(s) so far.`)
     }
   }
   console.log(`Handled ${lineCounter} verb(s).`)
+  console.log(`Produced ${outputCounter} form(s).`)
 }
 
-let args = process.argv.slice(2)
-let EXPECTED_ARGS = 2;
-if (args.length != EXPECTED_ARGS) {
-    throw new Error(`Expected ${EXPECTED_ARGS} arguments but got ${args.length}.`)
+function parseArgs() {
+    let args = process.argv.slice(2)
+    if (args.length < 2 || args.length > 3) {
+        throw new Error(`Unexpected number of arguments: ${args.length}.`)
+    }
+    var suggestFormat = false;
+    var argPos = 0;
+    if (args.length == 3) {
+        if (args[0] == "--suggest-format") {
+            suggestFormat = true;
+        } else {
+            throw new Error(`Unexpected argument: ${args[0]}.`)
+        }
+        ++argPos;
+    }
+    let inputPath = args[argPos];
+    let outputPath = args[argPos + 1];
+    return new Args(inputPath, outputPath, suggestFormat);
 }
-processLineByLine(args[0], args[1]);
+
+let args = parseArgs();
+processLineByLine(args);
