@@ -2207,6 +2207,16 @@ ALL_TESTS.push(["ImperativeMoodSingleCasesTest", function() {
         new VerbBuilder("тебу").imperativeMood(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative),
         "Imperative mood, tricky verb"
     );
+    T_EQ_ASSERT(
+        "соқсын",
+        new VerbBuilder("соғу").imperativeMood(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Statement),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "соқсын ба?",
+        new VerbBuilder("соғу").imperativeMood(GrammarPerson.Third, GrammarNumber.Plural, SentenceType.Question),
+        "Imperative mood, tricky verb"
+    );
 }]);
 
 /* End of tests */

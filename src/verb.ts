@@ -695,10 +695,11 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     imperativeMoodCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let base = this.fixUpSpecialBaseForceExceptional();
-        let baseLast = getLastItem(base);
-        let affix = getImperativeAffix(person, number, baseLast, this.softOffset);
-        return this.mergeBaseWithVowelAffix(base, affix);
+        let nc = person == GrammarPerson.Third;
+        let base = this.genericBaseModifier(nc, /* yp */ false, /* fe */ true);
+        let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+        let affix = getImperativeAffix(person, number, baseAndLast.last, this.softOffset);
+        return this.mergeBaseWithVowelAffix(baseAndLast.base, affix);
     }
     /* Бұйрық рай */
     imperativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
