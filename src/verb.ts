@@ -695,9 +695,15 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     imperativeMoodCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let nc = person == GrammarPerson.Third;
+        let nc = (
+            (person == GrammarPerson.Second && number == GrammarNumber.Singular)
+            || person == GrammarPerson.Third
+        );
         let base = this.genericBaseModifier(nc, /* yp */ false, /* fe */ true);
-        let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+        let baseAndLast = (nc
+            ? this.fixUpBaseForConsonant(base, getLastItem(base))
+            : new BaseAndLast(base, getLastItem(base))
+        );
         let affix = getImperativeAffix(person, number, baseAndLast.last, this.softOffset);
         return this.mergeBaseWithVowelAffix(baseAndLast.base, affix);
     }

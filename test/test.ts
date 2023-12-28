@@ -2116,6 +2116,24 @@ ALL_TESTS.push(["ImperativeMoodAllCasesTest", function() {
         },
         ["қояйын", "қояйық", "қой", "қойыңдар", "қойыңыз", "қойыңыздар", "қойсын", "қойсын"]
     );
+    testAllCases(
+        "Imperative mood, all cases",
+        "бағу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["бағайын", "бағайық", "бақ", "бағыңдар", "бағыңыз", "бағыңыздар", "бақсын", "бақсын"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "тігу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["тігейін", "тігейік", "тік", "тігіңдер", "тігіңіз", "тігіңіздер", "тіксін", "тіксін"]
+    );
 }]);
 
 ALL_TESTS.push(["ImperativeMoodNegativeAllCasesTest", function() {
@@ -2172,6 +2190,24 @@ ALL_TESTS.push(["ImperativeMoodNegativeAllCasesTest", function() {
             return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
         },
         ["қоймайын", "қоймайық", "қойма", "қоймаңдар", "қоймаңыз", "қоймаңыздар", "қоймасын", "қоймасын"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "бағу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["бақпайын", "бақпайық", "бақпа", "бақпаңдар", "бақпаңыз", "бақпаңыздар", "бақпасын", "бақпасын"]
+    );
+    testAllCases(
+        "Imperative mood, all cases",
+        "тігу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.imperativeMood(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["тікпейін", "тікпейік", "тікпе", "тікпеңдер", "тікпеңіз", "тікпеңіздер", "тікпесін", "тікпесін"]
     );
 }]);
 
