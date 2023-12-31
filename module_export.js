@@ -7,5 +7,7 @@ module.exports = {
     validateVerb,
     isVerbOptionalException,
     validPresentContPair,
-    VerbBuilder
+    VerbBuilder,
+    GrammarPerson,
+    GrammarNumber,
 };

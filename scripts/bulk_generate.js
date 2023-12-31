@@ -2,13 +2,54 @@ const fs = require('fs');
 const readline = require('readline');
 const aspan = require('../BUILD/aspan.js');
 
+const SHORT_VERB_WEIGHT = 0.5;
+const EXACT_MATCH_WEIGHT = SHORT_VERB_WEIGHT / 2;
+const FORM_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 10;
+const SECOND_PLURAL_WEIGHT   = FORM_WEIGHT_PORTION * 1;
+const FIRST_PLURAL_WEIGHT    = FORM_WEIGHT_PORTION * 2;
+const SECOND_SINGULAR_WEIGHT = FORM_WEIGHT_PORTION * 3;
+const FIRST_SINGULAR_WEIGHT  = FORM_WEIGHT_PORTION * 4;
+const THIRD_PERSON_WEIGHT    = FORM_WEIGHT_PORTION * 5;
+const INFINITIV_WEIGHT       = FORM_WEIGHT_PORTION * 6;
+
+class WeightedForm {
+    constructor(form, weight) {
+        this.form = form;
+        this.weight = weight;
+    }
+}
+
 function createForms(caseFn, formsOut) {
-    for (const person of aspan.GRAMMAR_PERSONS) {
-        for (const number of aspan.GRAMMAR_NUMBERS) {
-            const verbPhrase = caseFn(person, number).raw;
-            formsOut.push(verbPhrase);
+
+    function addForm(person, number, weight) {
+        let prev = null;
+        if (formsOut.length > 0) {
+            prev = formsOut[formsOut.length - 1].form;
+        }
+        let form = caseFn(person, number).raw;
+        if (prev != form) {
+            formsOut.push(new WeightedForm(
+                form,
+                weight
+            ));
         }
     }
+
+    const first = aspan.GrammarPerson.First;
+    const second = aspan.GrammarPerson.Second;
+    const secondP = aspan.GrammarPerson.SecondPolite;
+    const third = aspan.GrammarPerson.Third;
+
+    const sing = aspan.GrammarNumber.Singular;
+    const plur = aspan.GrammarNumber.Plural;
+    addForm(first, sing, FIRST_SINGULAR_WEIGHT);
+    addForm(first, plur, FIRST_PLURAL_WEIGHT);
+    addForm(second, sing, SECOND_SINGULAR_WEIGHT);
+    addForm(second, plur, SECOND_PLURAL_WEIGHT);
+    addForm(secondP, sing, SECOND_SINGULAR_WEIGHT);
+    addForm(secondP, plur, SECOND_PLURAL_WEIGHT);
+    addForm(third, sing, THIRD_PERSON_WEIGHT);
+    addForm(third, plur, THIRD_PERSON_WEIGHT);
 }
 
 function createTenseForms(verb, auxBuilder) {
@@ -131,6 +172,26 @@ function simplify(form) {
     return result;
 }
 
+/**
+ * The function serves to suppress verbs on their word count and especially on comma [','] presence.
+ */
+function estimateVerbPartCount(verb) {
+    let commas = 0;
+    let separators = 0;
+    for (var i = 0; i < verb.length; ++i) {
+        let ch = verb[i];
+        if (ch == ',') {
+            ++commas;
+        } else if (ch == ' ' || ch == '-') {
+            ++separators;
+        }
+    }
+    if (commas > 0) {
+        return 10;
+    }
+    return separators + 1;
+}
+
 async function processLineByLine(args) {
   const inputStream = fs.createReadStream(args.input);
   const outputStream = fs.createWriteStream(args.output);
@@ -145,28 +206,36 @@ async function processLineByLine(args) {
   let lineCounter = 0;
   let outputCounter = 0;
   for await (const line of rl) {
+    let partCountSuppression = estimateVerbPartCount(line);
+    if (partCountSuppression > 2) continue;
     let forms = createTenseForms(line, auxBuilder);
     if (args.suggestFormat) {
-        writeSuggestLine(line, line, 1.0, outputStream);
+        let partCountWeight = (partCountSuppression < 2) ? 0.5 : 0.0;
+        writeSuggestLine(line, line, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(line);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(line, simpleBaseForms[j], 0.6, outputStream);
+            writeSuggestLine(line, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, outputStream);
             ++outputCounter;
         }
         for (var i = 0; i < forms.length; ++i) {
-            let form = forms[i];
-            writeSuggestLine(line, form, 0.8, outputStream);
+            let weightedForm = forms[i];
+            writeSuggestLine(line, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, outputStream);
             ++outputCounter;
-            let simpleForms = simplify(form);
+            let simpleForms = simplify(weightedForm.form);
             for (var j = 0; j < simpleForms.length; ++j) {
-                writeSuggestLine(line, simpleForms[j], 0.6, outputStream);
+                writeSuggestLine(line, simpleForms[j], partCountWeight + weightedForm.weight, outputStream);
                 ++outputCounter;
             }
         }
     } else {
-        outputStream.write(`${line}\t${forms.join('\t')}\n`);
-        outputCounter += forms.length;
+        outputStream.write(`${line}`);
+        ++outputCounter;
+        for (var i = 0; i < forms.length; ++i) {
+            outputStream.write(`\t${forms[i].form}`);
+            ++outputCounter;
+        }
+        outputStream.write(`\n`);
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
