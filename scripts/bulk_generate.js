@@ -122,6 +122,7 @@ function simplify(form) {
         .replace(/[ғ]/gi, 'г')
         .replace(/[үұ]/gi, 'у')
         .replace(/[қ]/gi, 'к')
+        .replace(/[һ]/gi, 'х')
         .replace(/[ө]/gi, 'о');
 
     let result = [];
