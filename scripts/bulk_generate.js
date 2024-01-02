@@ -2,6 +2,10 @@ const fs = require('fs');
 const readline = require('readline');
 const aspan = require('../BUILD/aspan.js');
 
+const FORMAT_ONE_LINE = "--one-line-format";
+const FORMAT_SUGGEST = "--suggest-format";
+const FORMAT_SUGGEST_INFINITIV = "--suggest-infinitiv-format";
+
 const SHORT_VERB_WEIGHT = 0.5;
 const EXACT_MATCH_WEIGHT = SHORT_VERB_WEIGHT / 2;
 const FORM_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 10;
@@ -101,10 +105,10 @@ function createTenseForms(verb, auxBuilder) {
 }
 
 class Args {
-    constructor(input, output, suggestFormat) {
+    constructor(input, output, outputFormat) {
         this.input = input;
         this.output = output;
-        this.suggestFormat = suggestFormat;
+        this.outputFormat = outputFormat;
     }
 }
 
@@ -209,7 +213,7 @@ async function processLineByLine(args) {
     let partCountSuppression = estimateVerbPartCount(line);
     if (partCountSuppression > 2) continue;
     let forms = createTenseForms(line, auxBuilder);
-    if (args.suggestFormat) {
+    if (args.outputFormat == FORMAT_SUGGEST || args.outputFormat == FORMAT_SUGGEST_INFINITIV) {
         let partCountWeight = (partCountSuppression < 2) ? 0.5 : 0.0;
         writeSuggestLine(line, line, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, outputStream);
         ++outputCounter;
@@ -218,14 +222,16 @@ async function processLineByLine(args) {
             writeSuggestLine(line, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, outputStream);
             ++outputCounter;
         }
-        for (var i = 0; i < forms.length; ++i) {
-            let weightedForm = forms[i];
-            writeSuggestLine(line, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, outputStream);
-            ++outputCounter;
-            let simpleForms = simplify(weightedForm.form);
-            for (var j = 0; j < simpleForms.length; ++j) {
-                writeSuggestLine(line, simpleForms[j], partCountWeight + weightedForm.weight, outputStream);
+        if (args.outputFormat == FORMAT_SUGGEST) {
+            for (var i = 0; i < forms.length; ++i) {
+                let weightedForm = forms[i];
+                writeSuggestLine(line, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, outputStream);
                 ++outputCounter;
+                let simpleForms = simplify(weightedForm.form);
+                for (var j = 0; j < simpleForms.length; ++j) {
+                    writeSuggestLine(line, simpleForms[j], partCountWeight + weightedForm.weight, outputStream);
+                    ++outputCounter;
+                }
             }
         }
     } else {
@@ -251,11 +257,12 @@ function parseArgs() {
     if (args.length < 2 || args.length > 3) {
         throw new Error(`Unexpected number of arguments: ${args.length}.`)
     }
-    var suggestFormat = false;
+    var outputFormat = FORMAT_ONE_LINE;
     var argPos = 0;
     if (args.length == 3) {
-        if (args[0] == "--suggest-format") {
-            suggestFormat = true;
+        let arg = args[0];
+        if (arg == FORMAT_ONE_LINE || arg == FORMAT_SUGGEST || arg == FORMAT_SUGGEST_INFINITIV) {
+            outputFormat = arg;
         } else {
             throw new Error(`Unexpected argument: ${args[0]}.`)
         }
@@ -263,7 +270,7 @@ function parseArgs() {
     }
     let inputPath = args[argPos];
     let outputPath = args[argPos + 1];
-    return new Args(inputPath, outputPath, suggestFormat);
+    return new Args(inputPath, outputPath, outputFormat);
 }
 
 let args = parseArgs();
