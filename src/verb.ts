@@ -215,7 +215,7 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
-    // TODO replace with genericBaseModifier()
+    // TODO do not force exceptional, use fixUpSpecialBaseForConsonant()
     fixUpSpecialBaseForConsonantAndForceExceptional(): string {
         let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
         if (specialBase != null) {
@@ -547,7 +547,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     remotePastCommonBuilder(): PhrasalBuilder {
-        let specialBase = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+        let specialBase = this.fixUpSpecialBaseForConsonant();
         let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
         let affix = getGangenKanken(baseAndLast.last, this.softOffset);
         return new PhrasalBuilder()

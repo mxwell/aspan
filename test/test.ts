@@ -1515,7 +1515,7 @@ ALL_TESTS.push(["RemotePastTrickyCasesTest", function() {
     );
     T_EQ_ASSERT(
         "таныған",
-        new VerbBuilder("тану").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        new VerbBuilder("тану", true).remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
         "Remote past, base modification"
     );
     T_EQ_ASSERT(
@@ -1532,6 +1532,29 @@ ALL_TESTS.push(["RemotePastTrickyCasesTest", function() {
         "естігенбіз",
         new VerbBuilder("есту").remotePastTense(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
         "Remote past, base modification"
+    );
+}]);
+
+ALL_TESTS.push(["RemotePastExceptionalCasesTest", function() {
+    T_EQ_ASSERT(
+        "ашқан",
+        new VerbBuilder("ашу").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "ашыған",
+        new VerbBuilder("ашу", true).remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танған",
+        new VerbBuilder("тану").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "таныған",
+        new VerbBuilder("тану", true).remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Remote past, variable base modification"
     );
 }]);
 
