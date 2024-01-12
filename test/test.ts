@@ -1558,7 +1558,7 @@ ALL_TESTS.push(["RemotePastExceptionalCasesTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["RemoteUnwitnessedPastAllCasesTest", function() {
+ALL_TESTS.push(["PastUncertainAllCasesTest", function() {
     testAllCases(
         "Remote unwitnessed past, all cases",
         "жазу",
@@ -1624,7 +1624,7 @@ ALL_TESTS.push(["RemoteUnwitnessedPastAllCasesTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["RemoteUnwitnessedPastNegativeAllCasesTest", function() {
+ALL_TESTS.push(["PastUncertainNegativeAllCasesTest", function() {
     testAllCases(
         "Remote unwitnessed past, negative, all cases",
         "жазу",
@@ -1699,7 +1699,7 @@ ALL_TESTS.push(["RemoteUnwitnessedPastNegativeAllCasesTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
+ALL_TESTS.push(["PastUncertainQuestionAllCasesTest", function() {
     testAllCases(
         "Remote unwitnessed past, question, all cases",
         "жазу",
@@ -1720,46 +1720,52 @@ ALL_TESTS.push(["RemoteUnwitnessedPastQuestionAllCasesTest", function() {
     );
 }]);
 
+class VerbSpec {
+    verbDictForm: string;
+    forceExceptional: boolean;
+    constructor(verbDictForm: string, forceExceptional: boolean) {
+        this.verbDictForm = verbDictForm
+        this.forceExceptional = forceExceptional
+    }
+}
 
 ALL_TESTS.push(["pastUncertainReplaceUTest", function() {
-    const relations = [
-        ["жабу", "жауыппын"],
-        ["қабу", "қауыппын"],
-        ["табу", "тауыппын"],
-        ["шабу", "шауыппын"],
-        ["кебу", "кеуіппін"],
-        ["себу", "сеуіппін"],
-        ["тебу", "теуіппін"],
-        ["өбу", "өбіппін"],
-    ];
-    for (let i in relations) {
-        let base = relations[i][0];
-        let form = relations[i][1];
+    const relations = new Map([
+        [new VerbSpec("жабу", false), "жауыппын"],
+        [new VerbSpec("қабу", false), "қауыппын"],
+        [new VerbSpec("қабу", true), "қауыппын"],
+        [new VerbSpec("табу", false), "тауыппын"],
+        [new VerbSpec("шабу", false), "шауыппын"],
+        [new VerbSpec("кебу", false), "кеуіппін"],
+        [new VerbSpec("себу", false), "сеуіппін"],
+        [new VerbSpec("тебу", false), "теуіппін"],
+        [new VerbSpec("өбу", false), "өбіппін"],
+    ]);
+    for (const [spec, form] of Array.from(relations.entries())) {
         T_EQ_ASSERT(
             form,
-            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+            new VerbBuilder(spec.verbDictForm, spec.forceExceptional).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
             "Past uncertain, b-to-u replacement: "
         );
     }
 }]);
 
 ALL_TESTS.push(["pastUncertainNegativeReplaceUTest", function() {
-    const relations = [
-        ["жабу", "жаппаппын"],
-        ["қабу", "қабымаппын"],  // TODO check
-        ["табу", "таппаппын"],
-        ["шабу", "шаппаппын"],
-        ["кебу", "кеппеппін"],
-        ["себу", "сеппеппін"],
-        ["тебу", "теппеппін"],
-        ["өбу", "өппеппін"],
-    ];
-    for (let i in relations) {
-        let base = relations[i][0];
-        let form = relations[i][1];
+    const relations = new Map([
+        [new VerbSpec("жабу", false), "жаппаппын"],
+        [new VerbSpec("қабу", false), "қаппаппын"],  // TODO check
+        [new VerbSpec("қабу", true), "қабымаппын"],  // TODO check
+        [new VerbSpec("табу", false), "таппаппын"],
+        [new VerbSpec("шабу", false), "шаппаппын"],
+        [new VerbSpec("кебу", false), "кеппеппін"],
+        [new VerbSpec("себу", false), "сеппеппін"],
+        [new VerbSpec("тебу", false), "теппеппін"],
+        [new VerbSpec("өбу", false), "өппеппін"],
+    ]);
+    for (const [spec, form] of Array.from(relations.entries())) {
         T_EQ_ASSERT(
             form,
-            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+            new VerbBuilder(spec.verbDictForm, spec.forceExceptional).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
             "Past uncertain, b-to-u replacement: "
         );
     }
@@ -1795,9 +1801,29 @@ ALL_TESTS.push(["pastUncertainTrickyTest", function() {
     );
     // TODO check
     T_EQ_ASSERT(
-        "ашымаппын",
+        "ашпаппын",
         new VerbBuilder("ашу").pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Past uncertain, negative, tricky verb: "
+    );
+    T_EQ_ASSERT(
+        "ашыппын ба?",
+        new VerbBuilder("ашу").pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        "Past uncertain, question, tricky verb: "
+    );
+    T_EQ_ASSERT(
+        "ашыппын",
+        new VerbBuilder("ашу", true).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
         "Past uncertain, tricky verb: "
+    );
+    T_EQ_ASSERT(
+        "ашымаппын",
+        new VerbBuilder("ашу", true).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Past uncertain, negative, tricky verb: "
+    );
+    T_EQ_ASSERT(
+        "ашыппын ба?",
+        new VerbBuilder("ашу", true).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        "Past uncertain, question, tricky verb: "
     );
 }]);
 

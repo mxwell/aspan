@@ -69,6 +69,7 @@ class BaseAndLast {
 class VerbBuilder {
     verbDictForm: string
     verbBase: string
+    regularVerbBase: string
     needsYaSuffix: boolean
     baseLast: string
     soft: boolean
@@ -83,6 +84,7 @@ class VerbBuilder {
         }
         this.verbDictForm = verbDictForm;
         this.verbBase = chopLast(verbDictForm, 1);
+        this.regularVerbBase = this.verbBase;
         this.needsYaSuffix = false;
         this.soft = (
             wordIsSoft(this.verbBase)
@@ -202,7 +204,7 @@ class VerbBuilder {
         } else if (yp) { /* next is -ып */
             /* жабу -> жау */
             if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
-                return replaceLast(this.verbBase, "у");
+                return replaceLast(this.regularVerbBase, "у");
             }
         }
         return this.verbBase;
@@ -588,7 +590,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     pastUncertainCommonBuilder(): PhrasalBuilder {
-        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true, /* fe */ true);
+        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true, /* fe */ false);
         let baseLast = getLastItem(base);
         let affix = getYpip(baseLast, this.softOffset);
         return new PhrasalBuilder()
@@ -604,7 +606,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false, /* fe */ true);
+            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false, /* fe */ false);
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
