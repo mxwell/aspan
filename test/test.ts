@@ -2143,6 +2143,41 @@ ALL_TESTS.push(["ConditionalMoodSingleCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["ConditionalMoodTrickyVerbsTest", function() {
+    T_EQ_ASSERT(
+        "тансам",
+        new VerbBuilder("тану").conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Conditional mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "танбасам",
+        new VerbBuilder("тану").conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Conditional mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "тансам ба?",
+        new VerbBuilder("тану").conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        "Conditional mood, tricky verb"
+    );
+
+
+    T_EQ_ASSERT(
+        "танысам",
+        new VerbBuilder("тану", true).conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        "Conditional mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "танымасам",
+        new VerbBuilder("тану", true).conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Conditional mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "танысам ба?",
+        new VerbBuilder("тану", true).conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        "Conditional mood, tricky verb"
+    );
+}]);
+
 ALL_TESTS.push(["ImperativeMoodAllCasesTest", function() {
     testAllCases(
         "Imperative mood, all cases",

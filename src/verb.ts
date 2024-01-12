@@ -676,7 +676,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = getSase(this.softOffset);
