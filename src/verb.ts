@@ -184,17 +184,10 @@ class VerbBuilder {
             .unclassified(phrase)
             .build();
     }
-    genericBaseModifier(nc: boolean, yp: boolean, fe: boolean): string {
+    genericBaseModifier(nc: boolean, yp: boolean): string {
         if (nc) { /* next is consonant */
             if (yp) {
                 throw new Error(`invalid arguments: ${nc}, ${yp}`)
-            }
-            /* force exception: ашу -> ашы */
-            if (fe) {
-                if (isVerbOptionalException(this.verbDictForm)) {
-                    let suffix = VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
-                    return `${this.verbBase}${suffix}`;
-                }
             }
             /* оқу -> оқы */
             let addVowel = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm);
@@ -590,7 +583,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     pastUncertainCommonBuilder(): PhrasalBuilder {
-        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true, /* fe */ false);
+        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true);
         let baseLast = getLastItem(base);
         let affix = getYpip(baseLast, this.softOffset);
         return new PhrasalBuilder()
@@ -606,7 +599,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false, /* fe */ false);
+            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
@@ -699,7 +692,7 @@ class VerbBuilder {
             (person == GrammarPerson.Second && number == GrammarNumber.Singular)
             || person == GrammarPerson.Third
         );
-        let base = this.genericBaseModifier(nc, /* yp */ false, /* fe */ true);
+        let base = this.genericBaseModifier(nc, /* yp */ false);
         let baseAndLast = (nc
             ? this.fixUpBaseForConsonant(base, getLastItem(base))
             : new BaseAndLast(base, getLastItem(base))
@@ -713,7 +706,7 @@ class VerbBuilder {
             return this.imperativeMoodCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);

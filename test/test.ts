@@ -2372,6 +2372,41 @@ ALL_TESTS.push(["ImperativeMoodSingleCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["ImperativeMoodTrickyVerbsTest", function() {
+    T_EQ_ASSERT(
+        "тан",
+        new VerbBuilder("тану").imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "танба",
+        new VerbBuilder("тану").imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "тан ба?",
+        new VerbBuilder("тану").imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question),
+        "Imperative mood, tricky verb"
+    );
+
+
+    T_EQ_ASSERT(
+        "таны",
+        new VerbBuilder("тану", true).imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "таныма",
+        new VerbBuilder("тану", true).imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative),
+        "Imperative mood, tricky verb"
+    );
+    T_EQ_ASSERT(
+        "таны ма?",
+        new VerbBuilder("тану", true).imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question),
+        "Imperative mood, tricky verb"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
