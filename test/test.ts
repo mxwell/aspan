@@ -1849,6 +1849,39 @@ ALL_TESTS.push(["PastTransitiveAllCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PastTransitiveTrickyVerbsTest", function() {
+    T_EQ_ASSERT(
+        "танатын",
+        new VerbBuilder("тану").pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Past transitive, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танбайтын",
+        new VerbBuilder("тану").pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative),
+        "Past transitive, negative, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танатын ба?",
+        new VerbBuilder("тану").pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        "Past transitive, question, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танитын",
+        new VerbBuilder("тану", true).pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        "Past transitive, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танымайтын",
+        new VerbBuilder("тану", true).pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative),
+        "Past transitive, negative, variable base modification"
+    );
+    T_EQ_ASSERT(
+        "танитын ба?",
+        new VerbBuilder("тану", true).pastTransitiveTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        "Past transitive, question, variable base modification"
+    );
+}]);
+
 ALL_TESTS.push(["PastTransitiveNegativeAllCasesTest", function() {
     testAllCases(
         "Past transitive, all cases",

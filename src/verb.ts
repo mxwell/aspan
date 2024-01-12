@@ -624,10 +624,8 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let base = this.fixUpSpecialBaseForceExceptional();
-        let baseLast = getLastItem(base);
         let builder = this.mergeBaseWithVowelAffix(
-            base, this.pastTransitiveSuffix(baseLast)
+            this.verbBase, this.pastTransitiveSuffix(this.baseLast)
         );
         let affixLast = builder.getLastItem();
         let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
@@ -640,7 +638,7 @@ class VerbBuilder {
             return this.pastTransitiveCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonantAndForceExceptional();
+            let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
