@@ -12,7 +12,7 @@ function T_ASSERT(condition: boolean, message: string) {
 
 function T_EQ_ASSERT(expected: string, got: Phrasal, message: string) {
     let gotString = got.raw;
-    T_ASSERT(expected == gotString, message + "Expected [" + expected + "], but got [" + gotString + "]");
+    T_ASSERT(expected == gotString, message + ": Expected [" + expected + "], but got [" + gotString + "]");
 }
 
 let ALL_TESTS: [string, () => void][] = [];
@@ -2404,6 +2404,60 @@ ALL_TESTS.push(["ImperativeMoodTrickyVerbsTest", function() {
         "таны ма?",
         new VerbBuilder("тану", true).imperativeMood(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Question),
         "Imperative mood, tricky verb"
+    );
+}]);
+
+ALL_TESTS.push(["PastParticipleTest", function() {
+    T_EQ_ASSERT(
+        "айтқан",
+        new VerbBuilder("айту").pastParticiple(SentenceType.Statement),
+        "Past participle, statement"
+    );
+    T_EQ_ASSERT(
+        "қайнаған",
+        new VerbBuilder("қайнау").pastParticiple(SentenceType.Statement),
+        "Past participle, statement"
+    );
+    T_EQ_ASSERT(
+        "оқыған",
+        new VerbBuilder("оқу").pastParticiple(SentenceType.Statement),
+        "Past participle, statement"
+    );
+    T_EQ_ASSERT(
+        "келген",
+        new VerbBuilder("келу").pastParticiple(SentenceType.Statement),
+        "Past participle, statement"
+    );
+}]);
+
+ALL_TESTS.push(["PastParticipleNegativeTest", function() {
+    T_EQ_ASSERT(
+        "айтпаған",
+        new VerbBuilder("айту").pastParticiple(SentenceType.Negative),
+        "Past participle, negative"
+    );
+    T_EQ_ASSERT(
+        "келмеген",
+        new VerbBuilder("келу").pastParticiple(SentenceType.Negative),
+        "Past participle, negative"
+    );
+    T_EQ_ASSERT(
+        "ойламаған",
+        new VerbBuilder("ойлау").pastParticiple(SentenceType.Negative),
+        "Past participle, negative"
+    );
+}]);
+
+ALL_TESTS.push(["PastParticipleQuestionTest", function() {
+    T_EQ_ASSERT(
+        "ауырған ба?",
+        new VerbBuilder("ауыру").pastParticiple(SentenceType.Question),
+        "Past participle, question"
+    );
+    T_EQ_ASSERT(
+        "жазылған ба?",
+        new VerbBuilder("жазылу").pastParticiple(SentenceType.Question),
+        "Past participle, question"
     );
 }]);
 

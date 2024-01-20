@@ -723,4 +723,26 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    /* Өткен шақ есімше */
+    pastParticiple(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.remotePastCommonBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let particleLast = getLastItem(particle);
+            let affix = getGangenKanken(particleLast, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                    this.remotePastCommonBuilder()
+                ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }
