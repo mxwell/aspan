@@ -57,8 +57,8 @@ def scan_tei(path, verbs_set):
 
     wiktionary_entries = 0
     wiktionary_verbs = 0
-    wiktionary_verbs_with_translation = 0
     wiktionary_verb_translations = 0
+    verbs_with_translations = set()
     for entry in tree.xpath('//x:entry', namespaces=namespaces):
         wiktionary_entries += 1
         orth = entry.xpath('x:form/x:orth', namespaces=namespaces)[0]
@@ -82,8 +82,8 @@ def scan_tei(path, verbs_set):
 
         if len(translations) == 0:
             continue
-        wiktionary_verbs_with_translation += 1
         wiktionary_verb_translations += len(translations)
+        verbs_with_translations.add(word)
 
         print("\t".join(parts))
 
@@ -92,9 +92,17 @@ def scan_tei(path, verbs_set):
         "TEI scan complete: %d dictionary entries, %d matched with known verbs, %d verbs have translation, %.2f translations on average",
         wiktionary_entries,
         wiktionary_verbs,
-        wiktionary_verbs_with_translation,
+        len(verbs_with_translations),
         avg_translations
     )
+    return verbs_with_translations
+
+
+def print_verbs_without_translations(verbs_set, verbs_with_translations):
+    verbs = sorted(list(verbs_set.difference(verbs_with_translations)))
+    for verb in verbs:
+        print(verb)
+    logging.info("Printed %d verbs without translation.", len(verbs))
 
 
 def main():
@@ -105,7 +113,8 @@ def main():
     args = parser.parse_args()
 
     verbs_set = load_verbs(args.verbs_path)
-    scan_tei(args.tei_path, verbs_set)
+    verbs_with_translations = scan_tei(args.tei_path, verbs_set)
+    print_verbs_without_translations(verbs_set, verbs_with_translations)
 
 
 if __name__ == "__main__":
