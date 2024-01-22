@@ -5,7 +5,7 @@ set -xe
 export COMPILED="BUILD/compiled.js"
 export ASPAN_JS="BUILD/aspan.js"
 export GENERATOR="scripts/bulk_generate.js"
-export INPUT_VERBS="data/verbs.txt"
+export INPUT_VERBS="data/verbs_with_ru.wkt.csv"
 export OUTPUT_VERB_FORMS="data/verb_forms.csv"
 export OUTPUT_SUGGEST_FORMS="data/suggest_forms.csv"
 export OUTPUT_SUGGEST_INFINITIV="data/suggest_infinitiv.csv"

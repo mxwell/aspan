@@ -112,8 +112,32 @@ class Args {
     }
 }
 
-function writeSuggestLine(base, form, weight, outputStream) {
-    outputStream.write(`${form}\t${weight}\t{\"base\": \"${base}\"}\n`)
+function printWeight(weight) {
+    let s = weight.toFixed(5);
+    let point = s.indexOf(".");
+    if (point < 0) {
+        return s;
+    }
+    let trunc = s.length;
+    while (trunc - 1 > point && s[trunc - 1] == "0") {
+        trunc -= 1;
+    }
+    if (trunc + 1 == point) {
+        return s.substring(0, point);
+    }
+    if (trunc < s.length) {
+        return s.substring(0, trunc);
+    }
+    return s;
+}
+
+function writeSuggestLine(base, form, weight, ruwktTranslations, outputStream) {
+    let dataObject = { base };
+    if (ruwktTranslations.length > 0) {
+        dataObject.ruwkt = ruwktTranslations;
+    }
+    let dataString = JSON.stringify(dataObject);
+    outputStream.write(`${form}\t${printWeight(weight)}\t${dataString}\n`);
 }
 
 function simplify(form) {
@@ -210,33 +234,39 @@ async function processLineByLine(args) {
 
   let lineCounter = 0;
   let outputCounter = 0;
-  for await (const line of rl) {
-    let partCountSuppression = estimateVerbPartCount(line);
+  for await (const inputLine of rl) {
+    let lineParts = inputLine.split("\t")
+    if (lineParts.length <= 0) {
+        continue
+    }
+    let inputVerb = lineParts[0];
+    let ruwktTranslations = lineParts.slice(1, 3);
+    let partCountSuppression = estimateVerbPartCount(inputVerb);
     if (partCountSuppression > 2) continue;
-    let forms = createTenseForms(line, auxBuilder);
+    let forms = createTenseForms(inputVerb, auxBuilder);
     if (args.outputFormat == FORMAT_SUGGEST || args.outputFormat == FORMAT_SUGGEST_INFINITIV) {
         let partCountWeight = (partCountSuppression < 2) ? 0.5 : 0.0;
-        writeSuggestLine(line, line, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, outputStream);
+        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruwktTranslations, outputStream);
         ++outputCounter;
-        let simpleBaseForms = simplify(line);
+        let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(line, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruwktTranslations, outputStream);
             ++outputCounter;
         }
         if (args.outputFormat == FORMAT_SUGGEST) {
             for (var i = 0; i < forms.length; ++i) {
                 let weightedForm = forms[i];
-                writeSuggestLine(line, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, outputStream);
+                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruwktTranslations, outputStream);
                 ++outputCounter;
                 let simpleForms = simplify(weightedForm.form);
                 for (var j = 0; j < simpleForms.length; ++j) {
-                    writeSuggestLine(line, simpleForms[j], partCountWeight + weightedForm.weight, outputStream);
+                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruwktTranslations, outputStream);
                     ++outputCounter;
                 }
             }
         }
     } else {
-        outputStream.write(`${line}`);
+        outputStream.write(`${inputVerb}`);
         ++outputCounter;
         for (var i = 0; i < forms.length; ++i) {
             outputStream.write(`\t${forms[i].form}`);
