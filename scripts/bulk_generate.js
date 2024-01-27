@@ -5,8 +5,10 @@ const aspan = require('../BUILD/aspan.js');
 const FORMAT_ONE_LINE = "--one-line-format";
 const FORMAT_SUGGEST = "--suggest-format";
 const FORMAT_SUGGEST_INFINITIV = "--suggest-infinitiv-format";
+const FORMAT_SUGGEST_INFINITIV_TRANSLATION = "--suggest-infinitiv-translation-format";
 
-const SHORT_VERB_WEIGHT = 0.5;
+const KAZAKH_WEIGHT = 0.5;
+const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
 const EXACT_MATCH_WEIGHT = SHORT_VERB_WEIGHT / 2;
 const FORM_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 10;
 const SECOND_PLURAL_WEIGHT   = FORM_WEIGHT_PORTION * 1;
@@ -109,6 +111,9 @@ class Args {
         this.input = input;
         this.output = output;
         this.outputFormat = outputFormat;
+        this.suggest = this.outputFormat != FORMAT_ONE_LINE;
+        this.suggestForms = this.outputFormat == FORMAT_SUGGEST;
+        this.translation = this.outputFormat == FORMAT_SUGGEST_INFINITIV_TRANSLATION;
     }
 }
 
@@ -131,13 +136,17 @@ function printWeight(weight) {
     return s;
 }
 
-function writeSuggestLine(base, form, weight, ruwktTranslations, outputStream) {
+function writeSuggestLine(base, form, weight, ruwktTranslations, isTranslation, outputStream) {
     let dataObject = { base };
     if (ruwktTranslations.length > 0) {
         dataObject.ruwkt = ruwktTranslations;
     }
+    let resultWeight = isTranslation ? weight : (weight + KAZAKH_WEIGHT);
+    if (isTranslation) {
+        dataObject.translation = isTranslation;
+    }
     let dataString = JSON.stringify(dataObject);
-    outputStream.write(`${form}\t${printWeight(weight)}\t${dataString}\n`);
+    outputStream.write(`${form}\t${printWeight(resultWeight)}\t${dataString}\n`);
 }
 
 function simplify(form) {
@@ -244,23 +253,31 @@ async function processLineByLine(args) {
     let partCountSuppression = estimateVerbPartCount(inputVerb);
     if (partCountSuppression > 2) continue;
     let forms = createTenseForms(inputVerb, auxBuilder);
-    if (args.outputFormat == FORMAT_SUGGEST || args.outputFormat == FORMAT_SUGGEST_INFINITIV) {
-        let partCountWeight = (partCountSuppression < 2) ? 0.5 : 0.0;
-        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruwktTranslations, outputStream);
+    if (args.suggest) {
+        let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruwktTranslations, false, outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruwktTranslations, outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruwktTranslations, false, outputStream);
             ++outputCounter;
         }
-        if (args.outputFormat == FORMAT_SUGGEST) {
+        if (args.translation) {
+            for (var j = 0; j < ruwktTranslations.length; ++j) {
+                let translation = ruwktTranslations[j];
+                let translationSuppression = estimateVerbPartCount(translation);
+                let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], true, outputStream);
+            }
+        }
+        if (args.suggestForms) {
             for (var i = 0; i < forms.length; ++i) {
                 let weightedForm = forms[i];
-                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruwktTranslations, outputStream);
+                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruwktTranslations, false, outputStream);
                 ++outputCounter;
                 let simpleForms = simplify(weightedForm.form);
                 for (var j = 0; j < simpleForms.length; ++j) {
-                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruwktTranslations, outputStream);
+                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruwktTranslations, false, outputStream);
                     ++outputCounter;
                 }
             }
@@ -283,6 +300,20 @@ async function processLineByLine(args) {
   console.log(`Produced ${outputCounter} form(s).`)
 }
 
+function isSupportedFormat(arg) {
+    if (arg == FORMAT_ONE_LINE) {
+        return arg;
+    } else if (arg == FORMAT_SUGGEST) {
+        return arg;
+    } else if (arg == FORMAT_SUGGEST_INFINITIV) {
+        return arg;
+    } else if (arg == FORMAT_SUGGEST_INFINITIV_TRANSLATION) {
+        return arg;
+    } else {
+        throw new Error(`Expected format argument but got: ${arg}.`)
+    }
+}
+
 function parseArgs() {
     let args = process.argv.slice(2)
     if (args.length < 2 || args.length > 3) {
@@ -291,12 +322,7 @@ function parseArgs() {
     var outputFormat = FORMAT_ONE_LINE;
     var argPos = 0;
     if (args.length == 3) {
-        let arg = args[0];
-        if (arg == FORMAT_ONE_LINE || arg == FORMAT_SUGGEST || arg == FORMAT_SUGGEST_INFINITIV) {
-            outputFormat = arg;
-        } else {
-            throw new Error(`Unexpected argument: ${args[0]}.`)
-        }
+        outputFormat = isSupportedFormat(args[0]);
         ++argPos;
     }
     let inputPath = args[argPos];
