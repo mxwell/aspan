@@ -33,14 +33,50 @@ def clean_translation(ctx, s):
         if braces_start < 0:
             break
 
-        braces_end = s.find("}}", braces_start)
+        braces_end = -1
+        i = braces_start + 2
+        n = len(s)
+        balance = 1
+        open_counter = 0
+        close_counter = 0
+        while i < n:
+            c = s[i]
+            if c == "{":
+                open_counter += 1
+                close_counter = 0
+                if open_counter == 2:
+                    balance += 1
+                    open_counter = 0
+            elif c == '}':
+                open_counter = 0
+                close_counter += 1
+                if close_counter == 2:
+                    balance -= 1
+                    if balance == 0:
+                        braces_end = i + 1
+                    close_counter = 0
+            else:
+                open_counter = 0
+                close_counter = 0
+            i += 1
+
         if braces_end <= braces_start:
             logging.warning("Dropping malformed translation [%s], context [%s]", orig, ctx)
             return None
-        s = f"{s[:braces_start]}{s[braces_end + 2:]}"
+        remove_start = braces_start
+        while remove_start - 1 >= 0 and s[remove_start - 1] == " ":
+            remove_start -= 1
+        remove_end = braces_end
+        while remove_end < len(s) and s[remove_end] == " ":
+            remove_end += 1
+        s = f"{s[:remove_start]}{s[remove_end:]}"
 
-    if s.find("}}") >= 0:
+    if s.find("}}") >= 0 or s.find("{{") >= 0:
         logging.warning("Dropping malformed translation [%s], context [%s]", orig, ctx)
+        return None
+
+    if s.startswith(" ") or s.endswith(" "):
+        logging.warning("Dropping translation [%s] with hanging whitespaces, context [%s]", orig, ctx)
         return None
 
     if not RU_VERB.search(s):
