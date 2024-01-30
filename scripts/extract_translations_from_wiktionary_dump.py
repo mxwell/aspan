@@ -1,7 +1,23 @@
 """
 Usage:
 
-python3 scripts/extract_translations_from_wiktionary_dump.py --verbs-path data/verbs.txt --tei-path data/wiktionary_kk-ru_latest.tei > data/verbs_with_ru.wkt.csv
+python3 scripts/extract_translations_from_wiktionary_dump.py \
+    --verbs-path data/verbs.txt \
+    --tei-path data/wiktionary_kk-ru_latest.tei --tei-prefix ruwkt: \
+    --wiktextract-path data/raw-wiktextract-data.kk.verb.json --wiktextract-prefix enwkt: \
+    > data/verbs_with_ru_en.wkt.csv
+
+How to prepare wiktextract:
+
+  Wiktextract files are found on https://kaikki.org/dictionary/rawdata.html, under "Download raw Wiktextract data (JSON, one object per line)"
+
+  Preliminary filtering:
+
+    fgrep '"lang_code": "kk"' <INPUT_FILE> | fgrep '"pos": "verb"'
+
+  Preview is possible with:
+
+    jq -r '.word as $word | .senses[].glosses[] | "\($word): \(.)"' <INPUT FILE>
 
 """
 
@@ -26,7 +42,7 @@ def load_verbs(path):
 RU_VERB = re.compile(r"[а-я](ть|ться|ти|тись|чь|чься)\b")
 
 
-def clean_translation(ctx, s):
+def clean_ru_gloss(ctx, s):
     orig = s
     while True:
         braces_start = s.find("{{")
@@ -86,7 +102,7 @@ def clean_translation(ctx, s):
     return s
 
 
-def scan_tei(path, verbs_set):
+def load_from_tei(path, gloss_prefix, verbs_set):
     tree = etree.parse(path)
 
     namespaces = {'x': 'http://www.tei-c.org/ns/1.0'}
@@ -95,6 +111,7 @@ def scan_tei(path, verbs_set):
     wiktionary_verbs = 0
     wiktionary_verb_translations = 0
     verbs_with_translations = set()
+    result = dict()
     for entry in tree.xpath('//x:entry', namespaces=namespaces):
         wiktionary_entries += 1
         orth = entry.xpath('x:form/x:orth', namespaces=namespaces)[0]
@@ -106,22 +123,20 @@ def scan_tei(path, verbs_set):
 
         quotes = entry.xpath('x:sense/x:cit[@type="trans"]/x:quote', namespaces=namespaces)
 
-        parts = [word]
         translations = []
 
         for quote in quotes:
-            cleaned = clean_translation(word, quote.text)
+            cleaned = clean_ru_gloss(word, quote.text)
             if cleaned is None:
                 continue
-            parts.append(cleaned)
-            translations.append(cleaned)
+            translations.append(f"{gloss_prefix}{cleaned}")
 
         if len(translations) == 0:
             continue
         wiktionary_verb_translations += len(translations)
         verbs_with_translations.add(word)
 
-        print("\t".join(parts))
+        result[word] = translations
 
     avg_translations = 0.0 if wiktionary_verbs == 0 else float(wiktionary_verb_translations) / wiktionary_verbs
     logging.info(
@@ -131,14 +146,97 @@ def scan_tei(path, verbs_set):
         len(verbs_with_translations),
         avg_translations
     )
-    return verbs_with_translations
+    return result
 
 
-def print_verbs_without_translations(verbs_set, verbs_with_translations):
-    verbs = sorted(list(verbs_set.difference(verbs_with_translations)))
-    for verb in verbs:
-        print(verb)
-    logging.info("Printed %d verbs without translation.", len(verbs))
+def clean_en_gloss(ctx, s):
+    if not s.startswith("to "):
+        logging.warning("Dropping translation as non-verb: [%s], context [%s]", s, ctx)
+        return None
+    return s
+
+
+def load_from_wiktextract(path, gloss_prefix, verbs_set):
+    wiktionary_entries = 0
+    wiktionary_verbs = 0
+    wiktionary_verb_translations = 0
+    verbs_with_translations = set()
+    result = dict()
+    for line in open(path):
+        wiktionary_entries += 1
+        jo = json.loads(line)
+        if "word" not in jo:
+            continue
+
+        word = jo["word"]
+        if word not in verbs_set:
+            continue
+        wiktionary_verbs += 1
+
+        if "senses" not in jo:
+            continue
+        translations = []
+        for sense in jo["senses"]:
+            if "glosses" not in sense:
+                continue
+            for gloss in sense["glosses"]:
+                translation = clean_en_gloss(word, gloss)
+                if translation is None:
+                    continue
+                translations.append(f"{gloss_prefix}{translation}")
+
+        if len(translations) == 0:
+            continue
+        wiktionary_verb_translations += len(translations)
+        verbs_with_translations.add(word)
+
+        result[word] = translations
+
+    avg_translations = 0.0 if wiktionary_verbs == 0 else float(wiktionary_verb_translations) / wiktionary_verbs
+    logging.info(
+        "wiktextract scan complete: %d dictionary entries, %d matched with known verbs, %d verbs have translation, %.2f translations on average",
+        wiktionary_entries,
+        wiktionary_verbs,
+        len(verbs_with_translations),
+        avg_translations
+    )
+    return result
+
+
+def print_verbs(verbs_set, tei, wiktextract):
+    ordered = sorted(list(verbs_set))
+    tei_count = 0
+    wiktextract_count = 0
+    both_count = 0
+    no_count = 0
+    for verb in ordered:
+        parts = [verb]
+        has_tei = False
+        has_wiktextract = False
+        if verb in tei:
+            has_tei = True
+            parts.extend(tei[verb])
+        if verb in wiktextract:
+            has_wiktextract = True
+            parts.extend(wiktextract[verb])
+        if has_tei:
+            tei_count += 1
+            if has_wiktextract:
+                wiktextract_count += 1
+                both_count += 1
+        elif has_wiktextract:
+            wiktextract_count += 1
+        else:
+            no_count += 1
+        print("\t".join(parts))
+    logging.info(
+        "Printed %d verbs: %d with tei glosses, %d with wiktextract glosses, %d with both, %d without any glosses",
+        len(ordered),
+        tei_count,
+        wiktextract_count,
+        both_count,
+        no_count,
+    )
 
 
 def main():
@@ -146,11 +244,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--verbs-path", required=True, help="Path to file with a list of verbs")
     parser.add_argument("--tei-path", required=True, help="Path to TEI file with a Wiktionary dump")
+    parser.add_argument("--tei-prefix", default="", help="Prefix for glosses from TEI, e.g. 'ruwkt:' in the output CSV")
+    parser.add_argument("--wiktextract-path", required=True, help="Path to raw-wiktextract-data.json file with a Wiktionary dump")
+    parser.add_argument("--wiktextract-prefix", default="", help="Prefix for glosses from wiktextract, e.g. 'enwkt:' in the output CSV")
     args = parser.parse_args()
 
     verbs_set = load_verbs(args.verbs_path)
-    verbs_with_translations = scan_tei(args.tei_path, verbs_set)
-    print_verbs_without_translations(verbs_set, verbs_with_translations)
+    verbs_from_tei = load_from_tei(args.tei_path, args.tei_prefix, verbs_set)
+    verbs_from_wiktextract = load_from_wiktextract(args.wiktextract_path, args.wiktextract_prefix, verbs_set)
+    print_verbs(verbs_set, verbs_from_tei, verbs_from_wiktextract)
 
 
 if __name__ == "__main__":
