@@ -136,14 +136,22 @@ function printWeight(weight) {
     return s;
 }
 
-function writeSuggestLine(base, form, weight, ruwktTranslations, isTranslation, outputStream) {
+function writeSuggestLine(base, form, weight, ruGlosses, enGlosses, translationLang, outputStream) {
     let dataObject = { base };
-    if (ruwktTranslations.length > 0) {
-        dataObject.ruwkt = ruwktTranslations;
+    if (ruGlosses.length > 0) {
+        dataObject.ruwkt = ruGlosses;
+    }
+    if (enGlosses.length > 0) {
+        dataObject.enwkt = enGlosses;
+    }
+    let isTranslation = translationLang.length > 0;
+    if (isTranslation && (ruGlosses.length > 0 || enGlosses.length > 0)) {
+        console.log(`unexpected glosses for translation suggest form`);
+        process.exit(1);
     }
     let resultWeight = isTranslation ? weight : (weight + KAZAKH_WEIGHT);
     if (isTranslation) {
-        dataObject.translation = isTranslation;
+        dataObject.translation = translationLang;
     }
     let dataString = JSON.stringify(dataObject);
     outputStream.write(`${form}\t${printWeight(resultWeight)}\t${dataString}\n`);
@@ -230,6 +238,31 @@ function estimateVerbPartCount(verb) {
     return separators + 1;
 }
 
+class InputItem {
+    constructor(line) {
+        let parts = line.split("\t");
+        this.valid = true;
+        if (parts.length <= 0) {
+            this.valid = false;
+        } else {
+            this.verb = parts[0];
+            this.ruGlosses = [];
+            this.enGlosses = [];
+            for (let i = 1; i < parts.length; ++i) {
+                let part = parts[i];
+                if (part.startsWith("ruwkt:")) {
+                    this.ruGlosses.push(part.substring(6));
+                } else if (part.startsWith("enwkt:")) {
+                    this.enGlosses.push(part.substring(6));
+                } else {
+                    this.valid = false;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 async function processLineByLine(args) {
   const inputStream = fs.createReadStream(args.input);
   const outputStream = fs.createWriteStream(args.output);
@@ -244,40 +277,51 @@ async function processLineByLine(args) {
   let lineCounter = 0;
   let outputCounter = 0;
   for await (const inputLine of rl) {
-    let lineParts = inputLine.split("\t")
-    if (lineParts.length <= 0) {
-        continue
+    let inputItem = new InputItem(inputLine);
+    if (!inputItem.valid) {
+        console.log(`Abort on invalid input line: ${inputLine}`);
+        process.exit(1);
     }
-    let inputVerb = lineParts[0];
-    let ruwktTranslations = lineParts.slice(1, 3);
+    let inputVerb = inputItem.verb;
+    let ruGlosses = inputItem.ruGlosses.slice(0, 2);
+    let enGlosses = inputItem.enGlosses.slice(0, 2);
     let partCountSuppression = estimateVerbPartCount(inputVerb);
     if (partCountSuppression > 2) continue;
     let forms = createTenseForms(inputVerb, auxBuilder);
     if (args.suggest) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruwktTranslations, false, outputStream);
+        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruGlosses, enGlosses, "", outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruwktTranslations, false, outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruGlosses, enGlosses, "", outputStream);
             ++outputCounter;
         }
         if (args.translation) {
-            for (var j = 0; j < ruwktTranslations.length; ++j) {
-                let translation = ruwktTranslations[j];
+            for (var j = 0; j < ruGlosses.length; ++j) {
+                let translation = ruGlosses[j];
                 let translationSuppression = estimateVerbPartCount(translation);
                 let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], true, outputStream);
+                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], [], "ru", outputStream);
+            }
+            for (var j = 0; j < enGlosses.length; ++j) {
+                let translation = enGlosses[j];
+                let translationSuppression = estimateVerbPartCount(translation);
+                if (translationSuppression > 1) {
+                    translationSuppression -= 1;
+                }
+                let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], [], "en", outputStream);
             }
         }
         if (args.suggestForms) {
             for (var i = 0; i < forms.length; ++i) {
                 let weightedForm = forms[i];
-                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruwktTranslations, false, outputStream);
+                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
                 ++outputCounter;
                 let simpleForms = simplify(weightedForm.form);
                 for (var j = 0; j < simpleForms.length; ++j) {
-                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruwktTranslations, false, outputStream);
+                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
                     ++outputCounter;
                 }
             }
