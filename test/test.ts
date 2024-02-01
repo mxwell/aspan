@@ -62,6 +62,15 @@ function testAll() {
     console.log("=====\n");
 }
 
+class VerbSpec {
+    verbDictForm: string;
+    forceExceptional: boolean;
+    constructor(verbDictForm: string, forceExceptional: boolean) {
+        this.verbDictForm = verbDictForm
+        this.forceExceptional = forceExceptional
+    }
+}
+
 type VerbFormProducer = (verbBuilder: VerbBuilder, grammarPerson: GrammarPerson, grammarNumber: GrammarNumber, sentenceType: SentenceType) => Phrasal;
 
 function testAllCases(testName: string, verbDictForm: string, sentenceType: SentenceType, callback: VerbFormProducer, expectedForms: string[]) {
@@ -778,46 +787,44 @@ ALL_TESTS.push(["presentContTest", function() {
 }]);
 
 ALL_TESTS.push(["presentContReplaceUTest", function() {
-    const relations = [
-        ["жабу", "жауып жатырмын"],
-        ["қабу", "қауып жатырмын"],
-        ["табу", "тауып жатырмын"],
-        ["шабу", "шауып жатырмын"],
-        ["кебу", "кеуіп жатырмын"],
-        ["себу", "сеуіп жатырмын"],
-        ["тебу", "теуіп жатырмын"],
-        ["өбу", "өбіп жатырмын"],
-    ];
+    const relations = new Map([
+        [new VerbSpec("жабу", false), "жауып жатырмын"],
+        [new VerbSpec("қабу", false), "қауып жатырмын"],
+        [new VerbSpec("қабу", true), "қабып жатырмын"],
+        [new VerbSpec("табу", false), "тауып жатырмын"],
+        [new VerbSpec("шабу", false), "шауып жатырмын"],
+        [new VerbSpec("кебу", false), "кеуіп жатырмын"],
+        [new VerbSpec("себу", false), "сеуіп жатырмын"],
+        [new VerbSpec("тебу", false), "теуіп жатырмын"],
+        [new VerbSpec("өбу", false), "өбіп жатырмын"],
+    ]);
     const auxBuilder = new VerbBuilder("жату");
-    for (let i in relations) {
-        let base = relations[i][0];
-        let form = relations[i][1];
+    for (const [spec, form] of Array.from(relations.entries())) {
         T_EQ_ASSERT(
             form,
-            new VerbBuilder(base).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            new VerbBuilder(spec.verbDictForm, spec.forceExceptional).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
             "Present continuous, b-to-u replacement: "
         );
     }
 }]);
 
 ALL_TESTS.push(["presentContNegativeReplaceUTest", function() {
-    const relations = [
-        ["жабу", "жауып жатқан жоқпын"],
-        ["қабу", "қауып жатқан жоқпын"],
-        ["табу", "тауып жатқан жоқпын"],
-        ["шабу", "шауып жатқан жоқпын"],
-        ["кебу", "кеуіп жатқан жоқпын"],
-        ["себу", "сеуіп жатқан жоқпын"],
-        ["тебу", "теуіп жатқан жоқпын"],
-        ["өбу", "өбіп жатқан жоқпын"],
-    ];
+    const relations = new Map([
+        [new VerbSpec("жабу", false), "жауып жатқан жоқпын"],
+        [new VerbSpec("қабу", false), "қауып жатқан жоқпын"],
+        [new VerbSpec("қабу", true), "қабып жатқан жоқпын"],
+        [new VerbSpec("табу", false), "тауып жатқан жоқпын"],
+        [new VerbSpec("шабу", false), "шауып жатқан жоқпын"],
+        [new VerbSpec("кебу", false), "кеуіп жатқан жоқпын"],
+        [new VerbSpec("себу", false), "сеуіп жатқан жоқпын"],
+        [new VerbSpec("тебу", false), "теуіп жатқан жоқпын"],
+        [new VerbSpec("өбу", false), "өбіп жатқан жоқпын"],
+    ]);
     const auxBuilder = new VerbBuilder("жату");
-    for (let i in relations) {
-        let base = relations[i][0];
-        let form = relations[i][1];
+    for (const [spec, form] of Array.from(relations.entries())) {
         T_EQ_ASSERT(
             form,
-            new VerbBuilder(base).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, auxBuilder),
+            new VerbBuilder(spec.verbDictForm, spec.forceExceptional).presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, auxBuilder),
             "Present continuous, b-to-u replacement: "
         );
     }
@@ -1720,20 +1727,11 @@ ALL_TESTS.push(["PastUncertainQuestionAllCasesTest", function() {
     );
 }]);
 
-class VerbSpec {
-    verbDictForm: string;
-    forceExceptional: boolean;
-    constructor(verbDictForm: string, forceExceptional: boolean) {
-        this.verbDictForm = verbDictForm
-        this.forceExceptional = forceExceptional
-    }
-}
-
 ALL_TESTS.push(["pastUncertainReplaceUTest", function() {
     const relations = new Map([
         [new VerbSpec("жабу", false), "жауыппын"],
         [new VerbSpec("қабу", false), "қауыппын"],
-        [new VerbSpec("қабу", true), "қауыппын"],
+        [new VerbSpec("қабу", true), "қабыппын"],
         [new VerbSpec("табу", false), "тауыппын"],
         [new VerbSpec("шабу", false), "шауыппын"],
         [new VerbSpec("кебу", false), "кеуіппін"],
@@ -1753,8 +1751,8 @@ ALL_TESTS.push(["pastUncertainReplaceUTest", function() {
 ALL_TESTS.push(["pastUncertainNegativeReplaceUTest", function() {
     const relations = new Map([
         [new VerbSpec("жабу", false), "жаппаппын"],
-        [new VerbSpec("қабу", false), "қаппаппын"],  // TODO check
-        [new VerbSpec("қабу", true), "қабымаппын"],  // TODO check
+        [new VerbSpec("қабу", false), "қаппаппын"],  // Example from internet: Ит Нұрбекті қаппапты
+        [new VerbSpec("қабу", true), "қабымаппын"],
         [new VerbSpec("табу", false), "таппаппын"],
         [new VerbSpec("шабу", false), "шаппаппын"],
         [new VerbSpec("кебу", false), "кеппеппін"],
@@ -1772,22 +1770,21 @@ ALL_TESTS.push(["pastUncertainNegativeReplaceUTest", function() {
 }]);
 
 ALL_TESTS.push(["pastUncertainQuestionReplaceUTest", function() {
-    const relations = [
-        ["жабу", "жауыппын ба?"],
-        ["қабу", "қауыппын ба?"],
-        ["табу", "тауыппын ба?"],
-        ["шабу", "шауыппын ба?"],
-        ["кебу", "кеуіппін бе?"],
-        ["себу", "сеуіппін бе?"],
-        ["тебу", "теуіппін бе?"],
-        ["өбу", "өбіппін бе?"],
-    ];
-    for (let i in relations) {
-        let base = relations[i][0];
-        let form = relations[i][1];
+    const relations = new Map([
+        [new VerbSpec("жабу", false), "жауыппын ба?"],
+        [new VerbSpec("қабу", false), "қауыппын ба?"],
+        [new VerbSpec("қабу", true), "қабыппын ба?"],
+        [new VerbSpec("табу", false), "тауыппын ба?"],
+        [new VerbSpec("шабу", false), "шауыппын ба?"],
+        [new VerbSpec("кебу", false), "кеуіппін бе?"],
+        [new VerbSpec("себу", false), "сеуіппін бе?"],
+        [new VerbSpec("тебу", false), "теуіппін бе?"],
+        [new VerbSpec("өбу", false), "өбіппін бе?"],
+    ]);
+    for (const [spec, form] of Array.from(relations.entries())) {
         T_EQ_ASSERT(
             form,
-            new VerbBuilder(base).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+            new VerbBuilder(spec.verbDictForm, spec.forceExceptional).pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
             "Past uncertain, b-to-u replacement: "
         );
     }
