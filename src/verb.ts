@@ -69,6 +69,7 @@ class BaseAndLast {
 class VerbBuilder {
     verbDictForm: string
     verbBase: string
+    forceExceptional: boolean
     regularVerbBase: string
     needsYaSuffix: boolean
     baseLast: string
@@ -84,6 +85,7 @@ class VerbBuilder {
         }
         this.verbDictForm = verbDictForm;
         this.verbBase = chopLast(verbDictForm, 1);
+        this.forceExceptional = forceExceptional;
         this.regularVerbBase = this.verbBase;
         this.needsYaSuffix = false;
         this.soft = (
@@ -195,8 +197,8 @@ class VerbBuilder {
                 return addVowel;
             }
         } else if (yp) { /* next is -ып */
-            /* жабу -> жау */
-            if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
+            /* жабу -> жау, except қабу can become қау or қабы (if forceExceptional) */
+            if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm) && !this.forceExceptional) {
                 return replaceLast(this.regularVerbBase, "у");
             }
         }
@@ -326,7 +328,7 @@ class VerbBuilder {
     }
     // TODO replace with genericBaseModifier()
     getPresentContinuousBase(): string {
-        if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm)) {
+        if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm) && !this.forceExceptional) {
             return replaceLast(this.verbBase, "у");
         }
         return this.verbBase;
