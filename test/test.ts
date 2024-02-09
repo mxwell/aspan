@@ -2458,6 +2458,75 @@ ALL_TESTS.push(["PastParticipleQuestionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PresentParticipleTest", function() {
+    T_EQ_ASSERT(
+        "түсінетін",
+        new VerbBuilder("түсіну").presentParticiple(SentenceType.Statement),
+        "Present participle, statement"
+    );
+    T_EQ_ASSERT(
+        "күлетін",
+        new VerbBuilder("күлу").presentParticiple(SentenceType.Statement),
+        "Present participle, statement"
+    );
+    T_EQ_ASSERT(
+        "қарайтын",
+        new VerbBuilder("қарау").presentParticiple(SentenceType.Statement),
+        "Present participle, statement"
+    );
+    T_EQ_ASSERT(
+        "жейтін",
+        new VerbBuilder("жеу").presentParticiple(SentenceType.Statement),
+        "Present participle, statement"
+    );
+}]);
+
+ALL_TESTS.push(["PresentParticipleNegativeTest", function() {
+    T_EQ_ASSERT(
+        "келмейтін",
+        new VerbBuilder("келу").presentParticiple(SentenceType.Negative),
+        "Present participle, negative"
+    );
+    T_EQ_ASSERT(
+        "айтпайтын",
+        new VerbBuilder("айту").presentParticiple(SentenceType.Negative),
+        "Present participle, negative"
+    );
+    T_EQ_ASSERT(
+        "істемейтін",
+        new VerbBuilder("істеу").presentParticiple(SentenceType.Negative),
+        "Present participle, negative"
+    );
+    T_EQ_ASSERT(
+        "болмайтын",
+        new VerbBuilder("болу").presentParticiple(SentenceType.Negative),
+        "Present participle, negative"
+    );
+}]);
+
+ALL_TESTS.push(["PresentParticipleQuestionTest", function() {
+    T_EQ_ASSERT(
+        "түсінетін бе?",
+        new VerbBuilder("түсіну").presentParticiple(SentenceType.Question),
+        "Present participle, question"
+    );
+    T_EQ_ASSERT(
+        "күлетін бе?",
+        new VerbBuilder("күлу").presentParticiple(SentenceType.Question),
+        "Present participle, question"
+    );
+    T_EQ_ASSERT(
+        "қарайтын ба?",
+        new VerbBuilder("қарау").presentParticiple(SentenceType.Question),
+        "Present participle, question"
+    );
+    T_EQ_ASSERT(
+        "жейтін бе?",
+        new VerbBuilder("жеу").presentParticiple(SentenceType.Question),
+        "Present participle, question"
+    );
+}]);
+
 /* End of tests */
 
 testAll();

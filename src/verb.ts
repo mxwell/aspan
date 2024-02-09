@@ -620,10 +620,13 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
-    pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let builder = this.mergeBaseWithVowelAffix(
+    presentParticipleCommonBuilder(): PhrasalBuilder {
+        return this.mergeBaseWithVowelAffix(
             this.verbBase, this.pastTransitiveSuffix(this.baseLast)
         );
+    }
+    pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let builder = this.presentParticipleCommonBuilder();
         let affixLast = builder.getLastItem();
         let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
         return builder
@@ -743,6 +746,27 @@ class VerbBuilder {
         } else if (sentenceType == SentenceType.Question) {
             return this.buildQuestionForm(
                     this.remotePastCommonBuilder()
+                ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    presentParticiple(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.presentParticipleCommonBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let base = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let particleLast = getLastItem(particle);
+            let affix = this.pastTransitiveSuffix(particleLast);
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                    this.presentParticipleCommonBuilder()
                 ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
