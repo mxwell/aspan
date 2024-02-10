@@ -9,15 +9,49 @@ enum PHRASAL_PART_TYPE {
     QuestionParticle = "QuestionParticle",
 }
 
+enum PART_EXPANATION_TYPE {
+    // VerbBase
+    VerbBaseStripU = "VerbBaseStripU",
+    VerbBaseLostIShort = "VerbBaseLostIShort",
+    VerbBaseLostY = "VerbBaseLostY",
+    // .. here go other base modifications
+
+    // VerbTenseAffix
+    VerbTenseAffixPresentTransitive = "VerbTenseAffixPresentTransitive",
+    VerbTenseAffixPresentTransitiveToYa = "VerbTenseAffixPresentTransitiveToYa",
+    VerbTenseAffixPresentTransitiveToYi = "VerbTenseAffixPresentTransitiveToYi",
+
+    // VerbPersonalAffix
+    VerbPersonalAffixPresentTransitive = "VerbPersonalAffixPresentTransitive",
+}
+
+class PartExplanation {
+    explanationType: PART_EXPANATION_TYPE;
+    soft: boolean;
+    softPos: number;
+    variant: number;
+
+    constructor(explanationType: PART_EXPANATION_TYPE, soft: boolean, softPos: number = -1, variant: number = -1) {
+        this.explanationType = explanationType;
+        this.soft = soft;
+        this.softPos = softPos;
+        this.variant = variant;
+    }
+}
+
+type MaybePartExplanation = PartExplanation | null;
+
 class PhrasalPart {
     partType: PHRASAL_PART_TYPE;
     content: string;
     aux: boolean;
+    explanation: MaybePartExplanation;
 
-    constructor(partType: PHRASAL_PART_TYPE, content: string, aux: boolean = false) {
+    constructor(partType: PHRASAL_PART_TYPE, content: string, aux: boolean = false, explanation: MaybePartExplanation = null) {
         this.partType = partType;
         this.content = content;
         this.aux = aux;
+        this.explanation = explanation;
     }
 }
 
@@ -66,14 +100,29 @@ class PhrasalBuilder {
             new PhrasalPart(PHRASAL_PART_TYPE.VerbBase, verbBase)
         );
     }
+    verbBaseWithExplanation(verbBase: string, explanation: PartExplanation): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.VerbBase, verbBase, false, explanation)
+        );
+    }
     tenseAffix(affix: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.VerbTenseAffix, affix)
         );
     }
+    tenseAffixWithExplanation(affix: string, explanation: PartExplanation): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.VerbTenseAffix, affix, false, explanation)
+        );
+    }
     personalAffix(affix: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.VerbPersonalAffix, affix)
+        );
+    }
+    personalAffixWithExplanation(affix: string, explanation: PartExplanation): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.VerbPersonalAffix, affix, false, explanation)
         );
     }
     negation(particle: string): PhrasalBuilder {

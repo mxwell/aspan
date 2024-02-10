@@ -233,16 +233,29 @@ class VerbBuilder {
     mergeBaseWithVowelAffix(origBase: string, origAffix: string): PhrasalBuilder {
         var base = origBase;
         var affix = origAffix;
+        let baseExplanation = new PartExplanation(
+            PART_EXPANATION_TYPE.VerbBaseStripU,
+            this.soft,
+            // TODO specify softPos
+        );
+        let affixExplanation = new PartExplanation(
+            PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitive,
+            this.soft,
+        );
         if (base.endsWith("й") && affix.startsWith("а")) {
             base = chopLast(base, 1);
+            baseExplanation.explanationType = PART_EXPANATION_TYPE.VerbBaseLostIShort;
             affix = replaceFirst(affix, "я");
+            affixExplanation.explanationType = PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitiveToYa;
         } else if ((base.endsWith("ы") || base.endsWith("і")) && affix.startsWith("й")) {
             base = chopLast(base, 1);
+            baseExplanation.explanationType = PART_EXPANATION_TYPE.VerbBaseLostY;
             affix = replaceFirst(affix, "и");
+            affixExplanation.explanationType = PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitiveToYi;
         }
         return new PhrasalBuilder()
-            .verbBase(base)
-            .tenseAffix(affix);
+            .verbBaseWithExplanation(base, baseExplanation)
+            .tenseAffixWithExplanation(affix, affixExplanation);
     }
     presentTransitiveCommonBuilder(): PhrasalBuilder {
         return this.mergeBaseWithVowelAffix(
@@ -264,8 +277,12 @@ class VerbBuilder {
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == "Statement") {
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
+            let persAffixExplanation = new PartExplanation(
+                PART_EXPANATION_TYPE.VerbPersonalAffixPresentTransitive,
+                this.soft,
+            );
             return this.presentTransitiveCommonBuilder()
-                .personalAffix(persAffix)
+                .personalAffixWithExplanation(persAffix, persAffixExplanation)
                 .build();
         } else if (sentenceType == "Negative") {
             let pastBase = this.fixUpSpecialBaseForConsonant();
