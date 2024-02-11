@@ -234,24 +234,24 @@ class VerbBuilder {
         var base = origBase;
         var affix = origAffix;
         let baseExplanation = new PartExplanation(
-            PART_EXPANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
             this.soft,
             // TODO specify softPos
         );
         let affixExplanation = new PartExplanation(
-            PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
             this.soft,
         );
         if (base.endsWith("й") && affix.startsWith("а")) {
             base = chopLast(base, 1);
-            baseExplanation.explanationType = PART_EXPANATION_TYPE.VerbBaseLostIShort;
+            baseExplanation.explanationType = PART_EXPLANATION_TYPE.VerbBaseLostIShort;
             affix = replaceFirst(affix, "я");
-            affixExplanation.explanationType = PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitiveToYa;
+            affixExplanation.explanationType = PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa;
         } else if ((base.endsWith("ы") || base.endsWith("і")) && affix.startsWith("й")) {
             base = chopLast(base, 1);
-            baseExplanation.explanationType = PART_EXPANATION_TYPE.VerbBaseLostY;
+            baseExplanation.explanationType = PART_EXPLANATION_TYPE.VerbBaseLostY;
             affix = replaceFirst(affix, "и");
-            affixExplanation.explanationType = PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitiveToYi;
+            affixExplanation.explanationType = PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi;
         }
         return new PhrasalBuilder()
             .verbBaseWithExplanation(base, baseExplanation)
@@ -278,7 +278,7 @@ class VerbBuilder {
         if (sentenceType == "Statement") {
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
             let persAffixExplanation = new PartExplanation(
-                PART_EXPANATION_TYPE.VerbPersonalAffixPresentTransitive,
+                PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
                 this.soft,
             );
             return this.presentTransitiveCommonBuilder()

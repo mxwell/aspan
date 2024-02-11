@@ -9,7 +9,7 @@ enum PHRASAL_PART_TYPE {
     QuestionParticle = "QuestionParticle",
 }
 
-enum PART_EXPANATION_TYPE {
+enum PART_EXPLANATION_TYPE {
     // VerbBase
     VerbBaseStripU = "VerbBaseStripU",
     VerbBaseLostIShort = "VerbBaseLostIShort",
@@ -26,12 +26,12 @@ enum PART_EXPANATION_TYPE {
 }
 
 class PartExplanation {
-    explanationType: PART_EXPANATION_TYPE;
+    explanationType: PART_EXPLANATION_TYPE;
     soft: boolean;
     softPos: number;
     variant: number;
 
-    constructor(explanationType: PART_EXPANATION_TYPE, soft: boolean, softPos: number = -1, variant: number = -1) {
+    constructor(explanationType: PART_EXPLANATION_TYPE, soft: boolean, softPos: number = -1, variant: number = -1) {
         this.explanationType = explanationType;
         this.soft = soft;
         this.softPos = softPos;

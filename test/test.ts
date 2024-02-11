@@ -114,13 +114,13 @@ ALL_TESTS.push(["basicStatementFormsTest", function() {
 ALL_TESTS.push(["presentTransitiveExplanationTest", function() {
     let phrasal = new VerbBuilder("ренжу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement);
     let baseExplanation = phrasal.parts[0].explanation;
-    T_EQ_STR_ASSERT(PART_EXPANATION_TYPE.VerbBaseLostY, baseExplanation.explanationType, "verb base explanation type");
+    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbBaseLostY, baseExplanation.explanationType, "verb base explanation type");
     T_ASSERT(baseExplanation.soft, "verb base explanation soft");
     let affixExplanation = phrasal.parts[1].explanation;
-    T_EQ_STR_ASSERT(PART_EXPANATION_TYPE.VerbTenseAffixPresentTransitiveToYi, affixExplanation.explanationType, "verb tense affix explanation type");
+    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi, affixExplanation.explanationType, "verb tense affix explanation type");
     T_ASSERT(affixExplanation.soft, "verb tense affix explanation soft");
     let persAffixExplanation = phrasal.parts[2].explanation;
-    T_EQ_STR_ASSERT(PART_EXPANATION_TYPE.VerbPersonalAffixPresentTransitive, persAffixExplanation.explanationType, "pers affix explanation type");
+    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive, persAffixExplanation.explanationType, "pers affix explanation type");
 }]);
 
 ALL_TESTS.push(["basicNegativeFormsTest", function() {
