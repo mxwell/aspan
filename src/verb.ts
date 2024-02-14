@@ -664,8 +664,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false).base;
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = getYpip(particleLast, this.softOffset);
@@ -760,11 +759,7 @@ class VerbBuilder {
             (person == GrammarPerson.Second && number == GrammarNumber.Singular)
             || person == GrammarPerson.Third
         );
-        let base = this.genericBaseModifier(nc, /* yp */ false).base;
-        let baseAndLast = (nc
-            ? this.fixUpBaseForConsonant(base, getLastItem(base))
-            : new BaseAndLast(base, getLastItem(base))
-        );
+        let baseAndLast = this.genericBaseModifier(nc, /* yp */ false);
         let affix = getImperativeAffix(person, number, baseAndLast.last, this.softOffset);
         return this.mergeBaseWithVowelAffix(baseAndLast.base, affix);
     }
