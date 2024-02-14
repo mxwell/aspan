@@ -14,7 +14,16 @@ enum PART_EXPLANATION_TYPE {
     VerbBaseStripU = "VerbBaseStripU",
     VerbBaseLostIShort = "VerbBaseLostIShort",
     VerbBaseLostY = "VerbBaseLostY",
+    VerbBaseGainedY = "VerbBaseGainedY",
+    VerbBaseGainedIShort = "VerbBaseGainedIShort",
+    VerbBaseGainedIShortY = "VerbBaseGainedIShortY",
+    VerbBaseGainedYInsidePriorCons = "VerbBaseGainedYInsidePriorCons",
+    VerbBaseReplaceB2U = "VerbBaseReplaceB2U",
+    VerbBaseReplaceLastCons = "VerbBaseReplaceLastCons",
     // .. here go other base modifications
+
+    // Negation particles
+    VerbNegationPostBase = "VerbNegationPostBase",
 
     // VerbTenseAffix
     VerbTenseAffixPresentTransitive = "VerbTenseAffixPresentTransitive",
@@ -128,6 +137,11 @@ class PhrasalBuilder {
     negation(particle: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.VerbNegation, particle)
+        );
+    }
+    negationWithExplanation(particle: string, explanation: PartExplanation): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.VerbNegation, particle, false, explanation)
         );
     }
     questionParticle(particle: string): PhrasalBuilder {

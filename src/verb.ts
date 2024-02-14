@@ -57,6 +57,17 @@ function createPresentContinuousContext(verbDictForm: string): MaybePresentConti
     return null;
 }
 
+class BaseAndExplanationType {
+    base: string;
+    last: string;
+    explanationType: PART_EXPLANATION_TYPE;
+    constructor(base: string, last: string, explanationType: PART_EXPLANATION_TYPE) {
+        this.base = base;
+        this.last = last;
+        this.explanationType = explanationType;
+    }
+}
+
 class BaseAndLast {
     base: string;
     last: string;
@@ -69,6 +80,7 @@ class BaseAndLast {
 class VerbBuilder {
     verbDictForm: string
     verbBase: string
+    baseExplanation: PART_EXPLANATION_TYPE
     forceExceptional: boolean
     regularVerbBase: string
     needsYaSuffix: boolean
@@ -85,6 +97,7 @@ class VerbBuilder {
         }
         this.verbDictForm = verbDictForm;
         this.verbBase = chopLast(verbDictForm, 1);
+        this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseStripU;
         this.forceExceptional = forceExceptional;
         this.regularVerbBase = this.verbBase;
         this.needsYaSuffix = false;
@@ -97,8 +110,10 @@ class VerbBuilder {
         /* exceptions */
         if (isVerbException(verbDictForm) || (isVerbOptionalException(verbDictForm) && forceExceptional)) {
             this.verbBase = this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+            this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedY;
         } else if (isVerbException2(verbDictForm)) {
             this.verbBase = this.verbBase + "й" + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
+            this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedIShortY;
         } else if (verbDictForm.endsWith("ю")) {
             if (verbDictForm.endsWith("ию")) {
                 if (!this.soft) {
@@ -108,6 +123,7 @@ class VerbBuilder {
                 }
             } else {
                 this.verbBase = this.verbBase + "й";
+                this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedIShort;
             }
         }
 
@@ -186,23 +202,38 @@ class VerbBuilder {
             .unclassified(phrase)
             .build();
     }
-    genericBaseModifier(nc: boolean, yp: boolean): string {
+    genericBaseModifier(nc: boolean, yp: boolean): BaseAndExplanationType {
         if (nc) { /* next is consonant */
             if (yp) {
                 throw new Error(`invalid arguments: ${nc}, ${yp}`)
             }
-            /* оқу -> оқы */
+            /* қорқу -> қорық.. */
             let addVowel = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm);
             if (addVowel) {
-                return addVowel;
+                let last = getLastItem(addVowel);
+                return new BaseAndExplanationType(addVowel, last, PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons);
+            }
+            let last = getLastItem(this.verbBase);
+            let replacement = VERB_LAST_NEGATIVE_CONVERSION.get(last);
+            if (replacement != null) {
+                return new BaseAndExplanationType(
+                    replaceLast(this.verbBase, replacement),
+                    replacement,
+                    PART_EXPLANATION_TYPE.VerbBaseReplaceLastCons
+                );
             }
         } else if (yp) { /* next is -ып */
             /* жабу -> жау, except қабу can become қау or қабы (if forceExceptional) */
             if (VERB_PRESENT_CONT_EXCEPTION_U_SET.has(this.verbDictForm) && !this.forceExceptional) {
-                return replaceLast(this.regularVerbBase, "у");
+                let replacement = "у";
+                return new BaseAndExplanationType(
+                    replaceLast(this.regularVerbBase, replacement),
+                    replacement,
+                    PART_EXPLANATION_TYPE.VerbBaseReplaceB2U
+                );
             }
         }
-        return this.verbBase;
+        return new BaseAndExplanationType(this.verbBase, this.baseLast, this.baseExplanation);
     }
     // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForConsonant(): string {
@@ -285,15 +316,30 @@ class VerbBuilder {
                 .personalAffixWithExplanation(persAffix, persAffixExplanation)
                 .build();
         } else if (sentenceType == "Negative") {
-            let pastBase = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
-            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let pastBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            let baseExplanation = new PartExplanation(
+                pastBase.explanationType,
+                this.soft,
+            );
+            let particle = getQuestionParticle(pastBase.last, this.softOffset);
+            let particleE = new PartExplanation(
+                PART_EXPLANATION_TYPE.VerbNegationPostBase,
+                this.soft,
+            );
+            let affixE = new PartExplanation(
+                PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+                this.soft,
+            );
             let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
+            let persAffixE = new PartExplanation(
+                PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+                this.soft,
+            );
             return new PhrasalBuilder()
-                .verbBase(baseAndLast.base)
-                .negation(particle)
-                .tenseAffix("й")
-                .personalAffix(persAffix)
+                .verbBaseWithExplanation(pastBase.base, baseExplanation)
+                .negationWithExplanation(particle, particleE)
+                .tenseAffixWithExplanation("й", affixE)
+                .personalAffixWithExplanation(persAffix, persAffixE)
                 .build();
         } else if (sentenceType == "Question") {
             let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
@@ -602,7 +648,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     pastUncertainCommonBuilder(): PhrasalBuilder {
-        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true);
+        let base = this.genericBaseModifier(/* nc */ false, /* yp */ true).base;
         let baseLast = getLastItem(base);
         let affix = getYpip(baseLast, this.softOffset);
         return new PhrasalBuilder()
@@ -618,7 +664,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            let base = this.genericBaseModifier(/* nc */ true, /* yp */ false).base;
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
@@ -714,7 +760,7 @@ class VerbBuilder {
             (person == GrammarPerson.Second && number == GrammarNumber.Singular)
             || person == GrammarPerson.Third
         );
-        let base = this.genericBaseModifier(nc, /* yp */ false);
+        let base = this.genericBaseModifier(nc, /* yp */ false).base;
         let baseAndLast = (nc
             ? this.fixUpBaseForConsonant(base, getLastItem(base))
             : new BaseAndLast(base, getLastItem(base))
