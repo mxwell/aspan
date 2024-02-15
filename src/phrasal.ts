@@ -32,6 +32,10 @@ enum PART_EXPLANATION_TYPE {
 
     // VerbPersonalAffix
     VerbPersonalAffixPresentTransitive = "VerbPersonalAffixPresentTransitive",
+    VerbPersonalAffixPresentTransitiveQuestionSkip = "VerbPersonalAffixPresentTransitiveQuestionSkip",
+
+    // QuestionParticle
+    QuestionParticleSeparate = "QuestionParticleSeparate",
 }
 
 class PartExplanation {
@@ -83,8 +87,8 @@ class PhrasalBuilder {
     constructor() {
         this.parts = [];
     }
-    addPart(part: PhrasalPart): PhrasalBuilder {
-        if (part.content.length > 0) {
+    addPart(part: PhrasalPart, allowEmpty: boolean = false): PhrasalBuilder {
+        if (part.content.length > 0 || allowEmpty) {
             this.parts.push(part);
         }
         return this;
@@ -131,7 +135,8 @@ class PhrasalBuilder {
     }
     personalAffixWithExplanation(affix: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.VerbPersonalAffix, affix, false, explanation)
+            new PhrasalPart(PHRASAL_PART_TYPE.VerbPersonalAffix, affix, false, explanation),
+            /* allowEmpty */ true
         );
     }
     negation(particle: string): PhrasalBuilder {
@@ -149,6 +154,11 @@ class PhrasalBuilder {
             new PhrasalPart(PHRASAL_PART_TYPE.QuestionParticle, particle)
         );
     }
+    questionParticleWithExplanation(particle: string, explanation: PartExplanation): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.QuestionParticle, particle, false, explanation)
+        );
+    }
     auxVerb(phrasal: Phrasal): PhrasalBuilder {
         for (let i = 0; i < phrasal.parts.length; ++i) {
             let part = phrasal.parts[i];
@@ -160,7 +170,11 @@ class PhrasalBuilder {
     }
     getLastItem(): string {
         let parts = this.parts;
-        return getLastItem(parts[parts.length - 1].content);
+        let index = parts.length - 1;
+        while (index > 0 && parts[index].content.length === 0) {
+            index--;
+        }
+        return getLastItem(parts[index].content);
     }
     build(): Phrasal {
         let partStrings: string[] = [];

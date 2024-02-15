@@ -192,9 +192,13 @@ class VerbBuilder {
     buildQuestionForm(builder: PhrasalBuilder): PhrasalBuilder {
         let last = builder.getLastItem();
         let particle = getQuestionParticle(last, this.softOffset);
+        let particleE = new PartExplanation(
+            PART_EXPLANATION_TYPE.QuestionParticleSeparate,
+            this.soft,
+        );
         return builder
             .space()
-            .questionParticle(particle)
+            .questionParticleWithExplanation(particle, particleE)
             .punctuation("?");
     }
     buildUnclassified(phrase: string): Phrasal {
@@ -304,17 +308,26 @@ class VerbBuilder {
         }
         return new BaseAndLast(base, last);
     }
+    appendPresentTransitivePersAffix(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, builder: PhrasalBuilder): PhrasalBuilder {
+        let persAffix = null;
+        let explType = null;
+        if (sentenceType != SentenceType.Question || person != GrammarPerson.Third) {
+            persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
+            explType = PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive;
+        } else {
+            persAffix = "";
+            explType = PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip;
+        }
+        let persAffixExplanation = new PartExplanation(explType, this.soft);
+        return builder.personalAffixWithExplanation(persAffix, persAffixExplanation);
+    }
     /* Ауыспалы осы/келер шақ */
     presentTransitiveForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == "Statement") {
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
-            let persAffixExplanation = new PartExplanation(
-                PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
-                this.soft,
-            );
-            return this.presentTransitiveCommonBuilder()
-                .personalAffixWithExplanation(persAffix, persAffixExplanation)
-                .build();
+            return this.appendPresentTransitivePersAffix(
+                person, number, sentenceType,
+                this.presentTransitiveCommonBuilder()
+            ).build();
         } else if (sentenceType == "Negative") {
             let pastBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let baseExplanation = new PartExplanation(
@@ -330,23 +343,20 @@ class VerbBuilder {
                 PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
                 this.soft,
             );
-            let persAffix = VERB_PERS_AFFIXES1[person][number][this.softOffset];
-            let persAffixE = new PartExplanation(
-                PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
-                this.soft,
-            );
-            return new PhrasalBuilder()
-                .verbBaseWithExplanation(pastBase.base, baseExplanation)
-                .negationWithExplanation(particle, particleE)
-                .tenseAffixWithExplanation("й", affixE)
-                .personalAffixWithExplanation(persAffix, persAffixE)
-                .build();
+            return this.appendPresentTransitivePersAffix(
+                person, number, sentenceType,
+                new PhrasalBuilder()
+                    .verbBaseWithExplanation(pastBase.base, baseExplanation)
+                    .negationWithExplanation(particle, particleE)
+                    .tenseAffixWithExplanation("й", affixE)
+            ).build();
         } else if (sentenceType == "Question") {
-            let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
             return this.buildQuestionForm(
+                this.appendPresentTransitivePersAffix(
+                    person, number, sentenceType,
                     this.presentTransitiveCommonBuilder()
-                        .personalAffix(persAffix)
-                ).build();
+                )
+            ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }

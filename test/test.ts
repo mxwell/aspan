@@ -89,6 +89,22 @@ function testAllCases(testName: string, verbDictForm: string, sentenceType: Sent
     }
 }
 
+type MaybePartExplanationType = PART_EXPLANATION_TYPE | null;
+
+function checkPartExplanations(testName: String, phrasal: Phrasal, explanationTypes: MaybePartExplanationType[], soft: boolean) {
+    for (let i = 0; i < explanationTypes.length; i++) {
+        let explanationType = explanationTypes[i];
+        let part = phrasal.parts[i];
+        let explanation = part.explanation;
+        if (explanationType == null) {
+            T_ASSERT(explanation == null, `Test ${testName}, part ${i}, explanation null`);
+        } else {
+            T_EQ_STR_ASSERT(explanationType, explanation.explanationType, `Test ${testName}, part ${i}, explanation type`);
+            T_ASSERT(explanation.soft == soft, `Test ${testName}, part ${i}, explanation soft`);
+        }
+    }
+}
+
 /* Tests go below */
 
 /** Template:
@@ -135,6 +151,36 @@ ALL_TESTS.push(["presTransNegTricky2ExplTest", function() {
     T_ASSERT(!affixExplanation.soft, "verb tense affix explanation soft");
     let persAffixExplanation = phrasal.parts[3].explanation;
     T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive, persAffixExplanation.explanationType, "pers affix explanation type");
+}]);
+
+ALL_TESTS.push(["presTransQuestionExplTest", function() {
+    let builder = new VerbBuilder("қуану");
+
+    checkPartExplanations(
+        "presTransFirstPersQuestionExplTest",
+        builder.presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Question),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+            null,
+            PART_EXPLANATION_TYPE.QuestionParticleSeparate,
+        ],
+        false,
+    );
+
+    checkPartExplanations(
+        "presTransThirdPersQuestionExplTest",
+        builder.presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip,
+            null,
+            PART_EXPLANATION_TYPE.QuestionParticleSeparate,
+        ],
+        false,
+    );
 }]);
 
 ALL_TESTS.push(["basicNegativeFormsTest", function() {
