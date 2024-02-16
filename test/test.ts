@@ -127,30 +127,77 @@ ALL_TESTS.push(["basicStatementFormsTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["presentTransitiveTricky1ExplanationTest", function() {
-    let phrasal = new VerbBuilder("ренжу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement);
-    let baseExplanation = phrasal.parts[0].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbBaseLostY, baseExplanation.explanationType, "verb base explanation type");
-    T_ASSERT(baseExplanation.soft, "verb base explanation soft");
-    let affixExplanation = phrasal.parts[1].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi, affixExplanation.explanationType, "verb tense affix explanation type");
-    T_ASSERT(affixExplanation.soft, "verb tense affix explanation soft");
-    let persAffixExplanation = phrasal.parts[2].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive, persAffixExplanation.explanationType, "pers affix explanation type");
+ALL_TESTS.push(["presentTransitiveExplanationTest", function() {
+    checkPartExplanations(
+        "presentTransitiveExplanationTest",
+        new VerbBuilder("кесу").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        true,
+    );
+
+    checkPartExplanations(
+        "presentTransitiveExplanationTest",
+        new VerbBuilder("жасау").presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        false,
+    );
 }]);
 
-ALL_TESTS.push(["presTransNegTricky2ExplTest", function() {
-    let phrasal = new VerbBuilder("қорқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative);
-    let baseExplanation = phrasal.parts[0].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons, baseExplanation.explanationType, "verb base explanation type");
-    T_ASSERT(!baseExplanation.soft, "verb base explanation soft");
-    let negExplanation = phrasal.parts[1].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbNegationPostBase, negExplanation.explanationType, "verb negation explanation type");
-    let affixExplanation = phrasal.parts[2].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive, affixExplanation.explanationType, "verb tense affix explanation type");
-    T_ASSERT(!affixExplanation.soft, "verb tense affix explanation soft");
-    let persAffixExplanation = phrasal.parts[3].explanation;
-    T_EQ_STR_ASSERT(PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive, persAffixExplanation.explanationType, "pers affix explanation type");
+ALL_TESTS.push(["presentTransitiveTricky1ExplanationTest", function() {
+    checkPartExplanations(
+        "presentTransitiveTricky1ExplanationTest",
+        new VerbBuilder("ренжу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseLostY,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        true,
+    );
+
+    checkPartExplanations(
+        "presentTransitiveTricky1ExplanationTest",
+        new VerbBuilder("оқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseLostY,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        false,
+    );
+}]);
+
+ALL_TESTS.push(["presTransNegExplTest", function() {
+    checkPartExplanations(
+        "presTransNegExplTest",
+        new VerbBuilder("кесу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseStripU,
+            PART_EXPLANATION_TYPE.VerbNegationPostBase,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        true,
+    );
+    checkPartExplanations(
+        "presTransNegExplTest",
+        new VerbBuilder("қорқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons,
+            PART_EXPLANATION_TYPE.VerbNegationPostBase,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        false,
+    );
 }]);
 
 ALL_TESTS.push(["presTransQuestionExplTest", function() {
