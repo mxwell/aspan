@@ -16,6 +16,7 @@ enum PART_EXPLANATION_TYPE {
     VerbBaseLostY = "VerbBaseLostY",
     VerbBaseGainedY = "VerbBaseGainedY",
     VerbBaseGainedIShort = "VerbBaseGainedIShort",
+    VerbBaseGainIShortLoseY = "VerbBaseGainIShortLoseY",
     VerbBaseGainedIShortY = "VerbBaseGainedIShortY",
     VerbBaseGainedYInsidePriorCons = "VerbBaseGainedYInsidePriorCons",
     VerbBaseReplaceB2U = "VerbBaseReplaceB2U",

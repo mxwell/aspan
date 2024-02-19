@@ -284,7 +284,11 @@ class VerbBuilder {
             affixExplanation.explanationType = PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa;
         } else if ((base.endsWith("ы") || base.endsWith("і")) && affix.startsWith("й")) {
             base = chopLast(base, 1);
-            baseExplanation.explanationType = PART_EXPLANATION_TYPE.VerbBaseLostY;
+            baseExplanation.explanationType = (
+                this.baseExplanation == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY
+                ? PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY
+                : PART_EXPLANATION_TYPE.VerbBaseLostY
+            );
             affix = replaceFirst(affix, "и");
             affixExplanation.explanationType = PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi;
         }

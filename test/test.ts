@@ -151,9 +151,9 @@ ALL_TESTS.push(["presentTransitiveExplanationTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["presentTransitiveTricky1ExplanationTest", function() {
+ALL_TESTS.push(["presentTransitiveTrickyExplanationTest", function() {
     checkPartExplanations(
-        "presentTransitiveTricky1ExplanationTest",
+        "presentTransitiveTrickyExplanationTest",
         new VerbBuilder("ренжу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
         [
             PART_EXPLANATION_TYPE.VerbBaseLostY,
@@ -164,10 +164,21 @@ ALL_TESTS.push(["presentTransitiveTricky1ExplanationTest", function() {
     );
 
     checkPartExplanations(
-        "presentTransitiveTricky1ExplanationTest",
+        "presentTransitiveTrickyExplanationTest",
         new VerbBuilder("оқу").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
         [
             PART_EXPLANATION_TYPE.VerbBaseLostY,
+            PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi,
+            PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
+        ],
+        false,
+    );
+
+    checkPartExplanations(
+        "presentTransitiveTrickyExplanationTest",
+        new VerbBuilder("баю").presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement),
+        [
+            PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY,
             PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi,
             PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive,
         ],
