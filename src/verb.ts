@@ -843,4 +843,24 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+    futureParticiple(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.possibleFutureCommonBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            let specialBase = this.fixUpSpecialBaseForConsonant();
+            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+            let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
+            let affix = "с";
+            return new PhrasalBuilder()
+                .verbBase(baseAndLast.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                    this.possibleFutureCommonBuilder()
+                ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

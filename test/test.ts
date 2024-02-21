@@ -2660,6 +2660,60 @@ ALL_TESTS.push(["PresentParticipleQuestionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["FutureParticipleTest", function() {
+    const relations = [
+        ["түсіну", "түсінер"],
+        ["күлу", "күлер"],
+        ["қарау", "қарар"],
+        ["жеу", "жер"],
+        ["қайту", "қайтар"],
+        ["бару", "барар"],
+        ["төлу", "төлер"],
+    ];
+    for (const [verb, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new VerbBuilder(verb).futureParticiple(SentenceType.Statement),
+            "Future participle, statement"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["FutureParticipleNegTest", function() {
+    const relations = [
+        ["келу", "келмес"],
+        ["ойлау", "ойламас"],
+        ["жету", "жетпес"],
+        ["оқу", "оқымас"],
+    ];
+    for (const [verb, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new VerbBuilder(verb).futureParticiple(SentenceType.Negative),
+            "Future participle, negative"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["FutureParticipleQuestionTest", function() {
+    const relations = [
+        ["түсіну", "түсінер ме?"],
+        ["күлу", "күлер ме?"],
+        ["қарау", "қарар ма?"],
+        ["жеу", "жер ме?"],
+        ["қайту", "қайтар ма?"],
+        ["бару", "барар ма?"],
+        ["төлу", "төлер ме?"],
+    ];
+    for (const [verb, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new VerbBuilder(verb).futureParticiple(SentenceType.Question),
+            "Future participle, question"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();
