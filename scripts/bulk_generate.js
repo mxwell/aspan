@@ -25,85 +25,130 @@ class WeightedForm {
     }
 }
 
-function createForms(caseFn, formsOut) {
-
-    function addForm(person, number, weight) {
-        let prev = null;
-        if (formsOut.length > 0) {
-            prev = formsOut[formsOut.length - 1].form;
-        }
-        let form = caseFn(person, number).raw;
-        if (prev != form) {
-            formsOut.push(new WeightedForm(
-                form,
-                weight
-            ));
+function countSpaces(s) {
+    let spaces = 0;
+    for (let i = 0; i < s.length; ++i) {
+        if (s[i] == ' ') {
+            ++spaces;
         }
     }
-
-    const first = aspan.GrammarPerson.First;
-    const second = aspan.GrammarPerson.Second;
-    const secondP = aspan.GrammarPerson.SecondPolite;
-    const third = aspan.GrammarPerson.Third;
-
-    const sing = aspan.GrammarNumber.Singular;
-    const plur = aspan.GrammarNumber.Plural;
-    addForm(first, sing, FIRST_SINGULAR_WEIGHT);
-    addForm(first, plur, FIRST_PLURAL_WEIGHT);
-    addForm(second, sing, SECOND_SINGULAR_WEIGHT);
-    addForm(second, plur, SECOND_PLURAL_WEIGHT);
-    addForm(secondP, sing, SECOND_SINGULAR_WEIGHT);
-    addForm(secondP, plur, SECOND_PLURAL_WEIGHT);
-    addForm(third, sing, THIRD_PERSON_WEIGHT);
-    addForm(third, plur, THIRD_PERSON_WEIGHT);
+    return spaces;
 }
 
-function createTenseForms(verb, auxBuilder) {
-    let forceExceptional = true;
-    let verbBuilder = new aspan.VerbBuilder(verb, forceExceptional);
-    let forms = [];
-    let sentenceType = "Statement";
-    createForms(
-        (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.pastForm(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.possibleFutureForm(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.conditionalMood(person, number, sentenceType),
-        forms
-    );
-    createForms(
-        (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
-        forms
-    );
-    return forms;
+class FormBuilder {
+    constructor(verb) {
+        this.verb = verb;
+        this.spaces = countSpaces(verb);
+    }
+    createForms(caseFn, formsOut) {
+        let spaces = this.spaces;
+        function addForm(person, number, weight) {
+            let prev = null;
+            if (formsOut.length > 0) {
+                prev = formsOut[formsOut.length - 1].form;
+            }
+            let fullForm = caseFn(person, number).raw;
+            let offset = 0;
+            for (let i = 0; i < spaces; ++i) {
+                let spacePos = fullForm.indexOf(" ", offset);
+                if (spacePos < 0) {
+                    throw new Error(`Unexpected space count in form: ${fullForm}`);
+                }
+                offset = spacePos + 1;
+            }
+            let spacePos = fullForm.indexOf(" ", offset);
+            let form = spacePos < 0 ? fullForm : fullForm.substring(0, spacePos);
+            if (prev != form) {
+                formsOut.push(new WeightedForm(
+                    form,
+                    weight
+                ));
+            }
+        }
+
+        const first = aspan.GrammarPerson.First;
+        const second = aspan.GrammarPerson.Second;
+        const secondP = aspan.GrammarPerson.SecondPolite;
+        const third = aspan.GrammarPerson.Third;
+
+        const sing = aspan.GrammarNumber.Singular;
+        const plur = aspan.GrammarNumber.Plural;
+        addForm(first, sing, FIRST_SINGULAR_WEIGHT);
+        addForm(first, plur, FIRST_PLURAL_WEIGHT);
+        addForm(second, sing, SECOND_SINGULAR_WEIGHT);
+        addForm(second, plur, SECOND_PLURAL_WEIGHT);
+        addForm(secondP, sing, SECOND_SINGULAR_WEIGHT);
+        addForm(secondP, plur, SECOND_PLURAL_WEIGHT);
+        addForm(third, sing, THIRD_PERSON_WEIGHT);
+        addForm(third, plur, THIRD_PERSON_WEIGHT);
+    }
+    createTenseForms(forceExceptional, sentenceType, auxBuilder) {
+        let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
+        let forms = [];
+        this.createForms(
+            (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.pastForm(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.possibleFutureForm(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.conditionalMood(person, number, sentenceType),
+            forms
+        );
+        this.createForms(
+            (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
+            forms
+        );
+        const pastParticiple = verbBuilder.pastParticiple(sentenceType).raw;
+        forms.push(new WeightedForm(pastParticiple, THIRD_PERSON_WEIGHT));
+        const presentParticiple = verbBuilder.presentParticiple(sentenceType).raw;
+        forms.push(new WeightedForm(presentParticiple, THIRD_PERSON_WEIGHT));
+        const futureParticiple = verbBuilder.futureParticiple(sentenceType).raw;
+        forms.push(new WeightedForm(futureParticiple, THIRD_PERSON_WEIGHT));
+        return forms;
+    }
+}
+
+const SENTENCE_TYPES = ["Statement", "Negative"]
+
+function createTenseFormsForAllVariants(verb, auxBuilder) {
+    let formBuilder = new FormBuilder(verb);
+    const isOptionalException = aspan.isVerbOptionalException(verb);
+    let rows = [];
+    for (let i = 0; i < SENTENCE_TYPES.length; ++i) {
+        let sentenceType = SENTENCE_TYPES[i];
+        rows.push(formBuilder.createTenseForms(false, sentenceType, auxBuilder));
+        if (isOptionalException) {
+            rows.push(formBuilder.createTenseForms(true, sentenceType, auxBuilder));
+        }
+    }
+    return rows;
 }
 
 class Args {
@@ -287,7 +332,7 @@ async function processLineByLine(args) {
     let enGlosses = inputItem.enGlosses.slice(0, 2);
     let partCountSuppression = estimateVerbPartCount(inputVerb);
     if (partCountSuppression > 2) continue;
-    let forms = createTenseForms(inputVerb, auxBuilder);
+    let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilder);
     if (args.suggest) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
         writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruGlosses, enGlosses, "", outputStream);
@@ -315,25 +360,31 @@ async function processLineByLine(args) {
             }
         }
         if (args.suggestForms) {
-            for (var i = 0; i < forms.length; ++i) {
-                let weightedForm = forms[i];
-                writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
-                ++outputCounter;
-                let simpleForms = simplify(weightedForm.form);
-                for (var j = 0; j < simpleForms.length; ++j) {
-                    writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
+            for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
+                let row = formRows[rowIndex];
+                for (let i = 0; i < row.length; ++i) {
+                    let weightedForm = row[i];
+                    writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
                     ++outputCounter;
+                    let simpleForms = simplify(weightedForm.form);
+                    for (var j = 0; j < simpleForms.length; ++j) {
+                        writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
+                        ++outputCounter;
+                    }
                 }
             }
         }
     } else {
-        outputStream.write(`${inputVerb}`);
-        ++outputCounter;
-        for (var i = 0; i < forms.length; ++i) {
-            outputStream.write(`\t${forms[i].form}`);
+        for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
+            outputStream.write(`${inputVerb}`);
             ++outputCounter;
+            let row = formRows[rowIndex];
+            for (let i = 0; i < row.length; ++i) {
+                outputStream.write(`\t${row[i].form}`);
+                ++outputCounter;
+            }
+            outputStream.write(`\n`);
         }
-        outputStream.write(`\n`);
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
