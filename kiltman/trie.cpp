@@ -20,22 +20,6 @@ void SplitBy(const std::string& s, char sep, TWords& words) {
     }
 }
 
-uint64_t GetNodeChildrenCount(const TNode* node) {
-    uint64_t result = node->children.size();
-    for (const auto& [ch, child] : node->children) {
-        result += GetNodeChildrenCount(child);
-    }
-    return result;
-}
-
-uint64_t GetNodeSpace(const TNode* node) {
-    uint64_t result = node->GetSpace();
-    for (const auto& [ch, child] : node->children) {
-        result += GetNodeSpace(child);
-    }
-    return result;
-}
-
 void StringToRunes(const std::string& s, TRunes& result) {
     result.clear();
     for (size_t i = 0; i < s.size(); ) {
@@ -72,14 +56,15 @@ void RunesToString(const TRunes& runes, std::string& result) {
 }
 
 void TrieBuilder::AddPath(const TRunes& path, uint16_t keyIndex) {
-    TNode* node = &root_;
+    TNode* node = nodes_[0];
     for (auto ch : path) {
-        TNode* child = node->FindChild(ch);
-        if (child == nullptr) {
-            child = node->AddChild(ch);
+        auto childId = node->FindChild(ch);
+        if (childId == TNode::kNoChild) {
+            childId = CreateNode();
+            node->AddChild(ch, childId);
             ++nodeCount_;
         }
-        node = child;
+        node = nodes_[childId];
     }
     ++pathCount_;
     textLength_ += path.size();
@@ -93,13 +78,13 @@ uint16_t TrieBuilder::AddKeyRunes(const TRunes& runes) {
 }
 
 const TNode* TrieBuilder::Traverse(const TRunes& path) const {
-    const TNode* node = &root_;
+    const TNode* node = nodes_[0];
     for (auto ch : path) {
-        TNode* child = node->FindChild(ch);
-        if (child == nullptr) {
+        auto childId = node->FindChild(ch);
+        if (childId == TNode::kNoChild) {
             return nullptr;
         }
-        node = child;
+        node = nodes_[childId];
     }
     return node;
 }
@@ -124,13 +109,22 @@ void TrieBuilder::PrintStats() const {
     std::cerr << "Path count: " << pathCount_ << "\n";
     std::cerr << "Text length: " << textLength_ << "\n";
     std::cerr << "Node count: " << nodeCount_ << "\n";
-    auto totalChildren = GetNodeChildrenCount(&root_);
-    std::cerr << "Total children: " << totalChildren << "\n";
-    std::cerr << "Average children per node: " << (double) totalChildren / nodeCount_ << "\n";
-    std::cerr << "Root children: " << root_.children.size() << "\n";
-    std::cerr << "Tree space: " << GetNodeSpace(&root_) << "\n";
+
+    const TNode* root_ = nodes_[0];
+    std::cerr << "Root children: " << root_->children.size() << "\n";
+
+    uint64_t totalNodeSpace = 0;
+    for (const auto& node : nodes_) {
+        totalNodeSpace += node->GetSpace();
+    }
+    std::cerr << "Tree space: " << totalNodeSpace << "\n";
 }
 
+TNode::TNodeId TrieBuilder::CreateNode() {
+    TNode::TNodeId id = (TNode::TNodeId) nodes_.size();
+    nodes_.emplace_back(new TNode());
+    return id;
+}
 
 TrieBuilder BuildTrie() {
     const std::string filepath = "forms.csv";

@@ -16,28 +16,28 @@ using TRunes = std::vector<uint16_t>;
 
 struct TNode {
     using TKey = uint16_t;
+    using TNodeId = uint32_t;
 
-    static const TKey kNoKey = std::numeric_limits<TKey>::max();
+    static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
+    static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
 
     TNode():
         keyIndex(kNoKey)
     {}
 
     TKey keyIndex;
-    std::map<uint16_t, TNode*> children;
+    std::map<TKey, TNodeId> children;
 
-    TNode* FindChild(uint16_t ch) const {
+    TNodeId FindChild(TKey ch) const {
         auto it = children.find(ch);
         if (it == children.end()) {
-            return nullptr;
+            return kNoChild;
         }
         return it->second;
     }
 
-    TNode* AddChild(uint16_t ch) {
-        TNode* child = new TNode();
-        children[ch] = child;
-        return child;
+    void AddChild(TKey ch, TNodeId childId) {
+        children[ch] = childId;
     }
 
     void SetKeyIndex(TKey index) {
@@ -56,6 +56,7 @@ struct TNode {
 class TrieBuilder {
 public:
     TrieBuilder() :
+        nodes_(1, new TNode()),
         pathCount_(0),
         textLength_(0),
         nodeCount_(1)
@@ -68,8 +69,10 @@ public:
     std::string GetKey(uint16_t index) const;
     void PrintStats() const;
 private:
-    TNode root_;
+    TNode::TNodeId CreateNode();
+private:
     std::vector<TRunes> keyRunesVec_;
+    std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;
     uint32_t nodeCount_;
