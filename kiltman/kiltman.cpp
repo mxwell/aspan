@@ -9,7 +9,6 @@
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/URI.h"
-#include <iostream>
 #include <string>
 
 using namespace Poco;
@@ -20,14 +19,14 @@ namespace {
 
 static constexpr std::string_view kDetectPath = "/detect";
 
-const NKiltMan::TrieBuilder& GetTrieBuilder() {
-    static NKiltMan::TrieBuilder instance = NKiltMan::BuildTrie();
+const NKiltMan::TrieBuilder& GetTrieBuilder(Logger* logger) {
+    static NKiltMan::TrieBuilder instance = NKiltMan::BuildTrie(logger);
     return instance;
 }
 
 JSON::Object buildDetectResponse(const std::string& queryText) {
     JSON::Array array;
-    const auto& trieBuilder = GetTrieBuilder();
+    const auto& trieBuilder = GetTrieBuilder(nullptr);
     auto node = trieBuilder.Traverse(queryText);
     if (node != nullptr && node->IsTerminal()) {
         JSON::Object word;
@@ -64,7 +63,7 @@ class KiltmanRequestHandler: public HTTPRequestHandler
 
         auto uriString = request.getURI();
         auto uri = Poco::URI(uriString);
-        std::cerr << "path: " << uri.getPath() << "\n";
+        app.logger().information("path: %s", uri.getPath());
 
         if (uri.getPath() != kDetectPath) {
             response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_NOT_FOUND);
@@ -113,7 +112,7 @@ class WebServerApp: public ServerApplication
 
     int main(const std::vector<std::string>&)
     {
-        (void) GetTrieBuilder();
+        (void) GetTrieBuilder(&logger());
 
         UInt16 port = static_cast<UInt16>(config().getUInt("port", 8080));
 

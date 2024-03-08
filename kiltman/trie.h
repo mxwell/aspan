@@ -1,7 +1,8 @@
 #pragma once
 
+#include "Poco/Logger.h"
+
 #include <algorithm>
-#include <iostream>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -67,7 +68,7 @@ public:
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
-    void PrintStats() const;
+    void PrintStats(Poco::Logger& logger) const;
 private:
     TNode::TNodeId CreateNode();
 private:
@@ -78,6 +79,6 @@ private:
     uint32_t nodeCount_;
 };
 
-TrieBuilder BuildTrie();
+TrieBuilder BuildTrie(Poco::Logger* logger);
 
 }  // namespace NKiltMan

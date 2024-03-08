@@ -104,20 +104,20 @@ std::string TrieBuilder::GetKey(uint16_t index) const {
     return result;
 }
 
-void TrieBuilder::PrintStats() const {
-    std::cerr << "Key count: " << keyRunesVec_.size() << "\n";
-    std::cerr << "Path count: " << pathCount_ << "\n";
-    std::cerr << "Text length: " << textLength_ << "\n";
-    std::cerr << "Node count: " << nodeCount_ << "\n";
+void TrieBuilder::PrintStats(Poco::Logger& logger) const {
+    logger.information("Key count: %z", keyRunesVec_.size());
+    logger.information("Path count: %u", pathCount_);
+    logger.information("Text length: %u", textLength_);
+    logger.information("Node count: %u", nodeCount_);
 
     const TNode* root_ = nodes_[0];
-    std::cerr << "Root children: " << root_->children.size() << "\n";
+    logger.information("Root children: %z", root_->children.size());
 
     uint64_t totalNodeSpace = 0;
     for (const auto& node : nodes_) {
         totalNodeSpace += node->GetSpace();
     }
-    std::cerr << "Tree space: " << totalNodeSpace << "\n";
+    logger.information("Tree space: %Lu", totalNodeSpace);
 }
 
 TNode::TNodeId TrieBuilder::CreateNode() {
@@ -126,7 +126,7 @@ TNode::TNodeId TrieBuilder::CreateNode() {
     return id;
 }
 
-TrieBuilder BuildTrie() {
+TrieBuilder BuildTrie(Poco::Logger* logger) {
     const std::string filepath = "forms.csv";
 
     TrieBuilder builder;
@@ -135,12 +135,14 @@ TrieBuilder BuildTrie() {
 
     TWords lineParts;
     std::vector<uint16_t> runes;
-    std::cerr << "Reading " << filepath << "...\n";
+    if (logger) {
+        logger->information("Reading forms from %s...", filepath);
+    }
     uint32_t lineCounter = 0;
     while (getline(file, line)) {
         ++lineCounter;
-        if (lineCounter % 1000 == 0) {
-            std::cerr << "Loaded " << lineCounter << " lines\n";
+        if (lineCounter % 1000 == 0 && logger) {
+            logger->information("Loaded %u lines", lineCounter);
         }
         SplitBy(line, '\t', lineParts);
         if (lineParts.size() < 2) {
@@ -153,7 +155,9 @@ TrieBuilder BuildTrie() {
             builder.AddPath(runes, keyIndex);
         }
     }
-    builder.PrintStats();
+    if (logger) {
+        builder.PrintStats(*logger);
+    }
     return std::move(builder);
 }
 
