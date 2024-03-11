@@ -13,7 +13,11 @@
 
 namespace NKiltMan {
 
-using TRunes = std::vector<uint16_t>;
+using TRuneId = uint8_t;
+constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
+
+using TRuneValue = uint16_t;
+using TRunes = std::vector<TRuneValue>;
 
 struct TNode {
     using TKey = uint16_t;
@@ -27,9 +31,9 @@ struct TNode {
     {}
 
     TKey keyIndex;
-    std::map<TKey, TNodeId> children;
+    std::map<TRuneId, TNodeId> children;
 
-    TNodeId FindChild(TKey ch) const {
+    TNodeId FindChild(TRuneId ch) const {
         auto it = children.find(ch);
         if (it == children.end()) {
             return kNoChild;
@@ -37,7 +41,7 @@ struct TNode {
         return it->second;
     }
 
-    void AddChild(TKey ch, TNodeId childId) {
+    void AddChild(TRuneId ch, TNodeId childId) {
         children[ch] = childId;
     }
 
@@ -50,7 +54,7 @@ struct TNode {
     }
 
     uint64_t GetSpace() const {
-        return sizeof(TKey) + children.size() * (sizeof(uint16_t) + sizeof(TNode*)) + 1;
+        return sizeof(TKey) + children.size() * (sizeof(TRuneId) + sizeof(TNodeId)) + 1;
     }
 };
 
@@ -70,8 +74,12 @@ public:
     std::string GetKey(uint16_t index) const;
     void PrintStats(Poco::Logger& logger) const;
 private:
+    TRuneId GetRuneId(TRuneValue rune);
+    TRuneId GetRuneIdConst(TRuneValue rune) const;
     TNode::TNodeId CreateNode();
 private:
+    std::vector<TRuneValue> runeValues_;
+    std::map<TRuneValue, TRuneId> runeIds_;
     std::vector<TRunes> keyRunesVec_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;

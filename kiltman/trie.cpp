@@ -57,7 +57,8 @@ void RunesToString(const TRunes& runes, std::string& result) {
 
 void TrieBuilder::AddPath(const TRunes& path, uint16_t keyIndex) {
     TNode* node = nodes_[0];
-    for (auto ch : path) {
+    for (TRuneValue runeValue : path) {
+        TRuneId ch = GetRuneId(runeValue);
         auto childId = node->FindChild(ch);
         if (childId == TNode::kNoChild) {
             childId = CreateNode();
@@ -79,7 +80,11 @@ uint16_t TrieBuilder::AddKeyRunes(const TRunes& runes) {
 
 const TNode* TrieBuilder::Traverse(const TRunes& path) const {
     const TNode* node = nodes_[0];
-    for (auto ch : path) {
+    for (TRuneValue runeValue : path) {
+        TRuneId ch = GetRuneIdConst(runeValue);
+        if (ch == kNoRuneId) {
+            return nullptr;
+        }
         auto childId = node->FindChild(ch);
         if (childId == TNode::kNoChild) {
             return nullptr;
@@ -118,6 +123,25 @@ void TrieBuilder::PrintStats(Poco::Logger& logger) const {
         totalNodeSpace += node->GetSpace();
     }
     logger.information("Tree space: %Lu", totalNodeSpace);
+}
+
+TRuneId TrieBuilder::GetRuneId(TRuneValue rune) {
+    auto it = runeIds_.find(rune);
+    if (it != runeIds_.end()) {
+        return it->second;
+    }
+    TRuneId id = (TRuneId) runeValues_.size();
+    runeValues_.push_back(rune);
+    runeIds_[rune] = id;
+    return id;
+}
+
+TRuneId TrieBuilder::GetRuneIdConst(TRuneValue rune) const {
+    auto it = runeIds_.find(rune);
+    if (it == runeIds_.end()) {
+        return kNoRuneId;
+    }
+    return it->second;
 }
 
 TNode::TNodeId TrieBuilder::CreateNode() {
