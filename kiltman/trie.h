@@ -73,10 +73,15 @@ public:
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
     void PrintStats(Poco::Logger& logger) const;
+    void PrintTrie(const std::string& filename) const;
 private:
     TRuneId GetRuneId(TRuneValue rune);
     TRuneId GetRuneIdConst(TRuneValue rune) const;
     TNode::TNodeId CreateNode();
+
+    void PrintRunes(std::ofstream& out) const;
+    void PrintKeys(std::ofstream& out) const;
+    void PrintNodes(std::ofstream& out) const;
 private:
     std::vector<TRuneValue> runeValues_;
     std::map<TRuneValue, TRuneId> runeIds_;

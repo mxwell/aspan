@@ -125,6 +125,14 @@ void TrieBuilder::PrintStats(Poco::Logger& logger) const {
     logger.information("Tree space: %Lu", totalNodeSpace);
 }
 
+void TrieBuilder::PrintTrie(const std::string& filename) const {
+    std::ofstream out(filename);
+    PrintRunes(out);
+    PrintKeys(out);
+    PrintNodes(out);
+    out.close();
+}
+
 TRuneId TrieBuilder::GetRuneId(TRuneValue rune) {
     auto it = runeIds_.find(rune);
     if (it != runeIds_.end()) {
@@ -148,6 +156,36 @@ TNode::TNodeId TrieBuilder::CreateNode() {
     TNode::TNodeId id = (TNode::TNodeId) nodes_.size();
     nodes_.emplace_back(new TNode());
     return id;
+}
+
+void TrieBuilder::PrintRunes(std::ofstream& out) const {
+    out << runeValues_.size() << '\n';
+    for (auto rune : runeValues_) {
+        out << static_cast<uint32_t>(rune) << '\n';
+    }
+}
+
+void TrieBuilder::PrintKeys(std::ofstream& out) const {
+    out << keyRunesVec_.size() << '\n';
+    for (const auto& runes : keyRunesVec_) {
+        out << runes.size();
+        for (TRuneValue runeValue : runes) {
+            TRuneId runeId = GetRuneIdConst(runeValue);
+            out << ' ' << static_cast<uint32_t>(runeId);
+        }
+        out << '\n';
+    }
+}
+
+void TrieBuilder::PrintNodes(std::ofstream& out) const {
+    out << nodes_.size() << '\n';
+    for (const auto& node : nodes_) {
+        out << static_cast<int>(node->keyIndex) << ' ' << node->children.size();
+        for (const auto& [runeId, nodeId] : node->children) {
+            out << ' ' << static_cast<uint32_t>(runeId) << ' ' << nodeId;
+        }
+        out << '\n';
+    }
 }
 
 TrieBuilder BuildTrie(Poco::Logger* logger) {

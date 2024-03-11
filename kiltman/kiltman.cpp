@@ -110,9 +110,22 @@ class WebServerApp: public ServerApplication
         ServerApplication::initialize(self);
     }
 
-    int main(const std::vector<std::string>&)
+    int main(const std::vector<std::string>& args)
     {
         (void) GetTrieBuilder(&logger());
+
+        if (args.size() > 0) {
+            // kiltman convert trie.txt
+            if (args.size() == 2 && args[0] == "convert") {
+                auto& trieBuilder = GetTrieBuilder(nullptr);
+                trieBuilder.PrintTrie(args[1]);
+                logger().information("Trie printed to %s", args[1]);
+                return Application::EXIT_OK;
+            } else {
+                logger().error("Invalid arguments");
+                return Application::EXIT_CONFIG;
+            }
+        }
 
         UInt16 port = static_cast<UInt16>(config().getUInt("port", 8080));
 
