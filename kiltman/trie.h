@@ -2,6 +2,8 @@
 
 #include "Poco/Logger.h"
 
+#include "runes.h"
+
 #include <algorithm>
 #include <fstream>
 #include <limits>
@@ -15,9 +17,6 @@ namespace NKiltMan {
 
 using TRuneId = uint8_t;
 constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
-
-using TRuneValue = uint16_t;
-using TRunes = std::vector<TRuneValue>;
 
 struct TNode {
     using TKey = uint16_t;
