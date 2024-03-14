@@ -23,21 +23,21 @@ struct FlatNodeTrie {
     const FlatNode* Traverse(const TRunes& path) const;
 
     size_t GetRunesSpace() const {
-        return sizeof(void*) + sizeof(runes[0]) * runes.capacity();
+        return sizeof(runes) + sizeof(runes[0]) * runes.capacity();
     }
 
     size_t GetKeysSpace() const {
-        size_t result = 0;
+        size_t result = sizeof(keys) + sizeof(keys[0]) * keys.capacity();
         for (const auto& key : keys) {
-            result += sizeof(void*) + sizeof(key[0]) * key.capacity();
+            result += sizeof(key[0]) * key.capacity();
         }
         return result;
     }
 
     size_t GetNodesSpace() const {
-        size_t result = 0;
+        size_t result = sizeof(nodes) + sizeof(nodes[0]) * nodes.capacity();
         for (const auto& node : nodes) {
-            result += sizeof(void*) + node.GetSpace();
+            result += node.GetSpace();
         }
         return result;
     }

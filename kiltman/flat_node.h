@@ -52,7 +52,7 @@ struct FlatNode {
     }
 
     uint32_t GetSpace() const {
-        return sizeof(keyIndex) + sizeof(void*) + sizeof(children[0]) * children.capacity();
+        return sizeof(children[0]) * children.capacity();
     }
 };
 
