@@ -59,6 +59,8 @@ std::vector<FlatNode> LoadNodes(std::istream& input) {
     nodes.reserve(nodesCount);
     FlatNode::TKey keyIndex;
     size_t childrenCount;
+    constexpr uint32_t kMaxRuneId = 0xFF;
+    constexpr uint32_t kMaxNodeId = 0x00FFFFFF;
     for (size_t i = 0; i < nodesCount; ++i) {
         input >> keyIndex >> childrenCount;
         assert(childrenCount <= 45);
@@ -67,7 +69,9 @@ std::vector<FlatNode> LoadNodes(std::istream& input) {
         size_t childId;
         for (size_t j = 0; j < childrenCount; ++j) {
             input >> runeId >> childId;
-            children[j] = {runeId, childId};
+            assert(runeId <= kMaxRuneId);
+            assert(childId <= kMaxNodeId);
+            children[j] = MAKE_COMBO(runeId, childId);
         }
         nodes.emplace_back(
             FlatNode{
