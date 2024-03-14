@@ -2,8 +2,6 @@
 
 #include <cstdint>
 #include <limits>
-#include <utility>
-#include <vector>
 
 namespace NKiltMan {
 
@@ -16,21 +14,24 @@ struct FlatNode {
     using TRuneId = uint8_t;
     using TNodeId = uint32_t;
     using TRuneNodeCombo = uint32_t;
-    using TChildren = std::vector<TRuneNodeCombo>;
+    using TChildrenSize = uint8_t;
+    using TChildrenStart = uint32_t;
 
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
     static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
 
     TKey keyIndex;
-    TChildren children;
+    TChildrenSize childrenCount;
+    TChildrenStart childrenStart;
 
-    TNodeId FindChild(TRuneId ch) const {
-        uint32_t n = children.size();
+    TNodeId FindChild(TRuneId ch, const TRuneNodeCombo* childData) const {
+        uint32_t n = childrenCount;
         uint32_t ch32 = ch;
+        const TRuneNodeCombo* children = childData + childrenStart;
         if (n <= 4) {
-            for (const auto& combo : children) {
-                if (COMBO_RUNE(combo) == ch32) {
-                    return COMBO_NODE(combo);
+            for (uint32_t i = 0; i < n; ++i) {
+                if (COMBO_RUNE(children[i]) == ch32) {
+                    return COMBO_NODE(children[i]);
                 }
             }
         } else {
@@ -60,7 +61,7 @@ struct FlatNode {
     }
 
     uint32_t GetSpace() const {
-        return sizeof(children[0]) * children.capacity();
+        return 0;
     }
 };
 

@@ -13,7 +13,7 @@ const FlatNode* FlatNodeTrie::Traverse(const TRunes& path) const {
             return nullptr;
         }
         TRuneId runeId = iter->second;
-        FlatNode::TNodeId childId = node->FindChild(runeId);
+        FlatNode::TNodeId childId = node->FindChild(runeId, childData.data());
         if (childId == FlatNode::kNoChild) {
             return nullptr;
         }
@@ -52,11 +52,12 @@ std::vector<TRunes> LoadKeys(std::istream& input, const TRunes& runes) {
     return keys;
 }
 
-std::vector<FlatNode> LoadNodes(std::istream& input) {
+void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<FlatNode::TRuneNodeCombo>& childData) {
     size_t nodesCount;
     input >> nodesCount;
-    std::vector<FlatNode> nodes;
     nodes.reserve(nodesCount);
+    childData.reserve(nodesCount);
+
     FlatNode::TKey keyIndex;
     size_t childrenCount;
     constexpr uint32_t kMaxRuneId = 0xFF;
@@ -64,23 +65,25 @@ std::vector<FlatNode> LoadNodes(std::istream& input) {
     for (size_t i = 0; i < nodesCount; ++i) {
         input >> keyIndex >> childrenCount;
         assert(childrenCount <= 45);
-        FlatNode::TChildren children(childrenCount);
+        FlatNode::TChildrenStart childrenStart = childData.size();
         size_t runeId;
         size_t childId;
         for (size_t j = 0; j < childrenCount; ++j) {
             input >> runeId >> childId;
             assert(runeId <= kMaxRuneId);
             assert(childId <= kMaxNodeId);
-            children[j] = MAKE_COMBO(runeId, childId);
+            childData.emplace_back(MAKE_COMBO(runeId, childId));
         }
         nodes.emplace_back(
             FlatNode{
                 .keyIndex = keyIndex,
-                .children = std::move(children)
+                .childrenCount = static_cast<FlatNode::TChildrenSize>(childrenCount),
+                .childrenStart = childrenStart,
             }
         );
     }
-    return nodes;
+    assert(nodes.size() == nodesCount);
+    assert(childData.size() <= nodesCount);
 }
 
 FlatNodeTrie LoadTrie(const std::string& path) {
@@ -94,12 +97,15 @@ FlatNodeTrie LoadTrie(const std::string& path) {
 
     auto keys = LoadKeys(input, runes);
 
-    auto nodes = LoadNodes(input);
+    std::vector<FlatNode> nodes;
+    std::vector<FlatNode::TRuneNodeCombo> childData;
+    LoadNodes(input, nodes, childData);
 
     return FlatNodeTrie{
         .runes = std::move(runes),
         .runeMap = std::move(runeMap),
         .keys = std::move(keys),
+        .childData = std::move(childData),
         .nodes = std::move(nodes)
     };
 }

@@ -18,6 +18,7 @@ struct FlatNodeTrie {
     TRuneMap runeMap;
 
     std::vector<TRunes> keys;
+    std::vector<FlatNode::TRuneNodeCombo> childData;
     std::vector<FlatNode> nodes;
 
     const FlatNode* Traverse(const TRunes& path) const;
@@ -34,12 +35,12 @@ struct FlatNodeTrie {
         return result;
     }
 
+    size_t GetChildDataSpace() const {
+        return sizeof(childData) + sizeof(childData[0]) * childData.capacity();
+    }
+
     size_t GetNodesSpace() const {
-        size_t result = sizeof(nodes) + sizeof(nodes[0]) * nodes.capacity();
-        for (const auto& node : nodes) {
-            result += node.GetSpace();
-        }
-        return result;
+        return sizeof(nodes) + sizeof(nodes[0]) * nodes.capacity();
     }
 };
 

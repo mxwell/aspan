@@ -218,15 +218,17 @@ class WebServerApp: public ServerApplication
                 logger().information("Loading trie from %s", args[1]);
                 auto trie = NKiltMan::LoadTrie(args[1]);
                 logger().information(
-                    "Loaded trie with %z runes, %z keys, %z nodes",
-                    trie.runes.size(), trie.keys.size(), trie.nodes.size()
+                    "Loaded trie with %z runes, %z keys, %z children, %z nodes",
+                    trie.runes.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
                 );
                 auto runesSpace = trie.GetRunesSpace();
                 auto keysSpace = trie.GetKeysSpace();
+                auto childDataSpace = trie.GetChildDataSpace();
                 auto nodesSpace = trie.GetNodesSpace();
-                logger().information("Runes space: %z, keys space: %z, nodes space: %z, total %z",
-                    runesSpace, keysSpace, nodesSpace, runesSpace + keysSpace + nodesSpace
+                logger().information("Runes space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
+                    runesSpace, keysSpace, nodesSpace, childDataSpace, runesSpace + keysSpace + childDataSpace + nodesSpace
                 );
+                logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
 
                 UInt16 port = static_cast<UInt16>(config().getUInt("port", 8080));
 
