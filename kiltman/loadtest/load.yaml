@@ -1,0 +1,23 @@
+phantom:
+  address: HOSTNAME:443
+  ssl: true
+  headers:
+  - "[Host: HOSTNAME]"
+  uris:
+    - /detect?q=1
+    - /detect?q=өшіп+аламын
+    - /detect?q=а
+    - /detect?q=ал
+    - /detect?q=ала
+    - /detect?q=алам
+    - /detect?q=аламы
+    - /detect?q=аламын
+    - /detect?q=барамын
+    - /detect?q=барамыН
+  load_profile:
+    load_type: rps # schedule load by defining requests per second
+    schedule: line(100, 400, 2m) # starting from 100rps growing linearly to 400rps during 2 minutes
+console:
+  enabled: true # enable console output
+telegraf:
+  enabled: false # let's disable telegraf monitoring for the first time
