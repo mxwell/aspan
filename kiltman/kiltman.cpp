@@ -11,6 +11,7 @@
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/URI.h"
+
 #include <string>
 
 using namespace Poco;
@@ -19,28 +20,7 @@ using namespace Poco::Util;
 
 namespace {
 
-static constexpr std::string_view kDetectPath = "/detect";
-
-const NKiltMan::TrieBuilder& GetTrieBuilder(Logger* logger) {
-    static NKiltMan::TrieBuilder instance = NKiltMan::BuildTrie(logger);
-    return instance;
-}
-
-JSON::Object buildDetectResponse(const std::string& queryText) {
-    JSON::Array array;
-    const auto& trieBuilder = GetTrieBuilder(nullptr);
-    auto node = trieBuilder.Traverse(queryText);
-    if (node != nullptr && node->IsTerminal()) {
-        JSON::Object word;
-        word.set("initial", trieBuilder.GetKey(node->keyIndex));
-        array.add(word);
-    }
-
-    JSON::Object response;
-    response.set("form", queryText);
-    response.set("words", array);
-    return response;
-}
+static const std::string kDetectPath = "/detect";
 
 JSON::Object buildDetectResponse(const std::string& queryText, const NKiltMan::FlatNodeTrie& trie) {
     JSON::Array array;
@@ -62,66 +42,6 @@ JSON::Object buildDetectResponse(const std::string& queryText, const NKiltMan::F
 }
 
 }  // namespace
-
-class KiltmanRequestHandler: public HTTPRequestHandler
-{
-    /**
-     * Response for /detect?q=аламын :
-     *
-     *   {
-     *      form: "аламын",
-     *      words: [
-     *        { "initial": "алу", "meta": <...> },
-     *        { "initial": <...> }
-     *      ]
-     *   }
-     *
-    */
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
-    {
-        Application& app = Application::instance();
-        app.logger().information("Request from %s", request.clientAddress().toString());
-
-        auto uriString = request.getURI();
-        auto uri = Poco::URI(uriString);
-        app.logger().information("path: %s", uri.getPath());
-
-        if (uri.getPath() != kDetectPath) {
-            response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_NOT_FOUND);
-            response.setContentType("text/plain");
-            response.send() << "Not found";
-            return;
-        } else {
-            auto params = uri.getQueryParameters();
-            std::string queryText;
-            for (const auto& [key, value]: params) {
-                if (key == "q") {
-                    queryText = value;
-                    break;
-                }
-            }
-            if (queryText.empty()) {
-                response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_BAD_REQUEST);
-                response.setContentType("text/plain");
-                response.send() << "Query parameter q is required";
-                return;
-            }
-            auto jsonObject = buildDetectResponse(queryText);
-            response.setContentType("application/json");
-            jsonObject.stringify(response.send());
-            return;
-        }
-    }
-};
-
-class KiltmanRequestHandlerFactory: public HTTPRequestHandlerFactory
-{
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest&)
-    {
-        return new KiltmanRequestHandler;
-    }
-
-};
 
 class FlatNodeTrieRequestHandler: public HTTPRequestHandler
 {
@@ -145,11 +65,11 @@ private:
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override
     {
         Application& app = Application::instance();
-        app.logger().information("Request from %s", request.clientAddress().toString());
+        // app.logger().information("Request from %s", request.clientAddress().toString());
 
         auto uriString = request.getURI();
         auto uri = Poco::URI(uriString);
-        app.logger().information("path: %s", uri.getPath());
+        // app.logger().information("path: %s", uri.getPath());
 
         if (uri.getPath() != kDetectPath) {
             response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_NOT_FOUND);
@@ -207,56 +127,49 @@ class WebServerApp: public ServerApplication
 
     int main(const std::vector<std::string>& args)
     {
-        if (args.size() > 0) {
-            // kiltman convert trie.txt
-            if (args.size() == 2 && args[0] == "convert") {
-                auto& trieBuilder = GetTrieBuilder(&logger());
-                trieBuilder.PrintTrie(args[1]);
-                logger().information("Trie printed to %s", args[1]);
-                return Application::EXIT_OK;
-            } else if (args.size() == 2 && args[0] == "load") {
-                logger().information("Loading trie from %s", args[1]);
-                auto trie = NKiltMan::LoadTrie(args[1]);
-                logger().information(
-                    "Loaded trie with %z runes, %z keys, %z children, %z nodes",
-                    trie.runes.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
-                );
-                auto runesSpace = trie.GetRunesSpace();
-                auto keysSpace = trie.GetKeysSpace();
-                auto childDataSpace = trie.GetChildDataSpace();
-                auto nodesSpace = trie.GetNodesSpace();
-                logger().information("Runes space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
-                    runesSpace, keysSpace, nodesSpace, childDataSpace, runesSpace + keysSpace + childDataSpace + nodesSpace
-                );
-                logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
+        if (args.size() == 2 && args[0] == "convert") { // kiltman convert trie.txt
+            auto trieBuilder = NKiltMan::BuildTrie(&logger());
+            trieBuilder.PrintTrie(args[1]);
+            logger().information("Trie printed to %s", args[1]);
+            return Application::EXIT_OK;
+        } else if (2 <= args.size() && args.size() <= 3 && args[0] == "load") { // kiltman load trie.txt [port]
+            logger().information("Loading trie from %s", args[1]);
+            auto trie = NKiltMan::LoadTrie(args[1]);
+            logger().information(
+                "Loaded trie with %z runes, %z keys, %z children, %z nodes",
+                trie.runes.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
+            );
+            auto runesSpace = trie.GetRunesSpace();
+            auto keysSpace = trie.GetKeysSpace();
+            auto childDataSpace = trie.GetChildDataSpace();
+            auto nodesSpace = trie.GetNodesSpace();
+            logger().information("Runes space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
+                runesSpace, keysSpace, nodesSpace, childDataSpace, runesSpace + keysSpace + childDataSpace + nodesSpace
+            );
+            logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
 
-                UInt16 port = static_cast<UInt16>(config().getUInt("port", 8080));
-
-                HTTPServer srv(new FlatNodeTrieRequestHandlerFactory(std::move(trie)), port);
-                srv.start();
-                logger().information("HTTP Server started on port %hu.", port);
-                waitForTerminationRequest();
-                logger().information("Stopping HTTP Server...");
-                srv.stop();
-                return Application::EXIT_OK;
-            } else {
-                logger().error("Invalid arguments");
-                return Application::EXIT_CONFIG;
+            UInt16 port = 8080;
+            if (args.size() > 2) {
+                int intPort = std::stoi(args[2]);
+                if (intPort < 0 || intPort > 65535) {
+                    logger().error("Invalid port: %s", args[2]);
+                    return Application::EXIT_CONFIG;
+                }
+                port = static_cast<UInt16>(intPort);
+                logger().information("Using port %hu", port);
             }
+
+            HTTPServer srv(new FlatNodeTrieRequestHandlerFactory(std::move(trie)), port);
+            srv.start();
+            logger().information("HTTP Server started on port %hu.", port);
+            waitForTerminationRequest();
+            logger().information("Stopping HTTP Server...");
+            srv.stop();
+            return Application::EXIT_OK;
+        } else {
+            logger().error("Invalid arguments");
+            return Application::EXIT_CONFIG;
         }
-
-        (void) GetTrieBuilder(&logger());
-
-        UInt16 port = static_cast<UInt16>(config().getUInt("port", 8080));
-
-        HTTPServer srv(new KiltmanRequestHandlerFactory, port);
-        srv.start();
-        logger().information("HTTP Server started on port %hu.", port);
-        waitForTerminationRequest();
-        logger().information("Stopping HTTP Server...");
-        srv.stop();
-
-        return Application::EXIT_OK;
     }
 };
 

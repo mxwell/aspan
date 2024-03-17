@@ -17,10 +17,14 @@ cmake --build .
 
 ## Run
 
-Place `forms.csv` with generated verb forms into a working directory.
+- place `forms.csv` with generated verb forms into a working directory
+- convert: read `forms.csv`, build a trie and dump it serialized to `trie.txt`:
 
-```
-./kiltman
-```
-
-Wait for the message `HTTP Server started on port 8080.` and go to `http://localhost:8080/detect?q=абайлар`.
+  ```
+  ./kiltman load trie.txt
+  ```
+- load the trie and serve via HTTP
+  ```
+  ./kiltman load trie.txt
+  ```
+- wait for the message `HTTP Server started on port 8080.` and go to `http://localhost:8080/detect?q=абайлар`.

@@ -177,7 +177,7 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
         }
         StringToRunes(lineParts[0], runes);
         uint16_t keyIndex = builder.AddKeyRunes(runes);
-        for (size_t i = 1; i < lineParts.size(); ++i) {
+        for (size_t i = 0; i < lineParts.size(); ++i) {
             StringToRunes(lineParts[i], runes);
             builder.AddPath(runes, keyIndex);
         }
