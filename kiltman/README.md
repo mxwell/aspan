@@ -21,7 +21,7 @@ cmake --build .
 - convert: read `forms.csv`, build a trie and dump it serialized to `trie.txt`:
 
   ```
-  ./kiltman load trie.txt
+  ./kiltman convert trie.txt
   ```
 - load the trie and serve via HTTP
   ```
