@@ -1,5 +1,7 @@
 #include "trie.h"
 
+#include <cassert>
+
 namespace NKiltMan {
 
 using TWords = std::vector<std::string>;
@@ -37,9 +39,21 @@ void TrieBuilder::AddPath(const TRunes& path, TNode::TTransitionId transitionId,
     node->SetTransitionAndKey(transitionId, keyIndex);
 }
 
-uint16_t TrieBuilder::AddKeyRunes(const TRunes& runes) {
+uint16_t TrieBuilder::AddKeyRunes(uint8_t keyException, const std::string& key) {
+    std::string mapKey = key;
+    mapKey.push_back(keyException);
+    auto it = keyIndices_.find(mapKey);
+    if (it != keyIndices_.end()) {
+        return it->second;
+    }
+
+    TRunes runes;
+    StringToRunes(key, runes);
+
     uint16_t index = (uint16_t) keyRunesVec_.size();
+    keyExceptions_.push_back(keyException);
     keyRunesVec_.push_back(runes);
+    keyIndices_[mapKey] = index;
     return index;
 }
 
@@ -152,9 +166,15 @@ void TrieBuilder::PrintTransitions(std::ofstream& out) const {
 }
 
 void TrieBuilder::PrintKeys(std::ofstream& out) const {
+    auto n = keyExceptions_.size();
+    assert(n == keyRunesVec_.size());
+
     out << keyRunesVec_.size() << '\n';
-    for (const auto& runes : keyRunesVec_) {
-        out << runes.size();
+
+    for (size_t i = 0; i < n; ++i) {
+        out << static_cast<uint32_t>(keyExceptions_[i]);
+        const auto& runes = keyRunesVec_[i];
+        out << ' ' << runes.size();
         for (TRuneValue runeValue : runes) {
             TRuneId runeId = GetRuneIdConst(runeValue);
             out << ' ' << static_cast<uint32_t>(runeId);
@@ -177,14 +197,11 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
 }
 
 /**
- * Concatenate parts starting from the second element of each vector.
+ * Concatenate parts starting from selected positions of each vector.
 */
 std::string JoinTransition(const TWords& keyParts, const TWords& formParts) {
-    std::string result = keyParts[1];
-    for (size_t i = 2; i < keyParts.size(); ++i) {
-        result.push_back(':');
-        result.append(keyParts[i]);
-    }
+    std::string result = keyParts[2];
+    assert (keyParts.size() == 3);
     for (size_t i = 1; i < formParts.size(); ++i) {
         result.push_back(':');
         result.append(formParts[i]);
@@ -220,8 +237,8 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
         if (keyMetaParts.size() != 3) {
             throw std::runtime_error("Invalid key with meta: " + lineParts[0]);
         }
-        StringToRunes(keyMetaParts[0], runes);
-        uint16_t keyIndex = builder.AddKeyRunes(runes);
+        auto keyException = std::stoi(keyMetaParts[1]);
+        uint16_t keyIndex = builder.AddKeyRunes(keyException, keyMetaParts[0]);
         for (size_t i = 1; i < lineParts.size(); ++i) {
             SplitBy(lineParts[i], ':', metaParts);
             if (metaParts.size() != 4) {

@@ -73,7 +73,7 @@ public:
 
     void AddPath(const TRunes& path, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
     uint16_t GetTransitionId(const std::string& transition);
-    uint16_t AddKeyRunes(const TRunes& runes);
+    uint16_t AddKeyRunes(uint8_t keyException, const std::string& key);
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
@@ -93,7 +93,9 @@ private:
     std::map<TRuneValue, TRuneId> runeIds_;
     std::vector<std::string> transitions_;
     std::map<std::string, uint16_t> transitionIds_;
+    std::vector<uint8_t> keyExceptions_;
     std::vector<TRunes> keyRunesVec_;
+    std::unordered_map<std::string, uint16_t> keyIndices_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;
