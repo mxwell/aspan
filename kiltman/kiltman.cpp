@@ -30,8 +30,16 @@ JSON::Object buildDetectResponse(const std::string& queryText, const NKiltMan::F
     if (node != nullptr && node->IsTerminal()) {
         JSON::Object word;
         std::string wordStr;
-        NKiltMan::RunesToString(trie.keys[node->keyIndex], wordStr);
+        auto keyItem = trie.keys[node->keyIndex];
+        NKiltMan::RunesToString(keyItem.runes, wordStr);
         word.set("initial", wordStr);
+        if (keyItem.keyException) {
+            word.set("exceptional", true);
+        }
+        if (node->transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+            auto transition = trie.transitions[node->transitionId];
+            word.set("transition", transition);
+        }
         array.add(word);
     }
 
@@ -51,12 +59,12 @@ public:
     {}
 private:
     /**
-     * Response for /detect?q=аламын :
+     * Response for /detect?q=танымасын :
      *
      *   {
-     *      form: "аламын",
+     *      form: "танымасын",
      *      words: [
-     *        { "initial": "алу", "meta": <...> },
+     *        { "initial": "тану", "exceptional": true, "transition": "1:imperativeMood:3:0", "meta": <...> },
      *        { "initial": <...> }
      *      ]
      *   }
@@ -136,15 +144,17 @@ class WebServerApp: public ServerApplication
             logger().information("Loading trie from %s", args[1]);
             auto trie = NKiltMan::LoadTrie(args[1]);
             logger().information(
-                "Loaded trie with %z runes, %z keys, %z children, %z nodes",
-                trie.runes.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
+                "Loaded trie with %z runes, %z transitions, %z keys, %z children, %z nodes",
+                trie.runes.size(), trie.transitions.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
             );
             auto runesSpace = trie.GetRunesSpace();
+            auto transitionsSpace = trie.GetTransitionsSpace();
             auto keysSpace = trie.GetKeysSpace();
             auto childDataSpace = trie.GetChildDataSpace();
             auto nodesSpace = trie.GetNodesSpace();
-            logger().information("Runes space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
-                runesSpace, keysSpace, nodesSpace, childDataSpace, runesSpace + keysSpace + childDataSpace + nodesSpace
+            auto totalSpace = runesSpace + transitionsSpace + keysSpace + childDataSpace + nodesSpace;
+            logger().information("Runes space: %z, transitions space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
+                runesSpace, transitionsSpace, keysSpace, nodesSpace, childDataSpace, totalSpace
             );
             logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
 

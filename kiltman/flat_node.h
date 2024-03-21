@@ -11,6 +11,7 @@ namespace NKiltMan {
 
 struct FlatNode {
     using TKey = uint16_t;
+    using TTransitionId = uint8_t;
     using TRuneId = uint8_t;
     using TNodeId = uint32_t;
     using TRuneNodeCombo = uint32_t;
@@ -18,9 +19,11 @@ struct FlatNode {
     using TChildrenStart = uint32_t;
 
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
+    static constexpr TTransitionId kNoTransitionId = std::numeric_limits<TTransitionId>::max();
     static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
 
     TKey keyIndex;
+    TTransitionId transitionId;
     TChildrenSize childrenCount;
     TChildrenStart childrenStart;
 
