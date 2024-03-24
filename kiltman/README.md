@@ -15,6 +15,21 @@ cmake ../
 cmake --build .
 ```
 
+## Build in Docker
+
+```bash
+make build_kiltman
+apt-get update
+apt-get install cmake clang-6.0 lld-6.0
+
+# prepend the file CMakeLists.txt with `set(CMAKE_CXX_COMPILER /usr/bin/clang++-6.0)`
+
+mkdir /kiltman/dbuild
+cd /kiltman/dbuild
+cmake ../
+cmake --build .
+```
+
 ## Run
 
 - place `forms.csv` with generated verb forms into a working directory
