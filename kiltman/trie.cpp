@@ -197,12 +197,11 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
 }
 
 /**
- * Concatenate parts starting from selected positions of each vector.
+ * Concatenate parts starting from the selected position.
 */
-std::string JoinTransition(const TWords& keyParts, const TWords& formParts) {
-    std::string result = keyParts[2];
-    assert (keyParts.size() == 3);
-    for (size_t i = 1; i < formParts.size(); ++i) {
+std::string JoinTransition(const TWords& formParts) {
+    std::string result = formParts[1];
+    for (size_t i = 2; i < formParts.size(); ++i) {
         result.push_back(':');
         result.append(formParts[i]);
     }
@@ -234,18 +233,18 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
             throw std::runtime_error("Invalid line: " + line);
         }
         SplitBy(lineParts[0], ':', keyMetaParts);
-        if (keyMetaParts.size() != 3) {
+        if (keyMetaParts.size() != 2) {
             throw std::runtime_error("Invalid key with meta: " + lineParts[0]);
         }
         auto keyException = std::stoi(keyMetaParts[1]);
         uint16_t keyIndex = builder.AddKeyRunes(keyException, keyMetaParts[0]);
         for (size_t i = 1; i < lineParts.size(); ++i) {
             SplitBy(lineParts[i], ':', metaParts);
-            if (metaParts.size() != 4) {
+            if (metaParts.size() != 5) {
                 throw std::runtime_error("Invalid form with meta: " + lineParts[i]);
             }
             StringToRunes(metaParts[0], runes);
-            auto transitionId = builder.GetTransitionId(JoinTransition(keyMetaParts, metaParts));
+            auto transitionId = builder.GetTransitionId(JoinTransition(metaParts));
             if (transitionId >= TNode::kNoTransition) {
                 throw std::runtime_error("Too many transitions");
             }

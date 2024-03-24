@@ -16,7 +16,7 @@ const FIRST_PLURAL_WEIGHT    = FORM_WEIGHT_PORTION * 2;
 const SECOND_SINGULAR_WEIGHT = FORM_WEIGHT_PORTION * 3;
 const FIRST_SINGULAR_WEIGHT  = FORM_WEIGHT_PORTION * 4;
 const THIRD_PERSON_WEIGHT    = FORM_WEIGHT_PORTION * 5;
-const INFINITIV_WEIGHT       = FORM_WEIGHT_PORTION * 6;
+const INFINITIVE_WEIGHT      = FORM_WEIGHT_PORTION * 6;
 
 class WeightedForm {
     constructor(form, weight, tenseName, person, number) {
@@ -97,8 +97,8 @@ class FormBuilder {
     createTenseForms(forceExceptional, sentenceType, auxBuilder) {
         let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
         let forms = [];
-        if (sentenceType == SENTENCE_TYPES[0]) {
-            forms.push(new WeightedForm(this.verb, INFINITIV_WEIGHT, "infinitiv", "", ""));
+        if (sentenceType == SENTENCE_TYPES[0] && !forceExceptional) {
+            forms.push(new WeightedForm(this.verb, INFINITIVE_WEIGHT, "infinitive", "", ""));
         }
         this.createForms(
             "presentTransitive",
@@ -371,11 +371,11 @@ async function processLineByLine(args) {
     let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilder);
     if (args.suggest) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIV_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIV_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
             ++outputCounter;
         }
         if (args.translation) {
@@ -383,7 +383,7 @@ async function processLineByLine(args) {
                 let translation = ruGlosses[j];
                 let translationSuppression = estimateVerbPartCount(translation);
                 let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], [], "ru", outputStream);
+                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "ru", outputStream);
             }
             for (var j = 0; j < enGlosses.length; ++j) {
                 let translation = enGlosses[j];
@@ -392,7 +392,7 @@ async function processLineByLine(args) {
                     translationSuppression -= 1;
                 }
                 let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-                writeSuggestLine(inputVerb, translation, weight + INFINITIV_WEIGHT, [], [], "en", outputStream);
+                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "en", outputStream);
             }
         }
         if (args.suggestForms) {
@@ -413,12 +413,12 @@ async function processLineByLine(args) {
     } else {
         for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
             const formRow = formRows[rowIndex];
-            outputStream.write(`${formRow.verb}:${formRow.forceExceptional}:${formRow.sentenceType}`)
+            outputStream.write(`${formRow.verb}:${formRow.forceExceptional}`)
             ++outputCounter;
             let row = formRow.forms;
             for (let i = 0; i < row.length; ++i) {
                 const wf = row[i];
-                outputStream.write(`\t${wf.form}:${wf.tenseName}:${wf.person}:${wf.number}`);
+                outputStream.write(`\t${wf.form}:${formRow.sentenceType}:${wf.tenseName}:${wf.person}:${wf.number}`);
                 ++outputCounter;
             }
             outputStream.write(`\n`);
