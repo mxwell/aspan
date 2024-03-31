@@ -163,11 +163,11 @@ class FormBuilder {
             (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
             forms
         );
-        const pastParticiple = verbBuilder.pastParticiple(sentenceTypeIndex).raw;
+        const pastParticiple = verbBuilder.pastParticiple(sentenceType).raw;
         forms.push(new WeightedForm(pastParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "pastParticiple", "", ""));
-        const presentParticiple = verbBuilder.presentParticiple(sentenceTypeIndex).raw;
+        const presentParticiple = verbBuilder.presentParticiple(sentenceType).raw;
         forms.push(new WeightedForm(presentParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "presentParticiple", "", ""));
-        const futureParticiple = verbBuilder.futureParticiple(sentenceTypeIndex).raw;
+        const futureParticiple = verbBuilder.futureParticiple(sentenceType).raw;
         forms.push(new WeightedForm(futureParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "futureParticiple", "", ""));
         return forms;
     }
