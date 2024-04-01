@@ -2,10 +2,9 @@ const fs = require('fs');
 const readline = require('readline');
 const aspan = require('../BUILD/aspan.js');
 
-const FORMAT_ONE_LINE = "--one-line-format";
-const FORMAT_SUGGEST = "--suggest-format";
-const FORMAT_SUGGEST_INFINITIV = "--suggest-infinitiv-format";
-const FORMAT_SUGGEST_INFINITIV_TRANSLATION = "--suggest-infinitiv-translation-format";
+const kDetectorFormsCommand = "detector_forms";
+const kSuggestInfinitiveCommand = "suggest_infinitive";
+const kSuggestInfinitiveTranslationCommand = "suggest_infinitive_translation";
 
 const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
@@ -200,13 +199,10 @@ function createTenseFormsForAllVariants(verb, auxBuilder) {
 }
 
 class Args {
-    constructor(input, output, outputFormat) {
+    constructor(command, input, output, outputFormat) {
+        this.command = command;
         this.input = input;
         this.output = output;
-        this.outputFormat = outputFormat;
-        this.suggest = this.outputFormat != FORMAT_ONE_LINE;
-        this.suggestForms = this.outputFormat == FORMAT_SUGGEST;
-        this.translation = this.outputFormat == FORMAT_SUGGEST_INFINITIV_TRANSLATION;
     }
 }
 
@@ -376,13 +372,27 @@ async function processLineByLine(args) {
         process.exit(1);
     }
     let inputVerb = inputItem.verb;
-    let ruGlosses = inputItem.ruGlosses.slice(0, 2);
-    let enGlosses = inputItem.enGlosses.slice(0, 2);
     let partCountSuppression = estimateVerbPartCount(inputVerb);
     if (partCountSuppression > 2) continue;
-    let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilder);
-    if (args.suggest) {
+
+    if (args.command == kDetectorFormsCommand) {
+        let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilder);
+        for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
+            const formRow = formRows[rowIndex];
+            outputStream.write(`${formRow.verb}:${formRow.forceExceptional}`)
+            ++outputCounter;
+            let row = formRow.forms;
+            for (let i = 0; i < row.length; ++i) {
+                const wf = row[i];
+                outputStream.write(`\t${wf.form}:${wf.sentenceTypeIndex}:${wf.tenseName}:${wf.person}:${wf.number}`);
+                ++outputCounter;
+            }
+            outputStream.write(`\n`);
+        }
+    } else if (args.command == kSuggestInfinitiveCommand || args.command == kSuggestInfinitiveTranslationCommand) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+        let ruGlosses = inputItem.ruGlosses.slice(0, 2);
+        let enGlosses = inputItem.enGlosses.slice(0, 2);
         writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
@@ -390,7 +400,7 @@ async function processLineByLine(args) {
             writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
             ++outputCounter;
         }
-        if (args.translation) {
+        if (args.command == kSuggestInfinitiveTranslationCommand) {
             for (var j = 0; j < ruGlosses.length; ++j) {
                 let translation = ruGlosses[j];
                 let translationSuppression = estimateVerbPartCount(translation);
@@ -407,34 +417,6 @@ async function processLineByLine(args) {
                 writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "en", outputStream);
             }
         }
-        if (args.suggestForms) {
-            for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
-                let row = formRows[rowIndex].forms;
-                for (let i = 0; i < row.length; ++i) {
-                    let weightedForm = row[i];
-                    writeSuggestLine(inputVerb, weightedForm.form, partCountWeight + EXACT_MATCH_WEIGHT + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
-                    ++outputCounter;
-                    let simpleForms = simplify(weightedForm.form);
-                    for (var j = 0; j < simpleForms.length; ++j) {
-                        writeSuggestLine(inputVerb, simpleForms[j], partCountWeight + weightedForm.weight, ruGlosses, enGlosses, "", outputStream);
-                        ++outputCounter;
-                    }
-                }
-            }
-        }
-    } else {
-        for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
-            const formRow = formRows[rowIndex];
-            outputStream.write(`${formRow.verb}:${formRow.forceExceptional}`)
-            ++outputCounter;
-            let row = formRow.forms;
-            for (let i = 0; i < row.length; ++i) {
-                const wf = row[i];
-                outputStream.write(`\t${wf.form}:${wf.sentenceTypeIndex}:${wf.tenseName}:${wf.person}:${wf.number}`);
-                ++outputCounter;
-            }
-            outputStream.write(`\n`);
-        }
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
@@ -445,34 +427,32 @@ async function processLineByLine(args) {
   console.log(`Produced ${outputCounter} form(s).`)
 }
 
-function isSupportedFormat(arg) {
-    if (arg == FORMAT_ONE_LINE) {
-        return arg;
-    } else if (arg == FORMAT_SUGGEST) {
-        return arg;
-    } else if (arg == FORMAT_SUGGEST_INFINITIV) {
-        return arg;
-    } else if (arg == FORMAT_SUGGEST_INFINITIV_TRANSLATION) {
-        return arg;
-    } else {
-        throw new Error(`Expected format argument but got: ${arg}.`)
+function checkCommandArgs(args, cmd, cmdArgsCount) {
+    if (args.length != cmdArgsCount + 1) {
+        throw new Error(`Command '${cmd}' requires exactly ${cmdArgsCount} arguments`);
     }
+}
+
+function acceptCommandWithInputAndOutput(args, cmd) {
+    checkCommandArgs(args, cmd, 2);
+    return new Args(cmd, args[1], args[2]);
 }
 
 function parseArgs() {
     let args = process.argv.slice(2)
-    if (args.length < 2 || args.length > 3) {
-        throw new Error(`Unexpected number of arguments: ${args.length}.`)
+    if (args.length < 1) {
+        throw new Error(`Command argument is required`);
     }
-    var outputFormat = FORMAT_ONE_LINE;
-    var argPos = 0;
-    if (args.length == 3) {
-        outputFormat = isSupportedFormat(args[0]);
-        ++argPos;
+    const command = args[0];
+    if (command == kDetectorFormsCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kSuggestInfinitiveCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kSuggestInfinitiveTranslationCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else {
+        throw new Error(`Unsupported command: ${command}`);
     }
-    let inputPath = args[argPos];
-    let outputPath = args[argPos + 1];
-    return new Args(inputPath, outputPath, outputFormat);
 }
 
 let args = parseArgs();
