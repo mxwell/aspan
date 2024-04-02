@@ -21,3 +21,7 @@ echo "Generated detector forms data is stored to ${OUTPUT_DETECTOR_FORMS}."
 
 # node $GENERATOR suggest_infinitive_translation ${INPUT_VERBS} ${OUTPUT_SUGGEST_INFINITIVE_TRANSLATION}
 # echo "Generated infinitive and translation suggest data is stored to ${OUTPUT_SUGGEST_INFINITIVE_TRANSLATION}."
+
+# export OUTPUT_PRESENT_CONTINUOUS_FORMS="data/present_continuous_forms.csv"
+# node $GENERATOR present_continuous_forms ${INPUT_VERBS} ${OUTPUT_PRESENT_CONTINUOUS_FORMS}
+# echo "Generated present continuous forms data is stored to ${OUTPUT_PRESENT_CONTINUOUS_FORMS}."

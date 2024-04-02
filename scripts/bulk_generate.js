@@ -5,6 +5,7 @@ const aspan = require('../BUILD/aspan.js');
 const kDetectorFormsCommand = "detector_forms";
 const kSuggestInfinitiveCommand = "suggest_infinitive";
 const kSuggestInfinitiveTranslationCommand = "suggest_infinitive_translation";
+const kPresentContinuousFormsCommand = "present_continuous_forms";
 
 const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
@@ -43,12 +44,14 @@ const PERSONS = [aspan.GrammarPerson.First, aspan.GrammarPerson.Second, aspan.Gr
 const NUMBERS = [aspan.GrammarNumber.Singular, aspan.GrammarNumber.Plural];
 
 class FormBuilder {
-    constructor(verb) {
+    constructor(verb, limitWords) {
         this.verb = verb;
+        this.limitWords = limitWords;
         this.spaces = countSpaces(verb);
     }
     createForms(sentenceTypeIndex, tenseName, caseFn, formsOut) {
         let spaces = this.spaces;
+        let limitWords = this.limitWords;
         function addForm(personIndex, numberIndex, weight) {
             let prev = null;
             if (formsOut.length > 0) {
@@ -57,17 +60,23 @@ class FormBuilder {
             const person = PERSONS[personIndex];
             const number = NUMBERS[numberIndex];
             let fullForm = caseFn(person, number).raw;
-            let offset = 0;
-            for (let i = 0; i < spaces; ++i) {
-                let spacePos = fullForm.indexOf(" ", offset);
-                if (spacePos < 0) {
-                    throw new Error(`Unexpected space count in form: ${fullForm}`);
+            let spacePos = -1;
+            // If limitWords is set:
+            // - if we have more words than in the infinitive, extra words are auxiliary and should be cut
+            // Otherwise keep the full form.
+            if (limitWords) {
+                let offset = 0;
+                for (let i = 0; i < spaces; ++i) {
+                    let spacePos = fullForm.indexOf(" ", offset);
+                    if (spacePos < 0) {
+                        throw new Error(`Unexpected space count in form: ${fullForm}`);
+                    }
+                    offset = spacePos + 1;
                 }
-                offset = spacePos + 1;
+                spacePos = fullForm.indexOf(" ", offset);
             }
-            let spacePos = fullForm.indexOf(" ", offset);
             let form = spacePos < 0 ? fullForm : fullForm.substring(0, spacePos);
-            if (prev != form) {
+            if (prev != form && form != aspan.NOT_SUPPORTED) {
                 formsOut.push(new WeightedForm(
                     form,
                     weight,
@@ -170,6 +179,18 @@ class FormBuilder {
         forms.push(new WeightedForm(futureParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "futureParticiple", "", ""));
         return forms;
     }
+    createPresentContinuousForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
+        let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
+        let forms = [];
+        const sentenceType = SENTENCE_TYPES[sentenceTypeIndex];
+        this.createForms(
+            sentenceTypeIndex,
+            "presentContinuous",
+            (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
+            forms
+        );
+        return forms;
+    }
 }
 
 class FormRow {
@@ -182,7 +203,8 @@ class FormRow {
 }
 
 function createTenseFormsForAllVariants(verb, auxBuilder) {
-    let formBuilder = new FormBuilder(verb);
+    const limitWords = true;
+    let formBuilder = new FormBuilder(verb, limitWords);
     const isOptionalException = aspan.isVerbOptionalException(verb);
     let rows = [];
     for (let i = 0; i < SENTENCE_TYPES.length; ++i) {
@@ -195,6 +217,26 @@ function createTenseFormsForAllVariants(verb, auxBuilder) {
             ));
         }
     }
+    return rows;
+}
+
+function createPresentContinuousForms(verb, auxBuilder) {
+    const limitWords = false;
+    let formBuilder = new FormBuilder(verb, limitWords);
+    const isOptionalException = aspan.isVerbOptionalException(verb);
+    let rows = [];
+    const sentenceTypeIndex = 0;
+
+    rows.push(new FormRow(verb, 0, sentenceTypeIndex,
+        formBuilder.createPresentContinuousForms(false, sentenceTypeIndex, auxBuilder)
+    ));
+
+    if (isOptionalException) {
+        rows.push(new FormRow(verb, 1, sentenceTypeIndex,
+            formBuilder.createPresentContinuousForms(true, sentenceTypeIndex, auxBuilder)
+        ));
+    }
+
     return rows;
 }
 
@@ -356,7 +398,12 @@ async function processLineByLine(args) {
   const inputStream = fs.createReadStream(args.input);
   const outputStream = fs.createWriteStream(args.output);
 
-  let auxBuilder = new aspan.VerbBuilder("жату");
+  const auxBuilders = [
+    new aspan.VerbBuilder("жату"),
+    new aspan.VerbBuilder("жүру"),
+    new aspan.VerbBuilder("отыру"),
+    new aspan.VerbBuilder("тұру"),
+  ];
 
   const rl = readline.createInterface({
     input: inputStream,
@@ -376,7 +423,7 @@ async function processLineByLine(args) {
     if (partCountSuppression > 2) continue;
 
     if (args.command == kDetectorFormsCommand) {
-        let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilder);
+        let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilders[0]);
         for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
             const formRow = formRows[rowIndex];
             outputStream.write(`${formRow.verb}:${formRow.forceExceptional}`)
@@ -417,6 +464,23 @@ async function processLineByLine(args) {
                 writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "en", outputStream);
             }
         }
+    } else if (args.command == kPresentContinuousFormsCommand) {
+        for (let i = 0; i < auxBuilders.length; ++i) {
+            let auxBuilder = auxBuilders[i];
+            let formRows = createPresentContinuousForms(inputVerb, auxBuilder);
+            for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
+                const formRow = formRows[rowIndex];
+                let row = formRow.forms;
+                for (let i = 0; i < row.length; ++i) {
+                    outputStream.write(`${formRow.verb}:${formRow.forceExceptional}`)
+                    outputStream.write(`\t${auxBuilder.verbDictForm}`);
+                    const wf = row[i];
+                    outputStream.write(`\t${wf.form}`);
+                    outputCounter += 2;
+                    outputStream.write(`\n`);
+                }
+            }
+        }
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
@@ -449,6 +513,8 @@ function parseArgs() {
     } else if (command == kSuggestInfinitiveCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else if (command == kSuggestInfinitiveTranslationCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kPresentContinuousFormsCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else {
         throw new Error(`Unsupported command: ${command}`);
