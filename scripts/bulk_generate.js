@@ -117,18 +117,24 @@ class FormBuilder {
             (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
             forms
         );
-        this.createForms(
-            sentenceTypeIndex,
-            "presentContinuous",
-            (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
-            forms
-        );
-        this.createForms(
-            sentenceTypeIndex,
-            "remotePast",
-            (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
-            forms
-        );
+        // Present continuous tense forms look the same for all sentence types after the auxiliary verb is stripped.
+        if (sentenceTypeIndex == 0) {
+            this.createForms(
+                sentenceTypeIndex,
+                "presentContinuous",
+                (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
+                forms
+            );
+        }
+        // Remote past tense forms look the same for all sentence types after the auxiliary verb is stripped.
+        if (sentenceTypeIndex == 0) {
+            this.createForms(
+                sentenceTypeIndex,
+                "remotePast",
+                (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
+                forms
+            );
+        }
         this.createForms(
             sentenceTypeIndex,
             "pastUncertain",
@@ -153,12 +159,15 @@ class FormBuilder {
             (person, number) => verbBuilder.possibleFutureForm(person, number, sentenceType),
             forms
         );
-        this.createForms(
-            sentenceTypeIndex,
-            "intentionFuture",
-            (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
-            forms
-        );
+        // Intention future tense forms look the same for all sentence types after the auxiliary verb is stripped.
+        if (sentenceTypeIndex == 0) {
+            this.createForms(
+                sentenceTypeIndex,
+                "intentionFuture",
+                (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
+                forms
+            );
+        }
         this.createForms(
             sentenceTypeIndex,
             "conditionalMood",
