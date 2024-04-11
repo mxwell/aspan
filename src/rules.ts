@@ -141,6 +141,8 @@ const DYDI = ["ды", "ді"];
 const TYTI = ["ты", "ті"];
 
 const YPIP = ["ып", "іп"];
+const AFFIX_ATYR = ["атыр", "ятыр"];
+const AFFIX_AT = ["ат", "ят"];
 
 const SASE = ["са", "се"];
 

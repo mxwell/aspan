@@ -49,6 +49,9 @@ function validPresentContPair(verb: string, auxVerb: string): boolean {
 type MaybePresentContinuousContext = PresentContinuousContext | null;
 type MaybeVerbBuilder = VerbBuilder | null;
 
+const HARD_OFFSET = 0;
+const SOFT_OFFSET = 1;
+
 function createPresentContinuousContext(verbDictForm: string): MaybePresentContinuousContext {
     let verbDictFormBase = VERB_PRESENT_CONT_BASE_MAP.get(verbDictForm);
     if (verbDictFormBase != null) {
@@ -105,7 +108,7 @@ class VerbBuilder {
             wordIsSoft(this.verbBase)
             || FORCED_SOFT_VERBS.has(verbDictForm)
         );
-        this.softOffset = this.soft ? 1 : 0;
+        this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
 
         /* exceptions */
         if (isVerbException(verbDictForm) || (isVerbOptionalException(verbDictForm) && forceExceptional)) {
@@ -134,11 +137,11 @@ class VerbBuilder {
         this.canAuxBuilder = null;
         this.defaultContinuousBuilder = null;
     }
-    getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber): string {
+    getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber, softOffset: number): string {
         if (person == "Third") {
             return "";
         }
-        return VERB_PERS_AFFIXES1[person][number][this.softOffset];
+        return VERB_PERS_AFFIXES1[person][number][softOffset];
     }
     /* used only for Statement/Question sentence types */
     presentTransitiveSuffix(): string {
@@ -152,6 +155,33 @@ class VerbBuilder {
             return "е";
         }
         return "а";
+    }
+    presentColloqShortSuffix(grammarPerson): string {
+        if (grammarPerson == GrammarPerson.First || grammarPerson == GrammarPerson.Third) {
+            return AFFIX_ATYR[this.softOffset];
+        }
+        return AFFIX_AT[this.softOffset]
+    }
+    presentColloqLongSuffix(grammarPerson): string {
+        if (grammarPerson == GrammarPerson.First || grammarPerson == GrammarPerson.Third) {
+            if (genuineVowel(this.baseLast)) {
+                return "ватыр";
+            }
+            const vowel = YI[this.softOffset];
+            return `${vowel}ватыр`;
+        }
+        if (genuineVowel(this.baseLast)) {
+            return "ват";
+        }
+        const vowel = YI[this.softOffset];
+        return `${vowel}ват`;
+    }
+    presentColloqSuffix(grammarPerson): string {
+        if (VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verbDictForm) || VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verbDictForm)) {
+            return this.presentColloqShortSuffix(grammarPerson);
+        } else {
+            return this.presentColloqLongSuffix(grammarPerson);
+        }
     }
     possibleFutureSuffix(): string {
         if (genuineVowel(this.baseLast)) {
@@ -368,7 +398,7 @@ class VerbBuilder {
         if (this.contContext == null) {
             return new PhrasalBuilder();
         }
-        let persAffix = this.getPersAffix1ExceptThirdPerson(person, number);
+        let persAffix = this.getPersAffix1ExceptThirdPerson(person, number, this.softOffset);
         return new PhrasalBuilder()
             .verbBase(this.contContext.verbBase)
             .personalAffix(persAffix);
@@ -436,6 +466,18 @@ class VerbBuilder {
             .space()
             .auxVerb(auxVerbPhrasal)
             .build();
+    }
+    presentColloquialForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            const affix = this.presentColloqSuffix(person);
+            const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
+                return new PhrasalBuilder()
+                    .verbBase(this.verbBase)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
     }
     /* XXX should this form be used by default? */
     presentContinuousSimpleNegativeForm(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): Phrasal {

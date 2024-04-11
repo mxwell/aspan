@@ -2714,6 +2714,74 @@ ALL_TESTS.push(["FutureParticipleQuestionTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["PresentColloquialTest", function() {
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "келу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["келятырмын", "келятырмыз", "келятсың", "келятсыңдар", "келятсыз", "келятсыздар", "келятыр", "келятыр"]
+    );
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "әкелу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["әкелятырмын", "әкелятырмыз", "әкелятсың", "әкелятсыңдар", "әкелятсыз", "әкелятсыздар", "әкелятыр", "әкелятыр"]
+    );
+
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "бару",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["баратырмын", "баратырмыз", "баратсың", "баратсыңдар", "баратсыз", "баратсыздар", "баратыр", "баратыр"]
+    );
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "апару",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["апаратырмын", "апаратырмыз", "апаратсың", "апаратсыңдар", "апаратсыз", "апаратсыздар", "апаратыр", "апаратыр"]
+    );
+
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "алу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["алыватырмын", "алыватырмыз", "алыватсың", "алыватсыңдар", "алыватсыз", "алыватсыздар", "алыватыр", "алыватыр"]
+    );
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "істеу",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["істеватырмын", "істеватырмыз", "істеватсың", "істеватсыңдар", "істеватсыз", "істеватсыздар", "істеватыр", "істеватыр"]
+    );
+    testAllCases(
+        "Present colloquial tesnse, positive, all cases",
+        "сүю",
+        SentenceType.Statement,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["сүйіватырмын", "сүйіватырмыз", "сүйіватсың", "сүйіватсыңдар", "сүйіватсыз", "сүйіватсыздар", "сүйіватыр", "сүйіватыр"]
+    );
+}]);
+
 /* End of tests */
 
 testAll();
