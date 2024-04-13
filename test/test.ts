@@ -1017,21 +1017,30 @@ ALL_TESTS.push(["presentContQuestionTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["presentContSimpleNegativeTest", function() {
+ALL_TESTS.push(["presentContNegativeInMainTest", function() {
     T_EQ_ASSERT(
         "жазбай отырсың",
-        new VerbBuilder("жазу").presentContinuousSimpleNegativeForm(GrammarPerson.Second, GrammarNumber.Singular, new VerbBuilder("отыру")),
-        "Present continuous form of 2nd person, singular, simple negative"
+        new VerbBuilder("жазу").presentContinuousForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("отыру"), false),
+        "Present continuous form of 2nd person, singular, negative in the main verb: "
+    );
+    T_EQ_ASSERT(
+        "ішпей отыр",
+        new VerbBuilder("ішу").presentContinuousForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("отыру"), false),
+        "Present continuous form of 3rd person, singular, negative in the main verb: "
+    );
+    T_EQ_ASSERT(
+        "оқымай жүрмін",
+        new VerbBuilder("оқу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("жүру"), false),
+        "Present continuous form of 1st person, singular, negative in the main verb: "
     );
     T_EQ_ASSERT(
         "ұйықтамай жатырмыз",
-        new VerbBuilder("ұйықтау").presentContinuousSimpleNegativeForm(GrammarPerson.First, GrammarNumber.Plural, new VerbBuilder("жату")),
+        new VerbBuilder("ұйықтау").presentContinuousForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative, new VerbBuilder("жату"), false),
         "Present continuous form of 1st person, plural, simple negative"
     );
-
     T_EQ_ASSERT(
         "алмай жүрмін",
-        new VerbBuilder("алу").presentContinuousSimpleNegativeForm(GrammarPerson.First, GrammarNumber.Singular, new VerbBuilder("жүру")),
+        new VerbBuilder("алу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, new VerbBuilder("жүру"), false),
         "Present continuous form of 1st person, singular, simple negative"
     );
 }]);

@@ -449,7 +449,7 @@ class VerbBuilder {
         }
         return getYpip(this.baseLast, this.softOffset);
     }
-    presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder): Phrasal {
+    presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder, negateAux: boolean = true): Phrasal {
         if (auxBuilder.contContext == null) {
             return NOT_SUPPORTED_PHRASAL;
         }
@@ -457,15 +457,29 @@ class VerbBuilder {
         if (aeException && auxBuilder.verbDictForm != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
             return NOT_SUPPORTED_PHRASAL;
         }
-        const verbBase = this.getPresentContinuousBase();
-        const affix = this.getPresentContinousAffix();
-        const auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
-        return new PhrasalBuilder()
-            .verbBase(verbBase)
-            .tenseAffix(affix)
-            .space()
-            .auxVerb(auxVerbPhrasal)
-            .build();
+        if (sentenceType != SentenceType.Negative || negateAux) {
+            const verbBase = this.getPresentContinuousBase();
+            const affix = this.getPresentContinousAffix();
+            const auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType);
+            return new PhrasalBuilder()
+                .verbBase(verbBase)
+                .tenseAffix(affix)
+                .space()
+                .auxVerb(auxVerbPhrasal)
+                .build();
+        } else {
+            const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            const particle = getQuestionParticle(verbBase.last, this.softOffset);
+            const affix = "й";
+            const auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, SentenceType.Statement);
+            return new PhrasalBuilder()
+                .verbBase(verbBase.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .space()
+                .auxVerb(auxVerbPhrasal)
+                .build();
+        }
     }
     presentColloquialForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == SentenceType.Statement) {
@@ -480,16 +494,6 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
-    /* XXX should this form be used by default? */
-    presentContinuousSimpleNegativeForm(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): Phrasal {
-        if (auxBuilder.contContext == null) {
-            return NOT_SUPPORTED_PHRASAL;
-        }
-        let negativeBase = this.getNegativeBase();
-        const auxVerb = auxBuilder.presentSimpleContinuousForm(person, number, SentenceType.Statement).raw;
-        let res = fixBgBigrams(`${negativeBase}й ${auxVerb}`);
-        return this.buildUnclassified(res);
-    }
     getDefaultContinuousBuilder() {
         if (this.defaultContinuousBuilder == null) {
             this.defaultContinuousBuilder = new VerbBuilder("жату");
@@ -500,10 +504,7 @@ class VerbBuilder {
         if (shak == "PresentTransitive") {
             return this.presentTransitiveForm(person, number, sentenceType);
         } else if (shak == "PresentContinuous") {
-            if (sentenceType == SentenceType.Negative) {
-                return this.presentContinuousSimpleNegativeForm(person, number, this.getDefaultContinuousBuilder());
-            }
-            return this.presentContinuousForm(person, number, sentenceType, this.getDefaultContinuousBuilder());
+            return this.presentContinuousForm(person, number, sentenceType, this.getDefaultContinuousBuilder(), /* negateAux */ false);
         }
         return NOT_SUPPORTED_PHRASAL;
     }
