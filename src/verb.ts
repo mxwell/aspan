@@ -469,10 +469,11 @@ class VerbBuilder {
     }
     presentColloquialForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == SentenceType.Statement) {
+            const verbBase = this.getPresentContinuousBase();
             const affix = this.presentColloqSuffix(person);
             const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
                 return new PhrasalBuilder()
-                    .verbBase(this.verbBase)
+                    .verbBase(verbBase)
                     .tenseAffix(affix)
                     .personalAffix(persAffix)
                     .build();

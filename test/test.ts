@@ -2782,6 +2782,24 @@ ALL_TESTS.push(["PresentColloquialTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PresentColloquialExceptionTest", function() {
+    T_EQ_ASSERT(
+        "теуіватырмыз",
+        new VerbBuilder("тебу").presentColloquialForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
+        "Present colloquial, exception verb:"
+    );
+    T_EQ_ASSERT(
+        "қауыватырмыз",
+        new VerbBuilder("қабу", false).presentColloquialForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
+        "Present colloquial, exception verb:"
+    );
+    T_EQ_ASSERT(
+        "қабыватырмыз",
+        new VerbBuilder("қабу", true).presentColloquialForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement),
+        "Present colloquial, exception verb:"
+    );
+}]);
+
 /* End of tests */
 
 testAll();
