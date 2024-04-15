@@ -72,18 +72,21 @@ class PhrasalPart {
 class Phrasal {
     parts: PhrasalPart[];
     raw: string;
+    forbidden: boolean;
 
-    constructor(parts: PhrasalPart[], raw: string) {
+    constructor(parts: PhrasalPart[], raw: string, forbidden: boolean) {
         this.parts = parts;
         this.raw = raw;
+        this.forbidden = forbidden;
     }
 }
 
 const NOT_SUPPORTED: string = "<not supported>";
-const NOT_SUPPORTED_PHRASAL = new Phrasal([], NOT_SUPPORTED);
+const NOT_SUPPORTED_PHRASAL = new Phrasal([], NOT_SUPPORTED, false);
 
 class PhrasalBuilder {
     private parts: PhrasalPart[];
+    private forbidden: boolean;
 
     constructor() {
         this.parts = [];
@@ -169,6 +172,13 @@ class PhrasalBuilder {
         }
         return this;
     }
+    setForbidden(forbidden: boolean): PhrasalBuilder {
+        this.forbidden = forbidden;
+        return this;
+    }
+    markForbidden(): PhrasalBuilder {
+        return this.setForbidden(true);
+    }
     getLastItem(): string {
         let parts = this.parts;
         let index = parts.length - 1;
@@ -184,7 +194,8 @@ class PhrasalBuilder {
         }
         return new Phrasal(
             this.parts,
-            partStrings.join("")
+            partStrings.join(""),
+            this.forbidden,
         );
     }
 }

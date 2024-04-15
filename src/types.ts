@@ -31,3 +31,4 @@ enum VerbShak {
 
 const GRAMMAR_PERSONS: GrammarPerson[] = [GrammarPerson.First, GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Third];
 const GRAMMAR_NUMBERS: GrammarNumber[] = [GrammarNumber.Singular, GrammarNumber.Plural];
+const GRAMMAR_SENTENCE_TYPES: SentenceType[] = [SentenceType.Statement, SentenceType.Negative, SentenceType.Question];

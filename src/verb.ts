@@ -454,9 +454,7 @@ class VerbBuilder {
             return NOT_SUPPORTED_PHRASAL;
         }
         const aeException = VERB_PRESENT_CONT_EXCEPTION_A_SET.has(this.verbDictForm) || VERB_PRESENT_CONT_EXCEPTION_E_SET.has(this.verbDictForm);
-        if (aeException && auxBuilder.verbDictForm != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED) {
-            return NOT_SUPPORTED_PHRASAL;
-        }
+        const forbidden = aeException && auxBuilder.verbDictForm != VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED;
         if (sentenceType != SentenceType.Negative || negateAux) {
             const verbBase = this.getPresentContinuousBase();
             const affix = this.getPresentContinousAffix();
@@ -466,6 +464,7 @@ class VerbBuilder {
                 .tenseAffix(affix)
                 .space()
                 .auxVerb(auxVerbPhrasal)
+                .setForbidden(forbidden)
                 .build();
         } else {
             const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
@@ -478,6 +477,7 @@ class VerbBuilder {
                 .tenseAffix(affix)
                 .space()
                 .auxVerb(auxVerbPhrasal)
+                .setForbidden(forbidden)
                 .build();
         }
     }

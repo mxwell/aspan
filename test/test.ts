@@ -941,6 +941,40 @@ ALL_TESTS.push(["presentContReplaceUTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["presentContForbiddenTest", function() {
+    const mainBuilders = [
+        new VerbBuilder("келу"),
+        new VerbBuilder("бару"),
+    ];
+
+    const jatuBuilder = new VerbBuilder("жату");
+    for (const mainBuilder of mainBuilders) {
+        for (const sentenceType of GRAMMAR_SENTENCE_TYPES) {
+            T_ASSERT(
+                !mainBuilder.presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, sentenceType, jatuBuilder).forbidden,
+                "Present continuous form of " + mainBuilder.verbDictForm + " must not be forbidden"
+            );
+        }
+    }
+
+    const auxBuilders = [
+        new VerbBuilder("жүру"),
+        new VerbBuilder("отыру"),
+        new VerbBuilder("тұру"),
+    ];
+
+    for (const mainBuilder of mainBuilders) {
+        for (const auxBuilder of auxBuilders) {
+            for (const sentenceType of GRAMMAR_SENTENCE_TYPES) {
+                T_ASSERT(
+                    mainBuilder.presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, sentenceType, auxBuilder).forbidden,
+                    "Present continuous form of " + mainBuilder.verbDictForm + " must be forbidden with " + auxBuilder.verbDictForm
+                );
+            }
+        }
+    }
+}]);
+
 ALL_TESTS.push(["presentContNegativeReplaceUTest", function() {
     const relations = new Map([
         [new VerbSpec("жабу", false), "жауып жатқан жоқпын"],
