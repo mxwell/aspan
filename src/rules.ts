@@ -127,6 +127,11 @@ const MAME = ["ма", "ме"];
 const BABE = ["ба", "бе"];
 const PAPE = ["па", "пе"];
 
+/* These are used in negative forms of colloqiual present continuous */
+const CLQ_MAME = ["ма", "ми"];
+const CLQ_BABE = ["ба", "би"];
+const CLQ_PAPE = ["па", "пи"];
+
 const MAKMEK = ["мақ", "мек"];
 const BAKBEK = ["бақ", "бек"];
 const PAKPEK = ["пақ", "пек"];

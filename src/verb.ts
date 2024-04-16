@@ -183,6 +183,12 @@ class VerbBuilder {
             return this.presentColloqLongSuffix(grammarPerson);
         }
     }
+    presentColloqNegSuffix(grammarPerson): string {
+        if (grammarPerson == GrammarPerson.First || grammarPerson == GrammarPerson.Third) {
+            return "ятыр";
+        }
+        return "ят";
+    }
     possibleFutureSuffix(): string {
         if (genuineVowel(this.baseLast)) {
             return "р";
@@ -488,6 +494,17 @@ class VerbBuilder {
             const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
                 return new PhrasalBuilder()
                     .verbBase(verbBase)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build();
+        } else if (sentenceType == SentenceType.Negative) {
+            const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            const particle = getColloquialQuestionParticle(verbBase.last, this.softOffset);
+            const affix = this.presentColloqNegSuffix(person);
+            const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
+            return new PhrasalBuilder()
+                    .verbBase(verbBase.base)
+                    .negation(particle)
                     .tenseAffix(affix)
                     .personalAffix(persAffix)
                     .build();

@@ -2825,6 +2825,72 @@ ALL_TESTS.push(["PresentColloquialTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PresentColloquialNegativeTest", function() {
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "келу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["келмиятырмын", "келмиятырмыз", "келмиятсың", "келмиятсыңдар", "келмиятсыз", "келмиятсыздар", "келмиятыр", "келмиятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "бару",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["бармаятырмын", "бармаятырмыз", "бармаятсың", "бармаятсыңдар", "бармаятсыз", "бармаятсыздар", "бармаятыр", "бармаятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "алу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["алмаятырмын", "алмаятырмыз", "алмаятсың", "алмаятсыңдар", "алмаятсыз", "алмаятсыздар", "алмаятыр", "алмаятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "айту",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["айтпаятырмын", "айтпаятырмыз", "айтпаятсың", "айтпаятсыңдар", "айтпаятсыз", "айтпаятсыздар", "айтпаятыр", "айтпаятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "тебу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["теппиятырмын", "теппиятырмыз", "теппиятсың", "теппиятсыңдар", "теппиятсыз", "теппиятсыздар", "теппиятыр", "теппиятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жазбаятырмын", "жазбаятырмыз", "жазбаятсың", "жазбаятсыңдар", "жазбаятсыз", "жазбаятсыздар", "жазбаятыр", "жазбаятыр"]
+    );
+    testAllCases(
+        "Present colloquial tense, negative, all cases",
+        "жүзу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["жүзбиятырмын", "жүзбиятырмыз", "жүзбиятсың", "жүзбиятсыңдар", "жүзбиятсыз", "жүзбиятсыздар", "жүзбиятыр", "жүзбиятыр"]
+    );
+}]);
+
 ALL_TESTS.push(["PresentColloquialExceptionTest", function() {
     T_EQ_ASSERT(
         "теуіватырмыз",
