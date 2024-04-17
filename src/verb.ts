@@ -225,17 +225,20 @@ class VerbBuilder {
         let particle = getQuestionParticle(getLastItem(phrase), this.softOffset);
         return `${phrase} ${particle}?`;
     }
-    buildQuestionForm(builder: PhrasalBuilder): PhrasalBuilder {
+    buildQuestionFormWithSoftness(builder: PhrasalBuilder, soft: boolean): PhrasalBuilder {
         let last = builder.getLastItem();
-        let particle = getQuestionParticle(last, this.softOffset);
+        let particle = getQuestionParticle(last, soft ? SOFT_OFFSET : HARD_OFFSET);
         let particleE = new PartExplanation(
             PART_EXPLANATION_TYPE.QuestionParticleSeparate,
-            this.soft,
+            soft,
         );
         return builder
             .space()
             .questionParticleWithExplanation(particle, particleE)
             .punctuation("?");
+    }
+    buildQuestionForm(builder: PhrasalBuilder): PhrasalBuilder {
+        return this.buildQuestionFormWithSoftness(builder, this.soft);
     }
     buildUnclassified(phrase: string): Phrasal {
         return new PhrasalBuilder()
@@ -487,16 +490,19 @@ class VerbBuilder {
                 .build();
         }
     }
+    presentColloquialBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        const verbBase = this.getPresentContinuousBase();
+        const affix = this.presentColloqSuffix(person);
+        const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
+        return new PhrasalBuilder()
+            .verbBase(verbBase)
+            .tenseAffix(affix)
+            .personalAffix(persAffix);
+    }
     presentColloquialForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         if (sentenceType == SentenceType.Statement) {
-            const verbBase = this.getPresentContinuousBase();
-            const affix = this.presentColloqSuffix(person);
-            const persAffix = this.getPersAffix1ExceptThirdPerson(person, number, HARD_OFFSET);
-                return new PhrasalBuilder()
-                    .verbBase(verbBase)
-                    .tenseAffix(affix)
-                    .personalAffix(persAffix)
-                    .build();
+            return this.presentColloquialBuilder(person, number)
+                .build();
         } else if (sentenceType == SentenceType.Negative) {
             const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             const particle = getColloquialQuestionParticle(verbBase.last, this.softOffset);
@@ -508,6 +514,11 @@ class VerbBuilder {
                     .tenseAffix(affix)
                     .personalAffix(persAffix)
                     .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionFormWithSoftness(
+                    this.presentColloquialBuilder(person, number),
+                    false
+            ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }

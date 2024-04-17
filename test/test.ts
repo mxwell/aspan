@@ -2891,6 +2891,27 @@ ALL_TESTS.push(["PresentColloquialNegativeTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PresentColloquialQuestionTest", function() {
+    testAllCases(
+        "Present colloquial tesnse, question, all cases",
+        "келу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["келятырмын ба?", "келятырмыз ба?", "келятсың ба?", "келятсыңдар ма?", "келятсыз ба?", "келятсыздар ма?", "келятыр ма?", "келятыр ма?"]
+    );
+    testAllCases(
+        "Present colloquial tesnse, question, all cases",
+        "алу",
+        SentenceType.Question,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.presentColloquialForm(grammarPerson, grammarNumber, sentenceType);
+        },
+        ["алыватырмын ба?", "алыватырмыз ба?", "алыватсың ба?", "алыватсыңдар ма?", "алыватсыз ба?", "алыватсыздар ма?", "алыватыр ма?", "алыватыр ма?"]
+    );
+}]);
+
 ALL_TESTS.push(["PresentColloquialExceptionTest", function() {
     T_EQ_ASSERT(
         "теуіватырмыз",
