@@ -225,20 +225,28 @@ class VerbBuilder {
         let particle = getQuestionParticle(getLastItem(phrase), this.softOffset);
         return `${phrase} ${particle}?`;
     }
-    buildQuestionFormWithSoftness(builder: PhrasalBuilder, soft: boolean): PhrasalBuilder {
+    buildQuestionFormGeneric(builder: PhrasalBuilder, soft: boolean, expl: boolean): PhrasalBuilder {
         let last = builder.getLastItem();
         let particle = getQuestionParticle(last, soft ? SOFT_OFFSET : HARD_OFFSET);
-        let particleE = new PartExplanation(
-            PART_EXPLANATION_TYPE.QuestionParticleSeparate,
-            soft,
-        );
-        return builder
-            .space()
-            .questionParticleWithExplanation(particle, particleE)
-            .punctuation("?");
+        builder.space();
+        if (expl) {
+            builder.questionParticleWithExplanation(
+                particle,
+                new PartExplanation(
+                    PART_EXPLANATION_TYPE.QuestionParticleSeparate,
+                    soft,
+                )
+            );
+        } else {
+            builder.questionParticle(particle);
+        }
+        return builder.punctuation("?");
     }
     buildQuestionForm(builder: PhrasalBuilder): PhrasalBuilder {
-        return this.buildQuestionFormWithSoftness(builder, this.soft);
+        return this.buildQuestionFormGeneric(builder, this.soft, false);
+    }
+    buildQuestionFormExpl(builder: PhrasalBuilder): PhrasalBuilder {
+        return this.buildQuestionFormGeneric(builder, this.soft, true);
     }
     buildUnclassified(phrase: string): Phrasal {
         return new PhrasalBuilder()
@@ -304,7 +312,7 @@ class VerbBuilder {
         }
         return this.verbBase;
     }
-    mergeBaseWithVowelAffix(origBase: string, origAffix: string): PhrasalBuilder {
+    mergeBaseWithVowelAffix(origBase: string, origAffix: string, expl: boolean): PhrasalBuilder {
         var base = origBase;
         var affix = origAffix;
         let baseExplanation = new PartExplanation(
@@ -331,14 +339,21 @@ class VerbBuilder {
             affix = replaceFirst(affix, "и");
             affixExplanation.explanationType = PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi;
         }
-        return new PhrasalBuilder()
-            .verbBaseWithExplanation(base, baseExplanation)
-            .tenseAffixWithExplanation(affix, affixExplanation);
+        if (expl) {
+            return new PhrasalBuilder()
+                .verbBaseWithExplanation(base, baseExplanation)
+                .tenseAffixWithExplanation(affix, affixExplanation);
+        } else {
+            return new PhrasalBuilder()
+                .verbBase(base)
+                .tenseAffix(affix);
+        }
     }
     presentTransitiveCommonBuilder(): PhrasalBuilder {
         return this.mergeBaseWithVowelAffix(
             this.verbBase,
-            this.presentTransitiveSuffix()
+            this.presentTransitiveSuffix(),
+            true
         );
     }
     fixUpBaseForConsonant(base: string, last: string): BaseAndLast {
@@ -394,7 +409,7 @@ class VerbBuilder {
                     .tenseAffixWithExplanation("й", affixE)
             ).build();
         } else if (sentenceType == "Question") {
-            return this.buildQuestionForm(
+            return this.buildQuestionFormExpl(
                 this.appendPresentTransitivePersAffix(
                     person, number, sentenceType,
                     this.presentTransitiveCommonBuilder()
@@ -515,8 +530,9 @@ class VerbBuilder {
                     .personalAffix(persAffix)
                     .build();
         } else if (sentenceType == SentenceType.Question) {
-            return this.buildQuestionFormWithSoftness(
+            return this.buildQuestionFormGeneric(
                     this.presentColloquialBuilder(person, number),
+                    false,
                     false
             ).build();
         }
@@ -768,13 +784,13 @@ class VerbBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
-    presentParticipleCommonBuilder(): PhrasalBuilder {
+    presentParticipleCommonBuilder(expl: boolean): PhrasalBuilder {
         return this.mergeBaseWithVowelAffix(
-            this.verbBase, this.pastTransitiveSuffix(this.baseLast)
+            this.verbBase, this.pastTransitiveSuffix(this.baseLast), expl
         );
     }
     pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let builder = this.presentParticipleCommonBuilder();
+        let builder = this.presentParticipleCommonBuilder(true);
         let affixLast = builder.getLastItem();
         let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
         return builder
@@ -847,7 +863,7 @@ class VerbBuilder {
         );
         let baseAndLast = this.genericBaseModifier(nc, /* yp */ false);
         let affix = getImperativeAffix(person, number, baseAndLast.last, this.softOffset);
-        return this.mergeBaseWithVowelAffix(baseAndLast.base, affix);
+        return this.mergeBaseWithVowelAffix(baseAndLast.base, affix, false);
     }
     /* Бұйрық рай */
     imperativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
@@ -896,7 +912,7 @@ class VerbBuilder {
     }
     presentParticiple(sentenceType: SentenceType): Phrasal {
         if (sentenceType == SentenceType.Statement) {
-            return this.presentParticipleCommonBuilder().build();
+            return this.presentParticipleCommonBuilder(false).build();
         } else if (sentenceType == SentenceType.Negative) {
             let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
@@ -910,7 +926,7 @@ class VerbBuilder {
                 .build();
         } else if (sentenceType == SentenceType.Question) {
             return this.buildQuestionForm(
-                    this.presentParticipleCommonBuilder()
+                    this.presentParticipleCommonBuilder(false)
                 ).build();
         }
         return NOT_SUPPORTED_PHRASAL;
