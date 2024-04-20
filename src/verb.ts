@@ -717,7 +717,7 @@ class VerbBuilder {
             .tenseAffix(affix);
     }
     /* Бұрынғы өткен шақ */
-    remotePastTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+    remotePastTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, negateAux: boolean = true): Phrasal {
         if (sentenceType == SentenceType.Statement) {
             let builder = this.remotePastCommonBuilder();
             let affixLast = builder.getLastItem();
@@ -726,18 +726,33 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let builder = this.remotePastCommonBuilder();
+            if (negateAux) {
+                let builder = this.remotePastCommonBuilder();
 
-            // parameters of "жоқ", not of the verb base
-            let gokLast = 'қ';
-            let gokSoftOffset = 0;
+                // parameters of "жоқ", not of the verb base
+                let gokLast = 'қ';
+                let gokSoftOffset = 0;
 
-            let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
-            return builder
-                .space()
-                .negation("жоқ")
-                .personalAffix(persAffix)
-                .build();
+                let persAffix = getPersAffix1(person, number, gokLast, gokSoftOffset);
+                return builder
+                    .space()
+                    .negation("жоқ")
+                    .personalAffix(persAffix)
+                    .build();
+            } else {
+                const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+                const particle = getQuestionParticle(verbBase.last, this.softOffset);
+                const particleLast = getLastItem(particle);
+                const affix = getGangenKanken(particleLast, this.softOffset);
+                const affixLast = getLastItem(affix);
+                const persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
+                return new PhrasalBuilder()
+                    .verbBase(verbBase.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build();
+            }
         } else if (sentenceType == SentenceType.Question) {
             let builder = this.remotePastCommonBuilder();
             let affixLast = builder.getLastItem();

@@ -1662,6 +1662,38 @@ ALL_TESTS.push(["RemotePastNegativeAllCasesTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["RemotePastNegativeInMainTest", function() {
+    T_EQ_ASSERT(
+        "жібермегенбіз",
+        new VerbBuilder("жіберу").remotePastTense(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative, false),
+        "Remote past, negative in main"
+    );
+    T_EQ_ASSERT(
+        "бармағанмын",
+        new VerbBuilder("бару").remotePastTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, false),
+        "Remote past, negative in main"
+    );
+    T_EQ_ASSERT(
+        "көшпеген",
+        new VerbBuilder("көшу").remotePastTense(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative, false),
+        "Remote past, negative in main"
+    );
+    T_EQ_ASSERT(
+        "айтпағансыз",
+        new VerbBuilder("айту").remotePastTense(GrammarPerson.SecondPolite, GrammarNumber.Singular, SentenceType.Negative, false),
+        "Remote past, negative in main"
+    );
+    testAllCases(
+        "Negative remote past, all cases",
+        "жазу",
+        SentenceType.Negative,
+        function(verbBuilder, grammarPerson, grammarNumber, sentenceType): Phrasal {
+            return verbBuilder.remotePastTense(grammarPerson, grammarNumber, sentenceType, false);
+        },
+        ["жазбағанмын", "жазбағанбыз", "жазбағансың", "жазбағансыңдар", "жазбағансыз", "жазбағансыздар", "жазбаған", "жазбаған"]
+    );
+}]);
+
 ALL_TESTS.push(["RemotePastQuestionAllCasesTest", function() {
     // No sources, just a guess.
 
