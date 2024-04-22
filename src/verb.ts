@@ -16,8 +16,10 @@ function isVerbException(verbDictForm: string): boolean {
     return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verbDictForm);
 }
 
-function isVerbOptionalException(verbDictForm: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_OPTIONAL_EXCEPTIONS_SET.has(verbDictForm);
+type MaybeMeanings = string[][] | null;
+
+function getOptExceptVerbMeanings(verbDictForm: string): MaybeMeanings {
+    return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm);
 }
 
 function isVerbException2(verbDictForm: string): boolean {
@@ -111,7 +113,7 @@ class VerbBuilder {
         this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
 
         /* exceptions */
-        if (isVerbException(verbDictForm) || (isVerbOptionalException(verbDictForm) && forceExceptional)) {
+        if (isVerbException(verbDictForm) || (getOptExceptVerbMeanings(verbDictForm) != null && forceExceptional)) {
             this.verbBase = this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
             this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedY;
         } else if (isVerbException2(verbDictForm)) {
@@ -300,14 +302,16 @@ class VerbBuilder {
         if (specialBase != null) {
             return specialBase
         }
-        if (isVerbOptionalException(this.verbDictForm)) {
+        let meanings = getOptExceptVerbMeanings(this.verbDictForm);
+        if (meanings != null) {
             return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
         }
         return this.verbBase;
     }
     // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForceExceptional(): string {
-        if (isVerbOptionalException(this.verbDictForm)) {
+        let meanings = getOptExceptVerbMeanings(this.verbDictForm);
+        if (meanings != null) {
             return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
         }
         return this.verbBase;
