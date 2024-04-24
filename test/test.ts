@@ -691,6 +691,7 @@ ALL_TESTS.push(["verbOptionalExceptionsTest", function() {
         ["тану", "танады", "таниды"],
         ["тату", "татады", "татиды"],
         ["ысу", "ысады", "ысиды"],
+        ["ыдыс жуу", "ыдыс жуады", "ыдыс жуиды"],
     ];
     for (const [verbDictForm, thirdPersonRegular, thirdPersonException] of dictFormToThirdPerson) {
         const verbBuilderRegular = new VerbBuilder(verbDictForm);

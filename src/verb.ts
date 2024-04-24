@@ -19,7 +19,12 @@ function isVerbException(verbDictForm: string): boolean {
 type MaybeMeanings = string[][] | null;
 
 function getOptExceptVerbMeanings(verbDictForm: string): MaybeMeanings {
-    return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm);
+    let space = verbDictForm.lastIndexOf(" ");
+    if (space == -1) {
+        return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm);
+    } else {
+        return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm.substring(space + 1));
+    }
 }
 
 function isVerbException2(verbDictForm: string): boolean {
