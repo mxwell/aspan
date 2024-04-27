@@ -6,7 +6,7 @@ module.exports = {
     PRONOUN_BY_PERSON_NUMBER,
     POSSESSIVE_BY_PERSON_NUMBER,
     validateVerb,
-    isVerbOptionalException,
+    getOptExceptVerbMeanings,
     validPresentContPair,
     VerbBuilder,
     GrammarPerson,

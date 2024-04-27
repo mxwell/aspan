@@ -10,7 +10,8 @@ const kPresentContinuousFormsCommand = "present_continuous_forms";
 const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
 const EXACT_MATCH_WEIGHT = SHORT_VERB_WEIGHT / 2;
-const FORM_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 10;
+const FREQ_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 8;
+const FORM_WEIGHT_PORTION = FREQ_WEIGHT_PORTION / 8;
 const SECOND_PLURAL_WEIGHT   = FORM_WEIGHT_PORTION * 1;
 const FIRST_PLURAL_WEIGHT    = FORM_WEIGHT_PORTION * 2;
 const SECOND_SINGULAR_WEIGHT = FORM_WEIGHT_PORTION * 3;
@@ -214,7 +215,8 @@ class FormRow {
 function createTenseFormsForAllVariants(verb, auxBuilder) {
     const limitWords = true;
     let formBuilder = new FormBuilder(verb, limitWords);
-    const isOptionalException = aspan.isVerbOptionalException(verb);
+    const optExceptMeaning = aspan.getOptExceptVerbMeanings(verb);
+    const isOptionalException = optExceptMeaning != null;
     let rows = [];
     for (let i = 0; i < SENTENCE_TYPES.length; ++i) {
         rows.push(new FormRow(verb, 0, i,
@@ -232,7 +234,8 @@ function createTenseFormsForAllVariants(verb, auxBuilder) {
 function createPresentContinuousForms(verb, auxBuilder) {
     const limitWords = false;
     let formBuilder = new FormBuilder(verb, limitWords);
-    const isOptionalException = aspan.isVerbOptionalException(verb);
+    const optExceptMeaning = aspan.getOptExceptVerbMeanings(verb);
+    const isOptionalException = optExceptMeaning != null;
     let rows = [];
     const sentenceTypeIndex = 0;
 
@@ -386,9 +389,10 @@ class InputItem {
             this.valid = false;
         } else {
             this.verb = parts[0];
+            this.freq = parseInt(parts[1]);
             this.ruGlosses = [];
             this.enGlosses = [];
-            for (let i = 1; i < parts.length; ++i) {
+            for (let i = 2; i < parts.length; ++i) {
                 let part = parts[i];
                 if (part.startsWith("ruwkt:")) {
                     this.ruGlosses.push(part.substring(6));
@@ -447,13 +451,15 @@ async function processLineByLine(args) {
         }
     } else if (args.command == kSuggestInfinitiveCommand || args.command == kSuggestInfinitiveTranslationCommand) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+        let freqWeight = Math.log(inputItem.freq + 1.0) * FREQ_WEIGHT_PORTION;
+        let baseWeight = partCountWeight + freqWeight;
         let ruGlosses = inputItem.ruGlosses.slice(0, 2);
         let enGlosses = inputItem.enGlosses.slice(0, 2);
-        writeSuggestLine(inputVerb, inputVerb, partCountWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+        writeSuggestLine(inputVerb, inputVerb, baseWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(inputVerb, simpleBaseForms[j], partCountWeight + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], baseWeight + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
             ++outputCounter;
         }
         if (args.command == kSuggestInfinitiveTranslationCommand) {

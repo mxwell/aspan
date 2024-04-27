@@ -5,6 +5,7 @@ python3 scripts/extract_translations_from_wiktionary_dump.py \
     --verbs-path data/verbs.txt \
     --tei-path data/wiktionary_kk-ru_latest.tei --tei-prefix ruwkt: \
     --wiktextract-path data/raw-wiktextract-data.kk.verb.json --wiktextract-prefix enwkt: \
+    --verb-frequencies-path train/present_top100.colonsv \
     > data/verbs_with_ru_en.wkt.csv
 
 How to prepare wiktextract:
@@ -203,14 +204,27 @@ def load_from_wiktextract(path, gloss_prefix, verbs_set):
     return result
 
 
-def print_verbs(verbs_set, tei, wiktextract):
+def load_verb_frequencies(path):
+    result = dict()
+    if path == "":
+        return result
+
+    for line in open(path):
+        parts = line.strip().split(":")
+        verb = parts[0]
+        freq = int(parts[4])
+        result[verb] = freq
+    return result
+
+
+def print_verbs(verbs_set, tei, wiktextract, verb_freq):
     ordered = sorted(list(verbs_set))
     tei_count = 0
     wiktextract_count = 0
     both_count = 0
     no_count = 0
     for verb in ordered:
-        parts = [verb]
+        parts = [verb, str(verb_freq.get(verb, 0))]
         has_tei = False
         has_wiktextract = False
         if verb in tei:
@@ -247,12 +261,14 @@ def main():
     parser.add_argument("--tei-prefix", default="", help="Prefix for glosses from TEI, e.g. 'ruwkt:' in the output CSV")
     parser.add_argument("--wiktextract-path", required=True, help="Path to raw-wiktextract-data.json file with a Wiktionary dump")
     parser.add_argument("--wiktextract-prefix", default="", help="Prefix for glosses from wiktextract, e.g. 'enwkt:' in the output CSV")
+    parser.add_argument("--verb-frequencies-path", default="", help="Path to file with verb frequencies")
     args = parser.parse_args()
 
     verbs_set = load_verbs(args.verbs_path)
     verbs_from_tei = load_from_tei(args.tei_path, args.tei_prefix, verbs_set)
     verbs_from_wiktextract = load_from_wiktextract(args.wiktextract_path, args.wiktextract_prefix, verbs_set)
-    print_verbs(verbs_set, verbs_from_tei, verbs_from_wiktextract)
+    verb_frequencies = load_verb_frequencies(args.verb_frequencies_path)
+    print_verbs(verbs_set, verbs_from_tei, verbs_from_wiktextract, verb_frequencies)
 
 
 if __name__ == "__main__":
