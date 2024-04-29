@@ -3,6 +3,7 @@ const readline = require('readline');
 const aspan = require('../BUILD/aspan.js');
 
 const kDetectorFormsCommand = "detector_forms";
+const kDetectSuggestCommand = "detect_suggest_forms";
 const kSuggestInfinitiveCommand = "suggest_infinitive";
 const kSuggestInfinitiveTranslationCommand = "suggest_infinitive_translation";
 const kPresentContinuousFormsCommand = "present_continuous_forms";
@@ -11,7 +12,8 @@ const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
 const EXACT_MATCH_WEIGHT = SHORT_VERB_WEIGHT / 2;
 const FREQ_WEIGHT_PORTION = EXACT_MATCH_WEIGHT / 8;
-const FORM_WEIGHT_PORTION = FREQ_WEIGHT_PORTION / 8;
+const STATEMENT_WEIGHT = FREQ_WEIGHT_PORTION / 2;
+const FORM_WEIGHT_PORTION = STATEMENT_WEIGHT / 8;
 const SECOND_PLURAL_WEIGHT   = FORM_WEIGHT_PORTION * 1;
 const FIRST_PLURAL_WEIGHT    = FORM_WEIGHT_PORTION * 2;
 const SECOND_SINGULAR_WEIGHT = FORM_WEIGHT_PORTION * 3;
@@ -300,6 +302,18 @@ function writeSuggestLine(base, form, weight, ruGlosses, enGlosses, translationL
     outputStream.write(`${form}\t${printWeight(resultWeight)}\t${dataString}\n`);
 }
 
+function writeDetectSuggestLine(base, exceptional, ruGlosses, enGlosses, forms, outputStream) {
+    let dataObject = {
+        base: base,
+        exceptional: exceptional,
+        ruwkt: ruGlosses,
+        enwkt: enGlosses,
+        forms: forms,
+    };
+    let dataString = JSON.stringify(dataObject);
+    outputStream.write(`${dataString}\n`);
+}
+
 function simplify(form) {
     let obvious = form
         .replace(/[ң]/gi, 'н')
@@ -449,6 +463,67 @@ async function processLineByLine(args) {
             }
             outputStream.write(`\n`);
         }
+    } else if (args.command == kDetectSuggestCommand) {
+        /**
+         * {
+         *   "base": <INFINITIVE>,
+         *   "exceptional": <FORCE_EXCEPTIONAL>,
+         *   "ruwkt": [<RU_GLOSSES>],
+         *   "enwkt": [<EN_GLOSSES>],
+         *   "forms": [
+         *     {
+         *       "form": <FORM>,
+         *       "weight": <FORM_WEIGHT>,
+         *       "sent": "<SENTENCE_TYPE>",
+         *       "tense": "<TENSE>",
+         *       "person": "<PERSON>",
+         *       "number": "<NUMBER>"
+         *     },
+         *     ...
+         *   ]
+         * }
+         */
+
+        let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
+        let freqWeight = Math.log(inputItem.freq + 1.0) * FREQ_WEIGHT_PORTION;
+
+        let formRows = createTenseFormsForAllVariants(inputVerb, auxBuilders[0]);
+        let regularForms = [];
+        let exceptionalForms = [];
+        for (let rowIndex = 0; rowIndex < formRows.length; ++rowIndex) {
+            const formRow = formRows[rowIndex];
+            let row = formRow.forms;
+            for (let i = 0; i < row.length; ++i) {
+                const wf = row[i];
+                let weight = partCountWeight + wf.weight;
+                if (wf.tenseName == "infinitive") {
+                    weight += freqWeight;
+                }
+                if (wf.sentenceTypeIndex == 0) {
+                    weight += STATEMENT_WEIGHT;
+                }
+                const verbForm = {
+                    form: wf.form,
+                    weight: printWeight(weight),
+                    sent: wf.sentenceTypeIndex,
+                    tense: wf.tenseName,
+                    person: wf.person,
+                    number: wf.number,
+                };
+                if (formRow.forceExceptional == 1) {
+                    exceptionalForms.push(verbForm);
+                } else {
+                    regularForms.push(verbForm);
+                }
+                ++outputCounter;
+            }
+        }
+
+        writeDetectSuggestLine(inputVerb, 0, inputItem.ruGlosses, inputItem.enGlosses, regularForms, outputStream);
+        if (exceptionalForms.length > 0) {
+            writeDetectSuggestLine(inputVerb, 1, inputItem.ruGlosses, inputItem.enGlosses, exceptionalForms, outputStream);
+        }
+
     } else if (args.command == kSuggestInfinitiveCommand || args.command == kSuggestInfinitiveTranslationCommand) {
         let partCountWeight = (partCountSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
         let freqWeight = Math.log(inputItem.freq + 1.0) * FREQ_WEIGHT_PORTION;
@@ -524,6 +599,8 @@ function parseArgs() {
     }
     const command = args[0];
     if (command == kDetectorFormsCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kDetectSuggestCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else if (command == kSuggestInfinitiveCommand) {
         return acceptCommandWithInputAndOutput(args, command);
