@@ -104,5 +104,6 @@ private:
 };
 
 TrieBuilder BuildTrie(Poco::Logger* logger);
+TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* logger);
 
 }  // namespace NKiltMan

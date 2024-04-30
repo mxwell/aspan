@@ -140,6 +140,17 @@ class WebServerApp: public ServerApplication
             trieBuilder.PrintTrie(args[1]);
             logger().information("Trie printed to %s", args[1]);
             return Application::EXIT_OK;
+        } else if (args.size() > 0 && args[0] == "prepare_detect_suggest") { // kiltman prepare_detect_suggest detect_suggest_forms.jsonl detect_suggest_trie.txt
+            if (args.size() != 3) {
+                logger().error("Invalid arguments: expected input and output file paths");
+                return Application::EXIT_CONFIG;
+            }
+            logger().information("Loading detect+suggest data from %s", args[1]);
+            auto trieBuilder = NKiltMan::BuildDetectSuggestTrie(args[1], &logger());
+            logger().information("Dumping trie data to %s", args[2]);
+            trieBuilder.PrintTrie(args[2]);
+            logger().information("Trie is dumped");
+            return Application::EXIT_OK;
         } else if (2 <= args.size() && args.size() <= 3 && args[0] == "load") { // kiltman load trie.txt [port]
             logger().information("Loading trie from %s", args[1]);
             auto trie = NKiltMan::LoadTrie(args[1]);

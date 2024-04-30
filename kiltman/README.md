@@ -12,6 +12,7 @@ Unpack POCO libraries into a subdirectory under `poco/`.
 mkdir build
 cd build
 cmake ../
+# add -j12 for parallel build
 cmake --build .
 ```
 

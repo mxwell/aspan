@@ -1,5 +1,7 @@
 #include "trie.h"
 
+#include "Poco/JSON/Parser.h"
+
 #include <cassert>
 
 namespace NKiltMan {
@@ -250,6 +252,66 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
             }
             builder.AddPath(runes, transitionId, keyIndex);
 
+        }
+    }
+    if (logger) {
+        builder.PrintStats(*logger);
+    }
+    return std::move(builder);
+}
+
+std::string ExtractTransition(const Poco::JSON::Object::Ptr& formObject) {
+    std::string result;
+    result.append(formObject->getValue<std::string>("sent"));
+    result.push_back(':');
+    result.append(formObject->getValue<std::string>("tense"));
+    result.push_back(':');
+    result.append(formObject->getValue<std::string>("person"));
+    result.push_back(':');
+    result.append(formObject->getValue<std::string>("number"));
+    return result;
+}
+
+TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* logger) {
+    using namespace Poco;
+
+    TrieBuilder builder;
+
+    std::ifstream file(filepath);
+
+    std::string line;
+    uint32_t lineCounter = 0;
+    JSON::Parser parser;
+    std::vector<uint16_t> runes;
+
+    while (getline(file, line)) {
+        ++lineCounter;
+        if (lineCounter % 1000 == 0 && logger) {
+            logger->information("Loaded %u lines", lineCounter);
+        }
+        Dynamic::Var result = parser.parse(line);
+        JSON::Object::Ptr root = result.extract<JSON::Object::Ptr>();
+        std::string key = root->getValue<std::string>("base");
+        int keyException = root->getValue<int>("exceptional");
+        if (!(0 <= keyException && keyException <= 1)) {
+            throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
+        }
+        uint16_t keyIndex = builder.AddKeyRunes(keyException, key);
+
+        JSON::Array::Ptr forms = root->getArray("forms");
+        for (size_t i = 0; i < forms->size(); ++i) {
+            JSON::Object::Ptr formObject = forms->getObject(i);
+
+            std::string form = formObject->getValue<std::string>("form");
+            StringToRunes(form, runes);
+
+            auto transitionStr = ExtractTransition(formObject);
+            auto transitionId = builder.GetTransitionId(transitionStr);
+            if (transitionId >= TNode::kNoTransition) {
+                throw std::runtime_error("Too many transitions");
+            }
+
+            builder.AddPath(runes, transitionId, keyIndex);
         }
     }
     if (logger) {
