@@ -33,9 +33,7 @@ JSON::Object buildDetectResponse(const std::string& queryText, const NKiltMan::F
         auto keyItem = trie.keys[node->keyIndex];
         NKiltMan::RunesToString(keyItem.runes, wordStr);
         word.set("initial", wordStr);
-        if (keyItem.keyException) {
-            word.set("exceptional", true);
-        }
+        word.set("meta", keyItem.metadata);
         if (node->transitionId != NKiltMan::FlatNode::kNoTransitionId) {
             auto transition = trie.transitions[node->transitionId];
             word.set("transition", transition);

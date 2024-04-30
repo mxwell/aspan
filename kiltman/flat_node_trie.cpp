@@ -1,5 +1,7 @@
 #include "flat_node_trie.h"
 
+#include "Poco/JSON/Parser.h"
+
 #include <cassert>
 #include <fstream>
 
@@ -46,19 +48,29 @@ FlatNodeTrie::TTransitions LoadTransitions(std::istream& input) {
 }
 
 FlatNodeTrie::TKeys LoadKeys(std::istream& input, const TRunes& runes) {
+    using namespace Poco;
+
     size_t keysCount;
     input >> keysCount;
     FlatNodeTrie::TKeys keys;
     keys.reserve(keysCount);
 
-    uint32_t keyException;
+    std::string metadata;
+    JSON::Parser parser;
+
     size_t runesCount;
+    getline(input, metadata);
     for (size_t i = 0; i < keysCount; ++i) {
-        input >> keyException >> runesCount;
+        getline(input, metadata);
+        assert(metadata.size() > 0);
+        Dynamic::Var parsedMetadata = parser.parse(metadata);
+        JSON::Object::Ptr metadataRoot = parsedMetadata.extract<JSON::Object::Ptr>();
+
+        input >> runesCount;
         keys.emplace_back(
             TKeyItem{
                 .runes = TRunes(runesCount),
-                .keyException = keyException != 0
+                .metadata = *metadataRoot,
             }
         );
         auto& vec = keys.back().runes;
@@ -67,6 +79,7 @@ FlatNodeTrie::TKeys LoadKeys(std::istream& input, const TRunes& runes) {
             input >> runeId;
             vec[j] = runes[runeId];
         }
+        getline(input, metadata);
     }
     return keys;
 }

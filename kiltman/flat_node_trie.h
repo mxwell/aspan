@@ -3,6 +3,8 @@
 #include "flat_node.h"
 #include "runes.h"
 
+#include "Poco/JSON/Object.h"
+
 #include <cstdint>
 #include <map>
 #include <string>
@@ -12,9 +14,10 @@ namespace NKiltMan {
 
 struct TKeyItem {
     TRunes runes;
-    bool keyException;
+    Poco::JSON::Object metadata;
 
     size_t GetSpace() const {
+        // TODO count metadata size
         return sizeof(runes[0]) * runes.capacity();
     }
 };

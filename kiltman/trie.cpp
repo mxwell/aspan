@@ -41,19 +41,17 @@ void TrieBuilder::AddPath(const TRunes& path, TNode::TTransitionId transitionId,
     node->SetTransitionAndKey(transitionId, keyIndex);
 }
 
-uint16_t TrieBuilder::AddKeyRunes(uint8_t keyException, const std::string& key) {
+uint16_t TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata) {
     std::string mapKey = key;
     mapKey.push_back(keyException);
     auto it = keyIndices_.find(mapKey);
-    if (it != keyIndices_.end()) {
-        return it->second;
-    }
+    assert (it == keyIndices_.end());
 
     TRunes runes;
     StringToRunes(key, runes);
 
     uint16_t index = (uint16_t) keyRunesVec_.size();
-    keyExceptions_.push_back(keyException);
+    keyMeta_.emplace_back(std::move(metadata));
     keyRunesVec_.push_back(runes);
     keyIndices_[mapKey] = index;
     return index;
@@ -168,15 +166,16 @@ void TrieBuilder::PrintTransitions(std::ofstream& out) const {
 }
 
 void TrieBuilder::PrintKeys(std::ofstream& out) const {
-    auto n = keyExceptions_.size();
+    auto n = keyMeta_.size();
     assert(n == keyRunesVec_.size());
 
     out << keyRunesVec_.size() << '\n';
 
     for (size_t i = 0; i < n; ++i) {
-        out << static_cast<uint32_t>(keyExceptions_[i]);
+        keyMeta_[i].stringify(out, 0);
+        out << '\n';
         const auto& runes = keyRunesVec_[i];
-        out << ' ' << runes.size();
+        out << runes.size();
         for (TRuneValue runeValue : runes) {
             TRuneId runeId = GetRuneIdConst(runeValue);
             out << ' ' << static_cast<uint32_t>(runeId);
@@ -239,7 +238,11 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
             throw std::runtime_error("Invalid key with meta: " + lineParts[0]);
         }
         auto keyException = std::stoi(keyMetaParts[1]);
-        uint16_t keyIndex = builder.AddKeyRunes(keyException, keyMetaParts[0]);
+        Poco::JSON::Object metadataRoot;
+        if (keyException) {
+            metadataRoot.set("exceptional", true);
+        }
+        uint16_t keyIndex = builder.AddKeyData(keyMetaParts[0], keyException, std::move(metadataRoot));
         for (size_t i = 1; i < lineParts.size(); ++i) {
             SplitBy(lineParts[i], ':', metaParts);
             if (metaParts.size() != 5) {
@@ -292,11 +295,23 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
         Dynamic::Var result = parser.parse(line);
         JSON::Object::Ptr root = result.extract<JSON::Object::Ptr>();
         std::string key = root->getValue<std::string>("base");
+        JSON::Object metadataRoot;
         int keyException = root->getValue<int>("exceptional");
         if (!(0 <= keyException && keyException <= 1)) {
             throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
         }
-        uint16_t keyIndex = builder.AddKeyRunes(keyException, key);
+        if (keyException) {
+            metadataRoot.set("exceptional", true);
+        }
+        JSON::Array::Ptr ruwkt = root->getArray("ruwkt");
+        if (ruwkt->size() > 0) {
+            metadataRoot.set("ruwkt", ruwkt);
+        }
+        JSON::Array::Ptr enwkt = root->getArray("enwkt");
+        if (enwkt->size() > 0) {
+            metadataRoot.set("enwkt", enwkt);
+        }
+        uint16_t keyIndex = builder.AddKeyData(key, keyException, std::move(metadataRoot));
 
         JSON::Array::Ptr forms = root->getArray("forms");
         for (size_t i = 0; i < forms->size(); ++i) {
