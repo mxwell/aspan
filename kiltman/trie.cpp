@@ -24,24 +24,25 @@ void SplitBy(const std::string& s, char sep, TWords& words) {
     }
 }
 
-void TrieBuilder::AddPath(const TRunes& path, TNode::TTransitionId transitionId, TNode::TKey keyIndex) {
+void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex) {
     TNode* node = nodes_[0];
     for (TRuneValue runeValue : path) {
         TRuneId ch = GetRuneId(runeValue);
-        auto childId = node->FindChild(ch);
-        if (childId == TNode::kNoChild) {
-            childId = CreateNode();
-            node->AddChild(ch, childId);
+        auto weightedChild = node->FindChild(ch);
+        if (weightedChild.nodeId == TNode::kNoChild) {
+            weightedChild = {CreateNode(), weight};
+            node->AddChild(ch, weightedChild);
             ++nodeCount_;
         }
-        node = nodes_[childId];
+        node = nodes_[weightedChild.nodeId];
     }
     ++pathCount_;
     textLength_ += path.size();
-    node->SetTransitionAndKey(transitionId, keyIndex);
+    auto valueIndex = AddValueData(path);
+    node->SetTransitionAndKeyValue(transitionId, keyIndex, valueIndex);
 }
 
-uint16_t TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata) {
+TNode::TKey TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata) {
     std::string mapKey = key;
     mapKey.push_back(keyException);
     auto it = keyIndices_.find(mapKey);
@@ -50,10 +51,16 @@ uint16_t TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException, P
     TRunes runes;
     StringToRunes(key, runes);
 
-    uint16_t index = (uint16_t) keyRunesVec_.size();
+    auto index = static_cast<TNode::TKey>(keyRunesVec_.size());
     keyMeta_.emplace_back(std::move(metadata));
     keyRunesVec_.push_back(runes);
     keyIndices_[mapKey] = index;
+    return index;
+}
+
+TNode::TValue TrieBuilder::AddValueData(const TRunes& value) {
+    auto index = static_cast<TNode::TValue>(valueRunesVec_.size());
+    valueRunesVec_.push_back(value);
     return index;
 }
 
@@ -64,7 +71,7 @@ const TNode* TrieBuilder::Traverse(const TRunes& path) const {
         if (ch == kNoRuneId) {
             return nullptr;
         }
-        auto childId = node->FindChild(ch);
+        auto childId = node->FindChildId(ch);
         if (childId == TNode::kNoChild) {
             return nullptr;
         }
@@ -190,8 +197,8 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
         out << static_cast<int>(node->transitionId) << ' ';
         out << static_cast<int>(node->keyIndex) << ' ';
         out << node->children.size();
-        for (const auto& [runeId, nodeId] : node->children) {
-            out << ' ' << static_cast<uint32_t>(runeId) << ' ' << nodeId;
+        for (const auto& [runeId, weightedChild] : node->children) {
+            out << ' ' << static_cast<uint32_t>(runeId) << ' ' << weightedChild.nodeId; // << ' ' << weightedChild.weight;
         }
         out << '\n';
     }
@@ -253,7 +260,7 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
             if (transitionId >= TNode::kNoTransition) {
                 throw std::runtime_error("Too many transitions");
             }
-            builder.AddPath(runes, transitionId, keyIndex);
+            builder.AddPath(runes, TNode::kNoWeight, transitionId, keyIndex);
 
         }
     }
@@ -320,13 +327,14 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
             std::string form = formObject->getValue<std::string>("form");
             StringToRunes(form, runes);
 
+            auto weight = formObject->getValue<TNode::TWeight>("weight");
             auto transitionStr = ExtractTransition(formObject);
             auto transitionId = builder.GetTransitionId(transitionStr);
             if (transitionId >= TNode::kNoTransition) {
                 throw std::runtime_error("Too many transitions");
             }
 
-            builder.AddPath(runes, transitionId, keyIndex);
+            builder.AddPath(runes, weight, transitionId, keyIndex);
         }
     }
     if (logger) {

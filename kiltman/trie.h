@@ -20,39 +20,66 @@ namespace NKiltMan {
 using TRuneId = uint8_t;
 constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
 
+struct TWeightedChild {
+    using TNodeId = uint32_t;
+    using TWeight = float;
+
+    TNodeId nodeId;
+    TWeight weight;
+};
+
 struct TNode {
     using TTransitionId = uint8_t;
     using TKey = uint16_t;
-    using TNodeId = uint32_t;
+    using TValue = uint32_t;
+    using TNodeId = TWeightedChild::TNodeId;
+    using TWeight = TWeightedChild::TWeight;
 
     static constexpr TTransitionId kNoTransition = std::numeric_limits<TTransitionId>::max();
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
+    static constexpr TValue kNoValue = std::numeric_limits<TValue>::max();
     static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
+    static constexpr TWeight kNoWeight = 0.0;
 
     TNode():
         transitionId(kNoTransition),
-        keyIndex(kNoKey)
+        keyIndex(kNoKey),
+        valueIndex(kNoValue)
     {}
 
     TTransitionId transitionId;
     TKey keyIndex;
-    std::map<TRuneId, TNodeId> children;
+    TValue valueIndex;
+    std::map<TRuneId, TWeightedChild> children;
 
-    TNodeId FindChild(TRuneId ch) const {
+    TWeightedChild FindChild(TRuneId ch) const {
         auto it = children.find(ch);
         if (it == children.end()) {
-            return kNoChild;
+            return {kNoChild, kNoWeight};
         }
         return it->second;
     }
 
-    void AddChild(TRuneId ch, TNodeId childId) {
-        children[ch] = childId;
+    TNodeId FindChildId(TRuneId ch) const {
+        auto it = children.find(ch);
+        if (it == children.end()) {
+            return kNoChild;
+        }
+        return it->second.nodeId;
     }
 
-    void SetTransitionAndKey(TTransitionId transition, TKey index) {
+    void UpdateWeight(TRuneId ch, TWeight weight) {
+        children[ch].weight = weight;
+    }
+
+    void AddChild(TRuneId ch, TWeightedChild weightedChild) {
+        children.emplace(ch, std::move(weightedChild));
+    }
+
+    void SetTransitionAndKeyValue(TTransitionId transition, TKey key, TValue value) {
         transitionId = transition;
-        keyIndex = index;
+        keyIndex = key;
+        valueIndex = value;
     }
 
     bool IsTerminal() const {
@@ -73,9 +100,10 @@ public:
         nodeCount_(1)
     {}
 
-    void AddPath(const TRunes& path, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
+    void AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
     uint16_t GetTransitionId(const std::string& transition);
-    uint16_t AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata);
+    TNode::TKey AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata);
+    TNode::TValue AddValueData(const TRunes& value);
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
@@ -98,6 +126,7 @@ private:
     std::vector<Poco::JSON::Object> keyMeta_;
     std::vector<TRunes> keyRunesVec_;
     std::unordered_map<std::string, uint16_t> keyIndices_;
+    std::vector<TRunes> valueRunesVec_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;
