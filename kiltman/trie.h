@@ -19,21 +19,14 @@ namespace NKiltMan {
 
 using TRuneId = uint8_t;
 constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
-
-struct TWeightedChild {
-    using TNodeId = uint32_t;
-    using TWeight = float;
-
-    TNodeId nodeId;
-    TWeight weight;
-};
+constexpr size_t kMaxSuggestions = 10;
 
 struct TNode {
     using TTransitionId = uint8_t;
     using TKey = uint16_t;
     using TValue = uint32_t;
-    using TNodeId = TWeightedChild::TNodeId;
-    using TWeight = TWeightedChild::TWeight;
+    using TNodeId = uint32_t;
+    using TWeight = float;
 
     static constexpr TTransitionId kNoTransition = std::numeric_limits<TTransitionId>::max();
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
@@ -50,30 +43,30 @@ struct TNode {
     TTransitionId transitionId;
     TKey keyIndex;
     TValue valueIndex;
-    std::map<TRuneId, TWeightedChild> children;
+    std::map<TRuneId, TNodeId> children;
+    std::set<std::pair<TWeight, TValue>> suggestions;
 
-    TWeightedChild FindChild(TRuneId ch) const {
-        auto it = children.find(ch);
-        if (it == children.end()) {
-            return {kNoChild, kNoWeight};
-        }
-        return it->second;
-    }
-
-    TNodeId FindChildId(TRuneId ch) const {
+    TNodeId FindChild(TRuneId ch) const {
         auto it = children.find(ch);
         if (it == children.end()) {
             return kNoChild;
         }
-        return it->second.nodeId;
+        return it->second;
     }
 
-    void UpdateWeight(TRuneId ch, TWeight weight) {
-        children[ch].weight = weight;
+    void AddChild(TRuneId ch, TNodeId childId) {
+        children[ch] = childId;
     }
 
-    void AddChild(TRuneId ch, TWeightedChild weightedChild) {
-        children.emplace(ch, std::move(weightedChild));
+    void AddSuggestion(TValue value, TWeight weight) {
+        suggestions.emplace(weight, value);
+        while (suggestions.size() > kMaxSuggestions) {
+            suggestions.erase(suggestions.begin());
+        }
+    }
+
+    void RemoveSuggestion(TValue value, TWeight weight) {
+        suggestions.erase(std::make_pair(weight, value));
     }
 
     void SetTransitionAndKeyValue(TTransitionId transition, TKey key, TValue value) {
@@ -103,21 +96,27 @@ public:
     void AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
     uint16_t GetTransitionId(const std::string& transition);
     TNode::TKey AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata);
-    TNode::TValue AddValueData(const TRunes& value);
+    TNode::TValue AddValueData(const TRunes& value, TNode::TWeight weight);
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
     void PrintStats(Poco::Logger& logger) const;
     void PrintTrie(const std::string& filename) const;
+
+    void BuildSuggestions();
 private:
     TRuneId GetRuneId(TRuneValue rune);
     TRuneId GetRuneIdConst(TRuneValue rune) const;
     TNode::TNodeId CreateNode();
 
+    void BuildSuggestionsRec(TNode* node);
+
     void PrintRunes(std::ofstream& out) const;
     void PrintTransitions(std::ofstream& out) const;
     void PrintKeys(std::ofstream& out) const;
     void PrintNodes(std::ofstream& out) const;
+
+    std::string BuildValue(const TNode::TValue value) const;
 private:
     std::vector<TRuneValue> runeValues_;
     std::map<TRuneValue, TRuneId> runeIds_;
@@ -127,6 +126,7 @@ private:
     std::vector<TRunes> keyRunesVec_;
     std::unordered_map<std::string, uint16_t> keyIndices_;
     std::vector<TRunes> valueRunesVec_;
+    std::vector<TNode::TWeight> valueWeights_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;

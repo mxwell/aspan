@@ -108,6 +108,16 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
             assert(childId <= kMaxNodeId);
             childData.emplace_back(MAKE_COMBO(runeId, childId));
         }
+        size_t suggestionsCount;
+        input >> suggestionsCount;
+        assert(suggestionsCount > 0);
+        assert(suggestionsCount <= 10);
+        float weight;
+        int value;
+        for (size_t j = 0; j < suggestionsCount; ++j) {
+            input >> weight >> value;
+            // TODO use suggestions
+        }
         nodes.emplace_back(
             FlatNode{
                 .keyIndex = keyIndex,

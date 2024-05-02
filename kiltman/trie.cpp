@@ -28,17 +28,17 @@ void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTra
     TNode* node = nodes_[0];
     for (TRuneValue runeValue : path) {
         TRuneId ch = GetRuneId(runeValue);
-        auto weightedChild = node->FindChild(ch);
-        if (weightedChild.nodeId == TNode::kNoChild) {
-            weightedChild = {CreateNode(), weight};
-            node->AddChild(ch, weightedChild);
+        auto childId = node->FindChild(ch);
+        if (childId == TNode::kNoChild) {
+            childId = CreateNode();
+            node->AddChild(ch, childId);
             ++nodeCount_;
         }
-        node = nodes_[weightedChild.nodeId];
+        node = nodes_[childId];
     }
     ++pathCount_;
     textLength_ += path.size();
-    auto valueIndex = AddValueData(path);
+    auto valueIndex = AddValueData(path, weight);
     node->SetTransitionAndKeyValue(transitionId, keyIndex, valueIndex);
 }
 
@@ -58,9 +58,10 @@ TNode::TKey TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException
     return index;
 }
 
-TNode::TValue TrieBuilder::AddValueData(const TRunes& value) {
+TNode::TValue TrieBuilder::AddValueData(const TRunes& value, TNode::TWeight weight) {
     auto index = static_cast<TNode::TValue>(valueRunesVec_.size());
     valueRunesVec_.push_back(value);
+    valueWeights_.push_back(weight);
     return index;
 }
 
@@ -71,7 +72,7 @@ const TNode* TrieBuilder::Traverse(const TRunes& path) const {
         if (ch == kNoRuneId) {
             return nullptr;
         }
-        auto childId = node->FindChildId(ch);
+        auto childId = node->FindChild(ch);
         if (childId == TNode::kNoChild) {
             return nullptr;
         }
@@ -107,10 +108,23 @@ void TrieBuilder::PrintStats(Poco::Logger& logger) const {
     logger.information("Root children: %z", root_->children.size());
 
     uint64_t totalNodeSpace = 0;
+    size_t suggMin = kMaxSuggestions + 1;
+    size_t suggMax = 0;
+    size_t suggSum = 0;
     for (const auto& node : nodes_) {
         totalNodeSpace += node->GetSpace();
+        size_t suggCount = node->suggestions.size();
+        suggMin = std::min(suggMin, suggCount);
+        suggMax = std::max(suggMax, suggCount);
+        suggSum += suggCount;
     }
     logger.information("Tree space: %Lu", totalNodeSpace);
+    if (suggMin <= kMaxSuggestions) {
+        logger.information("Suggestions: min %z, max %z, total %z, avg %.1f",
+            suggMin, suggMax, suggSum, (double) suggSum / nodes_.size());
+    } else {
+        logger.information("No info on suggestions");
+    }
 }
 
 void TrieBuilder::PrintTrie(const std::string& filename) const {
@@ -197,10 +211,47 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
         out << static_cast<int>(node->transitionId) << ' ';
         out << static_cast<int>(node->keyIndex) << ' ';
         out << node->children.size();
-        for (const auto& [runeId, weightedChild] : node->children) {
-            out << ' ' << static_cast<uint32_t>(runeId) << ' ' << weightedChild.nodeId; // << ' ' << weightedChild.weight;
+        for (const auto& [runeId, childId] : node->children) {
+            out << ' ' << static_cast<uint32_t>(runeId) << ' ' << childId;
         }
         out << '\n';
+        if (node->IsTerminal()) {
+            node->RemoveSuggestion(node->valueIndex, valueWeights_[node->valueIndex]);
+            // Add a suggestion for the value itself with infinite weight.
+            node->AddSuggestion(node->valueIndex, 1e9);
+        }
+        out << node->suggestions.size();
+        for (auto iter = node->suggestions.rbegin(); iter != node->suggestions.rend(); ++iter) {
+            out << ' ' << iter->first << ' ' << iter->second;  // BuildValue(iter->second)
+        }
+        out << '\n';
+    }
+}
+
+std::string TrieBuilder::BuildValue(const TNode::TValue value) const {
+    std::string result;
+    RunesToString(valueRunesVec_[value], result);
+    return result;
+}
+
+void TrieBuilder::BuildSuggestions() {
+    BuildSuggestionsRec(nodes_[0]);
+}
+
+void TrieBuilder::BuildSuggestionsRec(TNode* node) {
+    if (node->IsTerminal()) {
+        auto value = node->valueIndex;
+        auto weight = valueWeights_[value];
+        node->AddSuggestion(value, weight);
+    }
+
+    for (const auto& childPair : node->children) {
+        auto childId = childPair.second;
+        TNode* child = nodes_[childId];
+        BuildSuggestionsRec(child);
+        for (const auto& suggestion : child->suggestions) {
+            node->AddSuggestion(suggestion.second, suggestion.first);
+        }
     }
 }
 
@@ -337,6 +388,7 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
             builder.AddPath(runes, weight, transitionId, keyIndex);
         }
     }
+    builder.BuildSuggestions();
     if (logger) {
         builder.PrintStats(*logger);
     }
