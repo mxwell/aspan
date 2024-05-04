@@ -1,6 +1,7 @@
 #include "flat_node_trie.h"
 
 #include "Poco/JSON/Parser.h"
+#include "Poco/Logger.h"
 
 #include <cassert>
 #include <fstream>
@@ -84,6 +85,33 @@ FlatNodeTrie::TKeys LoadKeys(std::istream& input, const TRunes& runes) {
     return keys;
 }
 
+FlatNodeTrie::TValues LoadValues(std::istream& input, const TRunes& runes) {
+    size_t valuesCount;
+    input >> valuesCount;
+    FlatNodeTrie::TValues values;
+    values.reserve(valuesCount);
+
+    uint16_t keyIndex;
+    size_t runesCount;
+    for (size_t i = 0; i < valuesCount; ++i) {
+        input >> keyIndex;
+        input >> runesCount;
+        values.emplace_back(
+            TValueItem{
+                .runes = TRunes(runesCount),
+                .keyIndex = keyIndex,
+            }
+        );
+        auto& vec = values.back().runes;
+        size_t runeId;
+        for (size_t j = 0; j < runesCount; ++j) {
+            input >> runeId;
+            vec[j] = runes[runeId];
+        }
+    }
+    return values;
+}
+
 void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<FlatNode::TRuneNodeCombo>& childData) {
     size_t nodesCount;
     input >> nodesCount;
@@ -131,9 +159,15 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
     assert(childData.size() <= nodesCount);
 }
 
-FlatNodeTrie LoadTrie(const std::string& path) {
+FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
     std::ifstream input(path);
+    if (logger) {
+        logger->information("Loading runes");
+    }
     auto runes = LoadRunes(input);
+    if (logger) {
+        logger->information("Loading transitions");
+    }
     auto transitions = LoadTransitions(input);
 
     FlatNodeTrie::TRuneMap runeMap;
@@ -141,10 +175,21 @@ FlatNodeTrie LoadTrie(const std::string& path) {
         runeMap[runes[i]] = i;
     }
 
+    if (logger) {
+        logger->information("Loading keys");
+    }
     auto keys = LoadKeys(input, runes);
+
+    if (logger) {
+        logger->information("Loading values");
+    }
+    auto values = LoadValues(input, runes);
 
     std::vector<FlatNode> nodes;
     std::vector<FlatNode::TRuneNodeCombo> childData;
+    if (logger) {
+        logger->information("Loading nodes");
+    }
     LoadNodes(input, nodes, childData);
 
     return FlatNodeTrie{
@@ -152,6 +197,7 @@ FlatNodeTrie LoadTrie(const std::string& path) {
         .runeMap = std::move(runeMap),
         .transitions = std::move(transitions),
         .keys = std::move(keys),
+        .values = std::move(values),
         .childData = std::move(childData),
         .nodes = std::move(nodes)
     };

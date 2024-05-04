@@ -38,7 +38,7 @@ void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTra
     }
     ++pathCount_;
     textLength_ += path.size();
-    auto valueIndex = AddValueData(path, weight);
+    auto valueIndex = AddValueData(path, weight, keyIndex);
     node->SetTransitionAndKeyValue(transitionId, keyIndex, valueIndex);
 }
 
@@ -58,10 +58,11 @@ TNode::TKey TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException
     return index;
 }
 
-TNode::TValue TrieBuilder::AddValueData(const TRunes& value, TNode::TWeight weight) {
+TNode::TValue TrieBuilder::AddValueData(const TRunes& value, TNode::TWeight weight, TNode::TKey keyIndex) {
     auto index = static_cast<TNode::TValue>(valueRunesVec_.size());
     valueRunesVec_.push_back(value);
     valueWeights_.push_back(weight);
+    valueKeyIndices_.push_back(keyIndex);
     return index;
 }
 
@@ -132,6 +133,7 @@ void TrieBuilder::PrintTrie(const std::string& filename) const {
     PrintRunes(out);
     PrintTransitions(out);
     PrintKeys(out);
+    PrintValues(out);
     PrintNodes(out);
     out.close();
 }
@@ -190,12 +192,31 @@ void TrieBuilder::PrintKeys(std::ofstream& out) const {
     auto n = keyMeta_.size();
     assert(n == keyRunesVec_.size());
 
-    out << keyRunesVec_.size() << '\n';
+    out << n << '\n';
 
     for (size_t i = 0; i < n; ++i) {
         keyMeta_[i].stringify(out, 0);
         out << '\n';
         const auto& runes = keyRunesVec_[i];
+        out << runes.size();
+        for (TRuneValue runeValue : runes) {
+            TRuneId runeId = GetRuneIdConst(runeValue);
+            out << ' ' << static_cast<uint32_t>(runeId);
+        }
+        out << '\n';
+    }
+}
+
+void TrieBuilder::PrintValues(std::ofstream& out) const {
+    auto n = valueRunesVec_.size();
+    assert(n == valueWeights_.size());
+    assert(n == valueKeyIndices_.size());
+
+    out << n << '\n';
+
+    for (size_t i = 0; i < n; ++i) {
+        out << valueKeyIndices_[i] << '\n';
+        const auto& runes = valueRunesVec_[i];
         out << runes.size();
         for (TRuneValue runeValue : runes) {
             TRuneId runeId = GetRuneIdConst(runeValue);

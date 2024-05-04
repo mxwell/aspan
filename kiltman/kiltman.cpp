@@ -151,19 +151,20 @@ class WebServerApp: public ServerApplication
             return Application::EXIT_OK;
         } else if (2 <= args.size() && args.size() <= 3 && args[0] == "load") { // kiltman load trie.txt [port]
             logger().information("Loading trie from %s", args[1]);
-            auto trie = NKiltMan::LoadTrie(args[1]);
+            auto trie = NKiltMan::LoadTrie(args[1], &logger());
             logger().information(
-                "Loaded trie with %z runes, %z transitions, %z keys, %z children, %z nodes",
-                trie.runes.size(), trie.transitions.size(), trie.keys.size(), trie.childData.size(), trie.nodes.size()
+                "Loaded trie with %z runes, %z transitions, %z keys, %z values, %z children, %z nodes",
+                trie.runes.size(), trie.transitions.size(), trie.keys.size(), trie.values.size(), trie.childData.size(), trie.nodes.size()
             );
             auto runesSpace = trie.GetRunesSpace();
             auto transitionsSpace = trie.GetTransitionsSpace();
             auto keysSpace = trie.GetKeysSpace();
+            auto valuesSpace = trie.GetValuesSpace();
             auto childDataSpace = trie.GetChildDataSpace();
             auto nodesSpace = trie.GetNodesSpace();
-            auto totalSpace = runesSpace + transitionsSpace + keysSpace + childDataSpace + nodesSpace;
-            logger().information("Runes space: %z, transitions space: %z, keys space: %z, childData space %z, nodes space: %z, total %z",
-                runesSpace, transitionsSpace, keysSpace, nodesSpace, childDataSpace, totalSpace
+            auto totalSpace = runesSpace + transitionsSpace + keysSpace + valuesSpace + childDataSpace + nodesSpace;
+            logger().information("Runes space: %z, transitions space: %z, keys space: %z, values space: %z, childData space %z, nodes space: %z, total %z",
+                runesSpace, transitionsSpace, keysSpace, valuesSpace, nodesSpace, childDataSpace, totalSpace
             );
             logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
 

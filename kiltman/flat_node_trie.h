@@ -4,6 +4,7 @@
 #include "runes.h"
 
 #include "Poco/JSON/Object.h"
+#include "Poco/Logger.h"
 
 #include <cstdint>
 #include <map>
@@ -22,11 +23,21 @@ struct TKeyItem {
     }
 };
 
+struct TValueItem {
+    TRunes runes;
+    uint16_t keyIndex;
+
+    size_t GetSpace() const {
+        return sizeof(runes[0]) * runes.capacity();
+    }
+};
+
 struct FlatNodeTrie {
     using TRuneId = FlatNode::TRuneId;
     using TRuneMap = std::map<TRuneValue, TRuneId>;
     using TTransitions = std::vector<std::string>;
     using TKeys = std::vector<TKeyItem>;
+    using TValues = std::vector<TValueItem>;
 
     TRunes runes;
     TRuneMap runeMap;
@@ -34,6 +45,7 @@ struct FlatNodeTrie {
     TTransitions transitions;
 
     TKeys keys;
+    TValues values;
     std::vector<FlatNode::TRuneNodeCombo> childData;
     std::vector<FlatNode> nodes;
 
@@ -59,6 +71,14 @@ struct FlatNodeTrie {
         return result;
     }
 
+    size_t GetValuesSpace() const {
+        size_t result = sizeof(values) + sizeof(values[0]) * values.capacity();
+        for (const auto& value : values) {
+            result += value.GetSpace();
+        }
+        return result;
+    }
+
     size_t GetChildDataSpace() const {
         return sizeof(childData) + sizeof(childData[0]) * childData.capacity();
     }
@@ -68,6 +88,6 @@ struct FlatNodeTrie {
     }
 };
 
-FlatNodeTrie LoadTrie(const std::string& path);
+FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger);
 
 }  // namespace NKiltMan

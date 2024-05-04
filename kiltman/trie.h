@@ -96,7 +96,7 @@ public:
     void AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
     uint16_t GetTransitionId(const std::string& transition);
     TNode::TKey AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata);
-    TNode::TValue AddValueData(const TRunes& value, TNode::TWeight weight);
+    TNode::TValue AddValueData(const TRunes& value, TNode::TWeight weight, TNode::TKey keyIndex);
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
@@ -114,6 +114,7 @@ private:
     void PrintRunes(std::ofstream& out) const;
     void PrintTransitions(std::ofstream& out) const;
     void PrintKeys(std::ofstream& out) const;
+    void PrintValues(std::ofstream& out) const;
     void PrintNodes(std::ofstream& out) const;
 
     std::string BuildValue(const TNode::TValue value) const;
@@ -124,9 +125,10 @@ private:
     std::map<std::string, uint16_t> transitionIds_;
     std::vector<Poco::JSON::Object> keyMeta_;
     std::vector<TRunes> keyRunesVec_;
-    std::unordered_map<std::string, uint16_t> keyIndices_;
+    std::unordered_map<std::string, TNode::TKey> keyIndices_;
     std::vector<TRunes> valueRunesVec_;
     std::vector<TNode::TWeight> valueWeights_;
+    std::vector<TNode::TKey> valueKeyIndices_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;
