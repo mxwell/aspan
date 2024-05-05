@@ -48,6 +48,7 @@ struct FlatNodeTrie {
     TValues values;
     std::vector<FlatNode::TRuneNodeCombo> childData;
     std::vector<FlatNode> nodes;
+    std::vector<FlatNode::TValueId> suggestions;
 
     const FlatNode* Traverse(const TRunes& path) const;
 
@@ -85,6 +86,10 @@ struct FlatNodeTrie {
 
     size_t GetNodesSpace() const {
         return sizeof(nodes) + sizeof(nodes[0]) * nodes.capacity();
+    }
+
+    size_t GetSuggestionsSpace() const {
+        return sizeof(suggestions) + sizeof(suggestions[0]) * suggestions.capacity();
     }
 };
 

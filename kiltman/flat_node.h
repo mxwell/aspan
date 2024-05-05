@@ -17,6 +17,10 @@ struct FlatNode {
     using TRuneNodeCombo = uint32_t;
     using TChildrenSize = uint8_t;
     using TChildrenStart = uint32_t;
+    using TValueId = uint32_t;
+    using TSuggestionsSize = uint8_t;
+    using TSuggestionsStart = uint32_t;
+    using TSuggestionsComboPtr = uint32_t;
 
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
     static constexpr TTransitionId kNoTransitionId = std::numeric_limits<TTransitionId>::max();
@@ -26,6 +30,7 @@ struct FlatNode {
     TTransitionId transitionId;
     TChildrenSize childrenCount;
     TChildrenStart childrenStart;
+    TSuggestionsComboPtr suggestionsPtr;
 
     TNodeId FindChild(TRuneId ch, const TRuneNodeCombo* childData) const {
         uint32_t n = childrenCount;

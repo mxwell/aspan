@@ -112,11 +112,12 @@ FlatNodeTrie::TValues LoadValues(std::istream& input, const TRunes& runes) {
     return values;
 }
 
-void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<FlatNode::TRuneNodeCombo>& childData) {
+void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<FlatNode::TRuneNodeCombo>& childData, std::vector<FlatNode::TValueId>& suggestions) {
     size_t nodesCount;
     input >> nodesCount;
     nodes.reserve(nodesCount);
     childData.reserve(nodesCount);
+    suggestions.reserve(nodesCount * 3);
 
     FlatNode::TKey keyIndex;
     uint32_t transitionId;
@@ -140,11 +141,12 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
         input >> suggestionsCount;
         assert(suggestionsCount > 0);
         assert(suggestionsCount <= 10);
-        float weight;
-        int value;
+        FlatNode::TSuggestionsStart suggestionsStart = suggestions.size();
+        assert(suggestionsStart <= kMaxNodeId);
+        FlatNode::TValueId value;
         for (size_t j = 0; j < suggestionsCount; ++j) {
-            input >> weight >> value;
-            // TODO use suggestions
+            input >> value;
+            suggestions.emplace_back(value);
         }
         nodes.emplace_back(
             FlatNode{
@@ -152,11 +154,13 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
                 .transitionId = static_cast<FlatNode::TTransitionId>(transitionId),
                 .childrenCount = static_cast<FlatNode::TChildrenSize>(childrenCount),
                 .childrenStart = childrenStart,
+                .suggestionsPtr = MAKE_COMBO(uint32_t(suggestionsCount), suggestionsStart),
             }
         );
     }
     assert(nodes.size() == nodesCount);
     assert(childData.size() <= nodesCount);
+    assert(suggestions.size() <= nodesCount * 3);
 }
 
 FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
@@ -187,10 +191,14 @@ FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
 
     std::vector<FlatNode> nodes;
     std::vector<FlatNode::TRuneNodeCombo> childData;
+    std::vector<FlatNode::TValueId> suggestions;
     if (logger) {
         logger->information("Loading nodes");
     }
-    LoadNodes(input, nodes, childData);
+    LoadNodes(input, nodes, childData, suggestions);
+    if (logger) {
+        logger->information("Nodes %z, suggestions %z, ratio %.3f", nodes.size(), suggestions.size(), double(suggestions.size()) / nodes.size());
+    }
 
     return FlatNodeTrie{
         .runes = std::move(runes),
@@ -199,7 +207,8 @@ FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
         .keys = std::move(keys),
         .values = std::move(values),
         .childData = std::move(childData),
-        .nodes = std::move(nodes)
+        .nodes = std::move(nodes),
+        .suggestions = std::move(suggestions),
     };
 }
 

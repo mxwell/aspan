@@ -243,7 +243,7 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
         }
         out << node->suggestions.size();
         for (auto iter = node->suggestions.rbegin(); iter != node->suggestions.rend(); ++iter) {
-            out << ' ' << iter->first << ' ' << iter->second;  // BuildValue(iter->second)
+            out << ' ' << iter->second;  // BuildValue(iter->second)
         }
         out << '\n';
     }

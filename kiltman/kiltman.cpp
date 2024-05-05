@@ -162,11 +162,17 @@ class WebServerApp: public ServerApplication
             auto valuesSpace = trie.GetValuesSpace();
             auto childDataSpace = trie.GetChildDataSpace();
             auto nodesSpace = trie.GetNodesSpace();
-            auto totalSpace = runesSpace + transitionsSpace + keysSpace + valuesSpace + childDataSpace + nodesSpace;
-            logger().information("Runes space: %z, transitions space: %z, keys space: %z, values space: %z, childData space %z, nodes space: %z, total %z",
-                runesSpace, transitionsSpace, keysSpace, valuesSpace, nodesSpace, childDataSpace, totalSpace
-            );
-            logger().information("sizeof(FlatNode) = %z", sizeof(NKiltMan::FlatNode));
+            auto suggestionsSpace = trie.GetSuggestionsSpace();
+            auto totalSpace = runesSpace + transitionsSpace + keysSpace + valuesSpace + childDataSpace + nodesSpace + suggestionsSpace;
+            logger().information("RAM usage estimation: %z bytes total", totalSpace);
+            logger().information("  runes:       %z\t%z bytes", trie.runes.size(), runesSpace);
+            logger().information("  transitions: %z\t%z bytes", trie.transitions.size(), transitionsSpace);
+            logger().information("  keys:        %z\t%z bytes", trie.keys.size(), keysSpace);
+            logger().information("  values:      %z\t%z bytes", trie.values.size(), valuesSpace);
+            logger().information("  childData:   %z\t%z bytes", trie.childData.size(), childDataSpace);
+            logger().information("  nodes:       %z\t%z bytes", trie.nodes.size(), nodesSpace);
+            logger().information("  suggestions: %z\t%z bytes", trie.suggestions.size(), suggestionsSpace);
+            logger().information("  sizeof(FlatNode): %z", sizeof(NKiltMan::FlatNode));
 
             UInt16 port = 8080;
             if (args.size() > 2) {
