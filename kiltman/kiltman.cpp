@@ -2,6 +2,7 @@
 #include "runes.h"
 #include "trie.h"
 
+#include "Poco/Clock.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -23,6 +24,8 @@ namespace {
 static const std::string kDetectPath = "/detect";
 
 JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, const NKiltMan::FlatNodeTrie& trie) {
+    Clock clock{};
+
     JSON::Array array;
     JSON::Array suggestionsArray;
 
@@ -56,6 +59,7 @@ JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, con
     JSON::Object response;
     response.set("form", queryText);
     response.set("words", array);
+    response.set("time", clock.elapsed() / 1e6);
     if (suggest) {
         response.set("suggestions", suggestionsArray);
     }
@@ -170,7 +174,9 @@ class WebServerApp: public ServerApplication
             return Application::EXIT_OK;
         } else if (2 <= args.size() && args.size() <= 3 && args[0] == "load") { // kiltman load trie.txt [port]
             logger().information("Loading trie from %s", args[1]);
+            Clock clock{};
             auto trie = NKiltMan::LoadTrie(args[1], &logger());
+            logger().information("Loading time: %.3f seconds", clock.elapsed() / 1e6);
             logger().information(
                 "Loaded trie with %z runes, %z transitions, %z keys, %z values, %z children, %z nodes",
                 trie.runes.size(), trie.transitions.size(), trie.keys.size(), trie.values.size(), trie.childData.size(), trie.nodes.size()
