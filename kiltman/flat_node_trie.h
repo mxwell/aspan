@@ -32,6 +32,12 @@ struct TValueItem {
     }
 };
 
+struct TSuggestionResult {
+    std::string completion;
+};
+
+using TSuggestionResults = std::vector<TSuggestionResult>;
+
 struct FlatNodeTrie {
     using TRuneId = FlatNode::TRuneId;
     using TRuneMap = std::map<TRuneValue, TRuneId>;
@@ -51,6 +57,8 @@ struct FlatNodeTrie {
     std::vector<FlatNode::TValueId> suggestions;
 
     const FlatNode* Traverse(const TRunes& path) const;
+
+    TSuggestionResults GetSuggestions(const FlatNode* node) const;
 
     size_t GetRunesSpace() const {
         return sizeof(runes) + sizeof(runes[0]) * runes.capacity();

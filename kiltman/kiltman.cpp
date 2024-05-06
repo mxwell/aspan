@@ -22,28 +22,43 @@ namespace {
 
 static const std::string kDetectPath = "/detect";
 
-JSON::Object buildDetectResponse(const std::string& queryText, const NKiltMan::FlatNodeTrie& trie) {
+JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, const NKiltMan::FlatNodeTrie& trie) {
     JSON::Array array;
+    JSON::Array suggestionsArray;
+
     NKiltMan::TRunes runes;
     NKiltMan::StringToRunes(queryText, runes);
     auto node = trie.Traverse(runes);
-    if (node != nullptr && node->IsTerminal()) {
-        JSON::Object word;
-        std::string wordStr;
-        auto keyItem = trie.keys[node->keyIndex];
-        NKiltMan::RunesToString(keyItem.runes, wordStr);
-        word.set("initial", wordStr);
-        word.set("meta", keyItem.metadata);
-        if (node->transitionId != NKiltMan::FlatNode::kNoTransitionId) {
-            auto transition = trie.transitions[node->transitionId];
-            word.set("transition", transition);
+    if (node != nullptr) {
+        if (node->IsTerminal()) {
+            JSON::Object word;
+            std::string wordStr;
+            auto keyItem = trie.keys[node->keyIndex];
+            NKiltMan::RunesToString(keyItem.runes, wordStr);
+            word.set("initial", wordStr);
+            word.set("meta", keyItem.metadata);
+            if (node->transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+                auto transition = trie.transitions[node->transitionId];
+                word.set("transition", transition);
+            }
+            array.add(word);
         }
-        array.add(word);
+        if (suggest) {
+            auto suggestions = trie.GetSuggestions(node);
+            for (const auto& suggestion: suggestions) {
+                JSON::Object suggestionObject;
+                suggestionObject.set("completion", suggestion.completion);
+                suggestionsArray.add(suggestionObject);
+            }
+        }
     }
 
     JSON::Object response;
     response.set("form", queryText);
     response.set("words", array);
+    if (suggest) {
+        response.set("suggestions", suggestionsArray);
+    }
     return response;
 }
 
@@ -85,10 +100,14 @@ private:
         } else {
             auto params = uri.getQueryParameters();
             std::string queryText;
+            bool suggest = false;
             for (const auto& [key, value]: params) {
                 if (key == "q") {
                     queryText = value;
-                    break;
+                } else if (key == "suggest") {
+                    if (value == "1") {
+                        suggest = true;
+                    }
                 }
             }
             if (queryText.empty()) {
@@ -97,7 +116,7 @@ private:
                 response.send() << "Query parameter q is required";
                 return;
             }
-            auto jsonObject = buildDetectResponse(queryText, trie_);
+            auto jsonObject = buildDetectResponse(queryText, suggest, trie_);
             response.setContentType("application/json");
             jsonObject.stringify(response.send());
             return;

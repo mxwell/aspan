@@ -25,6 +25,28 @@ const FlatNode* FlatNodeTrie::Traverse(const TRunes& path) const {
     return node;
 }
 
+TSuggestionResults FlatNodeTrie::GetSuggestions(const FlatNode* node) const {
+    FlatNode::TSuggestionsOffset suggestionsStart = COMBO_SUGGESTIONS_START(node->suggestionsPtr);
+    FlatNode::TSuggestionsCount suggestionsCount = COMBO_SUGGESTIONS_COUNT(node->suggestionsPtr);
+
+    TSuggestionResults result;
+    result.reserve(suggestionsCount);
+
+    FlatNode::TSuggestionsOffset suggestionsEnd = suggestionsStart + suggestionsCount;
+    for (FlatNode::TSuggestionsOffset i = suggestionsStart; i < suggestionsEnd; ++i) {
+        auto valueId = suggestions[i];
+        const TValueItem& valueItem = values[valueId];
+        std::string completion;
+        RunesToString(valueItem.runes, completion);
+        result.emplace_back(
+            TSuggestionResult{
+                .completion = std::move(completion)
+            }
+        );
+    }
+    return std::move(result);
+}
+
 TRunes LoadRunes(std::istream& input) {
     size_t runesCount;
     input >> runesCount;
@@ -141,7 +163,7 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
         input >> suggestionsCount;
         assert(suggestionsCount > 0);
         assert(suggestionsCount <= 10);
-        FlatNode::TSuggestionsStart suggestionsStart = suggestions.size();
+        FlatNode::TSuggestionsOffset suggestionsStart = suggestions.size();
         assert(suggestionsStart <= kMaxNodeId);
         FlatNode::TValueId value;
         for (size_t j = 0; j < suggestionsCount; ++j) {

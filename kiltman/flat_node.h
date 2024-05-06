@@ -7,6 +7,8 @@ namespace NKiltMan {
 
 #define COMBO_RUNE(combo) (combo >> 24)
 #define COMBO_NODE(combo) (combo & 0x00FFFFFF)
+#define COMBO_SUGGESTIONS_COUNT(combo) (combo >> 24)
+#define COMBO_SUGGESTIONS_START(combo) (combo & 0x00FFFFFF)
 #define MAKE_COMBO(rune, node) ((rune << 24) | node)
 
 struct FlatNode {
@@ -18,8 +20,8 @@ struct FlatNode {
     using TChildrenSize = uint8_t;
     using TChildrenStart = uint32_t;
     using TValueId = uint32_t;
-    using TSuggestionsSize = uint8_t;
-    using TSuggestionsStart = uint32_t;
+    using TSuggestionsCount = uint8_t;
+    using TSuggestionsOffset = uint32_t;
     using TSuggestionsComboPtr = uint32_t;
 
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
