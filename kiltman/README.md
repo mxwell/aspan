@@ -21,7 +21,7 @@ cmake --build .
 ```bash
 make build_kiltman
 apt-get update
-apt-get install cmake clang-6.0 lld-6.0
+apt-get install -y cmake clang-6.0 lld-6.0
 
 # prepend the file CMakeLists.txt with `set(CMAKE_CXX_COMPILER /usr/bin/clang++-6.0)`
 
