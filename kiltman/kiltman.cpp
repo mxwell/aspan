@@ -23,6 +23,10 @@ namespace {
 
 static const std::string kDetectPath = "/detect";
 
+bool StartsWith(const std::string& str, const std::string& prefix) {
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
 JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, const NKiltMan::FlatNodeTrie& trie) {
     Clock clock{};
 
@@ -49,8 +53,26 @@ JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, con
         if (suggest) {
             auto suggestions = trie.GetSuggestions(node);
             for (const auto& suggestion: suggestions) {
+                JSON::Array suggestionArray;
+                if (StartsWith(suggestion.completion, queryText)) {
+                    JSON::Object hl;
+                    hl.set("hl", true);
+                    hl.set("text", queryText);
+                    suggestionArray.add(hl);
+
+                    JSON::Object regular;
+                    regular.set("hl", false);
+                    regular.set("text", suggestion.completion.substr(queryText.size()));
+                    suggestionArray.add(regular);
+                } else {
+                    JSON::Object regular;
+                    regular.set("hl", false);
+                    regular.set("text", suggestion.completion);
+                    suggestionArray.add(regular);
+                }
+
                 JSON::Object suggestionObject;
-                suggestionObject.set("completion", suggestion.completion);
+                suggestionObject.set("completion", suggestionArray);
                 suggestionsArray.add(suggestionObject);
             }
         }
