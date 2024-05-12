@@ -2963,6 +2963,28 @@ ALL_TESTS.push(["PresentColloquialExceptionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["nounPluralTest", function() {
+    const relations = [
+        ["айна", "айналар"],
+        ["тау", "таулар"],
+        ["дәрігер", "дәрігерлер"],
+        ["күй", "күйлер"],
+        ["дос", "достар"],
+        ["бақ", "бақтар"],
+        ["мектеп", "мектептер"],
+        ["ғалым", "ғалымдар"],
+        ["таң", "таңдар"],
+        ["гүл", "гүлдер"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralize(),
+            "Noun plural"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();

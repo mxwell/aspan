@@ -7,6 +7,8 @@ enum PHRASAL_PART_TYPE {
     VerbPersonalAffix = "VerbPersonalAffix",
     VerbNegation = "VerbNegation",
     QuestionParticle = "QuestionParticle",
+    NounBase = "NounBase",
+    PluralAffix = "PluralAffix",
 }
 
 enum PART_EXPLANATION_TYPE {
@@ -171,6 +173,16 @@ class PhrasalBuilder {
             );
         }
         return this;
+    }
+    nounBase(nounBase: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.NounBase, nounBase)
+        );
+    }
+    pluralAffix(affix: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.PluralAffix, affix)
+        );
     }
     setForbidden(forbidden: boolean): PhrasalBuilder {
         this.forbidden = forbidden;
