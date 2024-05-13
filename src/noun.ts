@@ -28,4 +28,18 @@ class NounBuilder {
             .pluralAffix(pluralAffix)
             .build();
     }
+
+    possessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        let lastBase = getLastItem(this.nounDictForm);
+        const isVowel = genuineVowel(lastBase);
+        if (person == GrammarPerson.First) {
+            const extraVowel = isVowel ? "" : YI[this.softOffset];
+            const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .possessiveAffix(`${extraVowel}${affix}`)
+                .build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

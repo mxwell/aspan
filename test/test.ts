@@ -2985,6 +2985,61 @@ ALL_TESTS.push(["nounPluralTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounFirstPersonPossessiveTest", function() {
+    const singularRelations = [
+        ["айна", "айнам"],
+        ["тау", "тауым"],
+        ["дәрігер", "дәрігерім"],
+        ["күй", "күйім"],
+        ["дос", "досым"],
+        ["бақ", "бақым"],
+        ["мектеп", "мектепім"],
+        ["ғалым", "ғалымым"],
+        ["таң", "таңым"],
+        ["гүл", "гүлім"],
+    ];
+    for (const [noun, expected] of singularRelations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).possessive(GrammarPerson.First, GrammarNumber.Singular),
+            "Noun first person singular possessive"
+        );
+    }
+    const pluralRelations = [
+        ["құрбы", "құрбымыз"],
+        ["мақала", "мақаламыз"],
+        ["көше", "көшеміз"],
+        ["сүлгі", "сүлгіміз"],
+        ["дос", "досымыз"],
+        ["бақ", "бақымыз"],
+        ["мектеп", "мектепіміз"],
+    ];
+    for (const [noun, expected] of pluralRelations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).possessive(GrammarPerson.First, GrammarNumber.Plural),
+            "Noun first person plural possessive"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounFirstPersonPossessiveSpecialTest", function() {
+    const singularRelations = [
+        ["көйлек", "көйлегім"],
+        ["есік", "есігім"],
+        ["жастық", "жастығым"],
+        ["кітап", "кітабым"],
+        ["мектеп", "мектебім"],
+    ];
+    for (const [noun, expected] of singularRelations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).possessive(GrammarPerson.First, GrammarNumber.Singular),
+            "Noun first person singular possessive, special case"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();

@@ -9,6 +9,7 @@ enum PHRASAL_PART_TYPE {
     QuestionParticle = "QuestionParticle",
     NounBase = "NounBase",
     PluralAffix = "PluralAffix",
+    PossessiveAffix = "PossessiveAffix",
 }
 
 enum PART_EXPLANATION_TYPE {
@@ -182,6 +183,11 @@ class PhrasalBuilder {
     pluralAffix(affix: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.PluralAffix, affix)
+        );
+    }
+    possessiveAffix(affix: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.PossessiveAffix, affix)
         );
     }
     setForbidden(forbidden: boolean): PhrasalBuilder {
