@@ -3037,6 +3037,46 @@ ALL_TESTS.push(["nounFirstPersonPossessiveSpecialTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSecondPersonPossessiveTest", function() {
+    const relations: Record<string, string[]> = {
+        "ата": ["атаң", "атаңыз", "аталарың", "аталарыңыз"],
+        "алма": ["алмаң", "алмаңыз", "алмаларың", "алмаларыңыз"],
+        "әке": ["әкең", "әкеңіз", "әкелерің", "әкелеріңіз"],
+        "кесе": ["кесең", "кесеңіз", "кеселерің", "кеселеріңіз"],
+        "қыз": ["қызың", "қызыңыз", "қыздарың", "қыздарыңыз"],
+        "сызғыш": ["сызғышың", "сызғышыңыз", "сызғыштарың", "сызғыштарыңыз"],
+        "үй": ["үйің", "үйіңіз", "үйлерің", "үйлеріңіз"],
+        "сурет": ["суретің", "суретіңіз", "суреттерің", "суреттеріңіз"],
+        "көйлек": ["көйлегің", "көйлегіңіз", "көйлектерің", "көйлектеріңіз"],
+        "есік": ["есігің", "есігіңіз", "есіктерің", "есіктеріңіз"],
+        "жастық": ["жастығың", "жастығыңыз", "жастықтарың", "жастықтарыңыз"],
+        "сабақ": ["сабағың", "сабағыңыз", "сабақтарың", "сабақтарыңыз"],
+        "кітап": ["кітабың", "кітабыңыз", "кітаптарың", "кітаптарыңыз"],
+        "мектеп": ["мектебің", "мектебіңіз", "мектептерің", "мектептеріңіз"],
+    };
+
+    const numbers = [
+        GrammarNumber.Singular, GrammarNumber.Singular, GrammarNumber.Plural, GrammarNumber.Plural
+    ];
+    const persons = [
+        GrammarPerson.Second, GrammarPerson.SecondPolite, GrammarPerson.Second, GrammarPerson.SecondPolite
+    ];
+
+    for (const noun in relations) {
+        const forms = relations[noun];
+        for (let i = 0; i < forms.length; i++) {
+            const form = forms[i];
+            const number = numbers[i];
+            const person = persons[i];
+            T_EQ_ASSERT(
+                form,
+                new NounBuilder(noun).possessive(person, number),
+                "Noun second person possessive"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();

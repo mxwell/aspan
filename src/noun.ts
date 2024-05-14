@@ -1,3 +1,12 @@
+function replaceBaseLastForPossessive(base: string, lastBase: string): string {
+    const replacement = BASE_REPLACEMENT_PKKH.get(lastBase);
+    if (replacement != null) {
+        return replaceLast(base, replacement);
+    } else {
+        return base;
+    }
+}
+
 class NounBuilder {
     private nounDictForm: string
     private soft: boolean
@@ -19,13 +28,17 @@ class NounBuilder {
         return TARTER[this.softOffset];
     }
 
-    pluralize(): Phrasal {
+    private pluralBuilder(): PhrasalBuilder {
         let lastBase = getLastItem(this.nounDictForm);
         let pluralAffix = this.getPluralAffix(lastBase);
 
         return new PhrasalBuilder()
             .nounBase(this.nounDictForm)
-            .pluralAffix(pluralAffix)
+            .pluralAffix(pluralAffix);
+    }
+
+    pluralize(): Phrasal {
+        return this.pluralBuilder()
             .build();
     }
 
@@ -33,18 +46,30 @@ class NounBuilder {
         let lastBase = getLastItem(this.nounDictForm);
         const isVowel = genuineVowel(lastBase);
         if (person == GrammarPerson.First) {
-            const replacement = BASE_REPLACEMENT_PKKH.get(lastBase);
-            const base = (
-                (replacement != null)
-                ? replaceLast(this.nounDictForm, replacement)
-                : this.nounDictForm
-            );
+            const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
             const extraVowel = isVowel ? "" : YI[this.softOffset];
             const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
             return new PhrasalBuilder()
                 .nounBase(base)
                 .possessiveAffix(`${extraVowel}${affix}`)
                 .build();
+        } else if (person == GrammarPerson.Second || person == GrammarPerson.SecondPolite) {
+            if (number == GrammarNumber.Singular) {
+                const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
+                const extraVowel = isVowel ? "" : YI[this.softOffset];
+                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+                return new PhrasalBuilder()
+                    .nounBase(base)
+                    .possessiveAffix(`${extraVowel}${affix}`)
+                    .build();
+            } else {
+                const baseWithNumber = this.pluralBuilder();
+                const extraVowel = YI[this.softOffset];
+                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+                return baseWithNumber
+                    .possessiveAffix(`${extraVowel}${affix}`)
+                    .build();
+            }
         }
         return NOT_SUPPORTED_PHRASAL;
     }
