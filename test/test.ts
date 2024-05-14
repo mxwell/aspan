@@ -2992,8 +2992,6 @@ ALL_TESTS.push(["nounFirstPersonPossessiveTest", function() {
         ["дәрігер", "дәрігерім"],
         ["күй", "күйім"],
         ["дос", "досым"],
-        ["бақ", "бақым"],
-        ["мектеп", "мектепім"],
         ["ғалым", "ғалымым"],
         ["таң", "таңым"],
         ["гүл", "гүлім"],
@@ -3011,8 +3009,6 @@ ALL_TESTS.push(["nounFirstPersonPossessiveTest", function() {
         ["көше", "көшеміз"],
         ["сүлгі", "сүлгіміз"],
         ["дос", "досымыз"],
-        ["бақ", "бақымыз"],
-        ["мектеп", "мектепіміз"],
     ];
     for (const [noun, expected] of pluralRelations) {
         T_EQ_ASSERT(
@@ -3025,10 +3021,11 @@ ALL_TESTS.push(["nounFirstPersonPossessiveTest", function() {
 
 ALL_TESTS.push(["nounFirstPersonPossessiveSpecialTest", function() {
     const singularRelations = [
-        ["көйлек", "көйлегім"],
+        ["бақ", "бағым"],
         ["есік", "есігім"],
         ["жастық", "жастығым"],
         ["кітап", "кітабым"],
+        ["көйлек", "көйлегім"],
         ["мектеп", "мектебім"],
     ];
     for (const [noun, expected] of singularRelations) {

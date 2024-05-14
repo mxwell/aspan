@@ -33,10 +33,16 @@ class NounBuilder {
         let lastBase = getLastItem(this.nounDictForm);
         const isVowel = genuineVowel(lastBase);
         if (person == GrammarPerson.First) {
+            const replacement = BASE_REPLACEMENT_PKKH.get(lastBase);
+            const base = (
+                (replacement != null)
+                ? replaceLast(this.nounDictForm, replacement)
+                : this.nounDictForm
+            );
             const extraVowel = isVowel ? "" : YI[this.softOffset];
             const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
             return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+                .nounBase(base)
                 .possessiveAffix(`${extraVowel}${affix}`)
                 .build();
         }
