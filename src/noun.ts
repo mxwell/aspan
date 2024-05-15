@@ -70,6 +70,22 @@ class NounBuilder {
                     .possessiveAffix(`${extraVowel}${affix}`)
                     .build();
             }
+        } else if (person == GrammarPerson.Third) {
+            if (number == GrammarNumber.Singular) {
+                const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
+                const extraConsonant = isVowel ? "с" : "";
+                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+                return new PhrasalBuilder()
+                    .nounBase(base)
+                    .possessiveAffix(`${extraConsonant}${affix}`)
+                    .build();
+            } else {
+                const baseWithNumber = this.pluralBuilder();
+                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+                return baseWithNumber
+                    .possessiveAffix(affix)
+                    .build();
+            }
         }
         return NOT_SUPPORTED_PHRASAL;
     }

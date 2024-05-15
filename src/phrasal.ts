@@ -72,15 +72,19 @@ class PhrasalPart {
     }
 }
 
+type MaybePhrasal = Phrasal | null;
+
 class Phrasal {
     parts: PhrasalPart[];
     raw: string;
     forbidden: boolean;
+    alternative: MaybePhrasal;
 
     constructor(parts: PhrasalPart[], raw: string, forbidden: boolean) {
         this.parts = parts;
         this.raw = raw;
         this.forbidden = forbidden;
+        this.alternative = null;
     }
 }
 
