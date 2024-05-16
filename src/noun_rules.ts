@@ -4,7 +4,13 @@ const BASE_REPLACEMENT_PKKH = new Map([
     ["қ", "ғ"],
 ]);
 
-const DROP_VOWEL_POSSESSIVE = new Set([
+enum DropVowelType {
+    Regular,
+    DropLast,
+    OptionallyDropLast,
+};
+
+const DROP_LAST_VOWEL_NOUNS = new Set([
     "әріп",
     "бөрік",
     "ғұрып",
@@ -29,7 +35,7 @@ const DROP_VOWEL_POSSESSIVE = new Set([
     "ырық",
 ]);
 
-const DROP_VOWEL_POSSESSIVE_ALT = new Set([
+const OPTIONALLY_DROP_LAST_VOWEL_NOUNS = new Set([
     "ауыз",
     "дауыс",
     "көрік",

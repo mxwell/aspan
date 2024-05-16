@@ -3112,60 +3112,92 @@ ALL_TESTS.push(["nounThirdPersonPossessiveTest", function() {
     }
 }]);
 
-ALL_TESTS.push(["nounThirdPersonDropVowelPossessiveTest", function() {
-    const relations: Record<string, string[]> = {
-        "ауыз": ["аузы", "ауызы"],
-        "әріп": ["әрпі"],
-        "бөрік": ["бөркі"],
-        "ғұрып": ["ғұрпы"],
-        "дауыс": ["даусы", "дауысы"],
-        "дәріп": ["дәрпі"],
-        "ерік": ["еркі"],
-        "ерін": ["ерні"],
-        "зауық": ["зауқы"],
-        "кейіп": ["кеіпі"],
-        "көрік": ["көркі", "көрігі"],
-        "қалып": ["қалпы", "қалыбы"],
-        "қарын": ["қарны", "қарыны"],
-        "қаріп": ["қарпі"],
-        "қауіп": ["қаупі"],
-        "қойын": ["қойны", "қойыны"],
-        "құлық": ["құлқы"],
-        "құлып": ["құлпы"],
-        "мойын": ["мойны"],
-        "мүлік": ["мүлкі"],
-        "мұрын": ["мұрны"],
-        "нарық": ["нарқы", "нарығы"],
-        "орын": ["орны"],
-        "парық": ["парқы"],
-        "сиық": ["сиқы"],
-        "сұрық": ["сұрқы"],
-        "тұрық": ["тұрқы", "тұрығы"],
-        "халық": ["халқы"],
-        "шырық": ["шырқы"],
-        "ырық": ["ырқы"],
+ALL_TESTS.push(["nounPossessiveDropVowelTest", function() {
+    const relations: Record<string, string[][]> = {
+        "ауыз": [["аузы", "ауызы"], ["аузым", "ауызым"], ["ауыздары"]],
+        "әріп": [["әрпі"], ["әрпім"], ["әріптері"]],
+        "бөрік": [["бөркі"], ["бөркім"], ["бөріктері"]],
+        "ғұрып": [["ғұрпы"], ["ғұрпым"], ["ғұрыптары"]],
+        "дауыс": [["даусы", "дауысы"], ["даусым", "дауысым"], ["дауыстары"]],
+        "дәріп": [["дәрпі"], ["дәрпім"], ["дәріптері"]],
+        "ерік": [["еркі"], ["еркім"], ["еріктері"]],
+        "ерін": [["ерні"], ["ернім"], ["еріндері"]],
+        "зауық": [["зауқы"], ["зауқым"], ["зауықтары"]],
+        "кейіп": [["кейпі"], ["кейпім"], ["кейіптері"]],
+        "көрік": [["көркі", "көрігі"], ["көркім", "көрігім"], ["көріктері"]],
+        "қалып": [["қалпы", "қалыбы"], ["қалпым", "қалыбым"], ["қалыптары"]],
+        "қарын": [["қарны", "қарыны"], ["қарным", "қарыным"], ["қарындары"]],
+        "қаріп": [["қарпі"], ["қарпім"], ["қаріптері"]],
+        "қауіп": [["қаупі"], ["қаупім"], ["қауіптері"]],
+        "қойын": [["қойны", "қойыны"], ["қойным", "қойыным"], ["қойындары"]],
+        "құлық": [["құлқы"], ["құлқым"], ["құлықтары"]],
+        "құлып": [["құлпы"], ["құлпым"], ["құлыптары"]],
+        "мойын": [["мойны"], ["мойным"], ["мойындары"]],
+        "мүлік": [["мүлкі"], ["мүлкім"], ["мүліктері"]],
+        "мұрын": [["мұрны"], ["мұрным"], ["мұрындары"]],
+        "нарық": [["нарқы", "нарығы"], ["нарқым", "нарығым"], ["нарықтары"]],
+        "орын": [["орны"], ["орным"], ["орындары"]],
+        "парық": [["парқы"], ["парқым"], ["парықтары"]],
+        "сиық": [["сиқы"], ["сиқым"], ["сиықтары"]],
+        "сұрық": [["сұрқы"], ["сұрқым"], ["сұрықтары"]],
+        "тұрық": [["тұрқы", "тұрығы"], ["тұрқым", "тұрығым"], ["тұрықтары"]],
+        "халық": [["халқы"], ["халқым"], ["халықтары"]],
+        "шырық": [["шырқы"], ["шырқым"], ["шырықтары"]],
+        "ырық": [["ырқы"], ["ырқым"], ["ырықтары"]],
     };
 
     for (const noun in relations) {
         const forms = relations[noun];
-        const mainForm = forms[0];
-        const result = new NounBuilder(noun).possessive(GrammarPerson.Third, GrammarNumber.Singular);
+        const thirdForms = forms[0];
+        const thirdForm = thirdForms[0];
+        const thirdResult = new NounBuilder(noun).possessive(GrammarPerson.Third, GrammarNumber.Singular);
         T_EQ_ASSERT(
-            mainForm,
-            result,
+            thirdForm,
+            thirdResult,
             "Noun third person possessive, special case of potentially dropped vowel"
         );
-        const altForm = forms.length > 0 ? forms[1] : null;
-        const altFormRequired = altForm != null;
-        const altFormPresent = result.alternative != null;
+        const altThirdForm = thirdForms.length > 0 ? thirdForms[1] : null;
+        const altFormRequired = altThirdForm != null;
+        const altFormPresent = thirdResult.alternative != null;
         T_ASSERT(altFormRequired == altFormPresent, "Noun third person possessive, alternative form check");
         if (altFormRequired && altFormPresent) {
             T_EQ_ASSERT(
-                altForm,
-                result.alternative,
+                altThirdForm,
+                thirdResult.alternative,
                 "Noun third person possessive, special case of potentially dropped vowel, alt form"
             );
         }
+
+        const firstForms = forms[1];
+        const firstForm = firstForms[0];
+        const firstResult = new NounBuilder(noun).possessive(GrammarPerson.First, GrammarNumber.Singular);
+        T_EQ_ASSERT(
+            firstForm,
+            firstResult,
+            "Noun first person possessive, special case of potentially dropped vowel"
+        );
+        const altFirstForm = firstForms.length > 0 ? firstForms[1] : null;
+        const altFirstFormRequired = altFirstForm != null;
+        const altFirstFormPresent = firstResult.alternative != null;
+        T_ASSERT(altFirstFormRequired == altFirstFormPresent, "Noun first person possessive, alternative form check");
+        if (altFirstFormRequired && altFirstFormPresent) {
+            T_EQ_ASSERT(
+                altFirstForm,
+                firstResult.alternative,
+                "Noun first person possessive, special case of potentially dropped vowel, alt form"
+            );
+        }
+
+        const pluralForms = forms[2];
+        T_ASSERT(pluralForms.length == 1, "Single plural form is only allowed");
+        const pluralForm = pluralForms[0];
+        const pluralResult = new NounBuilder(noun).possessive(GrammarPerson.Third, GrammarNumber.Plural);
+        T_EQ_ASSERT(
+            pluralForm,
+            pluralResult,
+            "Noun third person plural possessive, special case of potentially dropped vowel"
+        );
+        T_ASSERT(pluralResult.alternative == null, "No alternative form for plural possessive");
     }
 }]);
 

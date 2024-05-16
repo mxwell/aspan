@@ -7,6 +7,21 @@ function replaceBaseLastForPossessive(base: string, lastBase: string): string {
     }
 }
 
+function dropLastVowel(base: string): string {
+    const n = base.length;
+    return base.substring(0, n - 2) + base[n - 1];
+}
+
+class ModifiedBase {
+    base: string
+    endsWithVowel: boolean
+
+    constructor(base: string, endsWithVowel: boolean) {
+        this.base = base;
+        this.endsWithVowel = endsWithVowel;
+    }
+}
+
 class NounBuilder {
     private nounDictForm: string
     private soft: boolean
@@ -42,26 +57,70 @@ class NounBuilder {
             .build();
     }
 
-    possessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+    private getDropVowelType(): DropVowelType {
+        if (DROP_LAST_VOWEL_NOUNS.has(this.nounDictForm)) {
+            return DropVowelType.DropLast;
+        } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(this.nounDictForm)) {
+            return DropVowelType.OptionallyDropLast;
+        } else {
+            return DropVowelType.Regular;
+        }
+    }
+
+    private modifyBaseForSomePossessive(): ModifiedBase[] {
+        const dropVowelType = this.getDropVowelType();
         let lastBase = getLastItem(this.nounDictForm);
-        const isVowel = genuineVowel(lastBase);
+        if (dropVowelType == DropVowelType.Regular) {
+            const replacedStr = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
+            const replaced = new ModifiedBase(replacedStr, genuineVowel(getLastItem(replacedStr)));
+            return [replaced];
+        } else if (dropVowelType == DropVowelType.DropLast) {
+            const droppedStr = dropLastVowel(this.nounDictForm);
+            const dropped = new ModifiedBase(droppedStr, false);
+            return [dropped];
+        } else {
+            const droppedStr = dropLastVowel(this.nounDictForm);
+            const dropped = new ModifiedBase(droppedStr, false);
+            const replacedStr = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
+            const replaced = new ModifiedBase(replacedStr, genuineVowel(getLastItem(replacedStr)));
+            return [dropped, replaced];
+        }
+    }
+
+    private possessiveBuilder(base: ModifiedBase, person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let extra = "";
+        if (person == GrammarPerson.Third) {
+            if (base.endsWithVowel) {
+                extra = "с";
+            }
+        } else {
+            if (!base.endsWithVowel) {
+                extra = YI[this.softOffset];
+            }
+        }
+        const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+        return new PhrasalBuilder()
+            .nounBase(base.base)
+            .possessiveAffix(`${extra}${affix}`);
+    }
+
+    private buildPossessiveWithAlternative(bases: ModifiedBase[], person: GrammarPerson, number: GrammarNumber): Phrasal {
+        let mainBuilder = this.possessiveBuilder(bases[0], person, number);
+        if (bases.length > 1) {
+            const alternative = this.possessiveBuilder(bases[1], person, number).build();
+            mainBuilder = mainBuilder.addAlternative(alternative);
+        }
+        return mainBuilder.build();
+    }
+
+    possessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
         if (person == GrammarPerson.First) {
-            const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
-            const extraVowel = isVowel ? "" : YI[this.softOffset];
-            const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
-            return new PhrasalBuilder()
-                .nounBase(base)
-                .possessiveAffix(`${extraVowel}${affix}`)
-                .build();
+            const bases = this.modifyBaseForSomePossessive();
+            return this.buildPossessiveWithAlternative(bases, person, number);
         } else if (person == GrammarPerson.Second || person == GrammarPerson.SecondPolite) {
             if (number == GrammarNumber.Singular) {
-                const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
-                const extraVowel = isVowel ? "" : YI[this.softOffset];
-                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
-                return new PhrasalBuilder()
-                    .nounBase(base)
-                    .possessiveAffix(`${extraVowel}${affix}`)
-                    .build();
+                const bases = this.modifyBaseForSomePossessive();
+                return this.buildPossessiveWithAlternative(bases, person, number);
             } else {
                 const baseWithNumber = this.pluralBuilder();
                 const extraVowel = YI[this.softOffset];
@@ -72,13 +131,8 @@ class NounBuilder {
             }
         } else if (person == GrammarPerson.Third) {
             if (number == GrammarNumber.Singular) {
-                const base = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
-                const extraConsonant = isVowel ? "с" : "";
-                const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
-                return new PhrasalBuilder()
-                    .nounBase(base)
-                    .possessiveAffix(`${extraConsonant}${affix}`)
-                    .build();
+                const bases = this.modifyBaseForSomePossessive();
+                return this.buildPossessiveWithAlternative(bases, person, number);
             } else {
                 const baseWithNumber = this.pluralBuilder();
                 const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
