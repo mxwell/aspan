@@ -2,6 +2,10 @@ const LARLER = ["лар", "лер"];
 const TARTER = ["тар", "тер"];
 const DARDER = ["дар", "дер"];
 
+const DANDEN = ["дан", "ден"];
+const TANTEN = ["тан", "тен"];
+const NANNEN = ["нан", "нен"];
+
 const NOUN_POSSESSIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["м", "м"],

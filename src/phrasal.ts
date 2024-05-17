@@ -10,6 +10,7 @@ enum PHRASAL_PART_TYPE {
     NounBase = "NounBase",
     PluralAffix = "PluralAffix",
     PossessiveAffix = "PossessiveAffix",
+    SeptikAffix = "SeptikAffix",
 }
 
 enum PART_EXPLANATION_TYPE {
@@ -194,6 +195,11 @@ class PhrasalBuilder {
     possessiveAffix(affix: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.PossessiveAffix, affix)
+        );
+    }
+    septikAffix(affix: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.SeptikAffix, affix)
         );
     }
     setForbidden(forbidden: boolean): PhrasalBuilder {

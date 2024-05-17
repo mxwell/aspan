@@ -10,6 +10,7 @@ const CONS_GROUP5 = "бвгғд";
 const CONS_GROUP6 = "мнң";
 const CONS_GROUP7 = "руй";
 const CONS_GROUP8 = "жзлмнң";
+const CONS_GROUP1_3 = CONS_GROUP1 + CONS_GROUP3;
 
 const FORCED_SOFT_VERBS = new Set([
     "кию",  // киемің is a quite frequent form

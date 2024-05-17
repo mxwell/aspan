@@ -3201,6 +3201,32 @@ ALL_TESTS.push(["nounPossessiveDropVowelTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSeptikShygysTest", function() {
+    const relations = [
+        ["аялдама", "аялдамадан"],
+        ["гимназия", "гимназиядан"],
+        ["Алматы", "Алматыдан"],
+        ["көрме", "көрмеден"],
+        ["әуежай", "әуежайдан"],
+        ["көл", "көлден"],
+        ["жер", "жерден"],
+        ["Қамал", "Қамалдан"],
+        ["пойыз", "пойыздан"],
+        ["сөз", "сөзден"],
+        ["картоп", "картоптан"],
+        ["көкөніс", "көкөністен"],
+        ["мың", "мыңнан"],
+        ["еден", "еденнен"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).septikForm(Septik.Shygys),
+            "Noun, shygys septik"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();

@@ -143,4 +143,26 @@ class NounBuilder {
         }
         return NOT_SUPPORTED_PHRASAL;
     }
+
+    private getShygysAffix(last: string, thirdPersonPoss: boolean): string {
+        if (thirdPersonPoss || checkCharPresence(last, CONS_GROUP6)) {
+            return NANNEN[this.softOffset];
+        } else if (vowel(last) || checkCharPresence(last, CONS_GROUP1_3)) {
+            return DANDEN[this.softOffset];
+        } else {
+            return TANTEN[this.softOffset];
+        }
+    }
+
+    septikForm(septik: Septik): Phrasal {
+        if (septik == Septik.Shygys) {
+            let lastBase = getLastItem(this.nounDictForm);
+            let affix = this.getShygysAffix(lastBase, false);
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .septikAffix(affix)
+                .build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

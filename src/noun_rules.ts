@@ -10,6 +10,16 @@ enum DropVowelType {
     OptionallyDropLast,
 };
 
+enum Septik {
+    Atau,
+    Shygys,
+    Jatys,
+    Barys,
+    Ilik,
+    Tabys,
+    Komektes,
+};
+
 const DROP_LAST_VOWEL_NOUNS = new Set([
     "әріп",
     "бөрік",
