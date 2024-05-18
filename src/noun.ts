@@ -87,7 +87,7 @@ class NounBuilder {
         }
     }
 
-    private possessiveBuilder(base: ModifiedBase, person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+    private singlePossessiveBuilder(base: ModifiedBase, person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         let extra = "";
         if (person == GrammarPerson.Third) {
             if (base.endsWithVowel) {
@@ -104,16 +104,16 @@ class NounBuilder {
             .possessiveAffix(`${extra}${affix}`);
     }
 
-    private buildPossessiveWithAlternative(bases: ModifiedBase[], person: GrammarPerson, number: GrammarNumber): Phrasal {
-        let mainBuilder = this.possessiveBuilder(bases[0], person, number);
+    private buildPossessiveWithAlternative(bases: ModifiedBase[], person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        let mainBuilder = this.singlePossessiveBuilder(bases[0], person, number);
         if (bases.length > 1) {
-            const alternative = this.possessiveBuilder(bases[1], person, number).build();
+            const alternative = this.singlePossessiveBuilder(bases[1], person, number);
             mainBuilder = mainBuilder.addAlternative(alternative);
         }
-        return mainBuilder.build();
+        return mainBuilder;
     }
 
-    possessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+    private possessiveBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         if (person == GrammarPerson.First) {
             const bases = this.modifyBaseForSomePossessive();
             return this.buildPossessiveWithAlternative(bases, person, number);
@@ -126,8 +126,7 @@ class NounBuilder {
                 const extraVowel = YI[this.softOffset];
                 const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
                 return baseWithNumber
-                    .possessiveAffix(`${extraVowel}${affix}`)
-                    .build();
+                    .possessiveAffix(`${extraVowel}${affix}`);
             }
         } else if (person == GrammarPerson.Third) {
             if (number == GrammarNumber.Singular) {
@@ -137,11 +136,18 @@ class NounBuilder {
                 const baseWithNumber = this.pluralBuilder();
                 const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
                 return baseWithNumber
-                    .possessiveAffix(affix)
-                    .build();
+                    .possessiveAffix(affix);
             }
         }
-        return NOT_SUPPORTED_PHRASAL;
+        return new PhrasalBuilder();
+    }
+
+    possessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        let builder = this.possessiveBuilder(person, number);
+        if (builder.isEmpty()) {
+            return NOT_SUPPORTED_PHRASAL;
+        }
+        return builder.build();
     }
 
     private getShygysAffix(last: string, thirdPersonPoss: boolean): string {
@@ -163,6 +169,34 @@ class NounBuilder {
                 .septikAffix(affix)
                 .build();
         }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+
+    pluralSeptikForm(septik: Septik): Phrasal {
+        let builder = this.pluralBuilder();
+        if (septik == Septik.Shygys) {
+            const affix = DANDEN[this.softOffset];
+            return builder
+                .septikAffix(affix)
+                .build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+
+    possessiveSeptikForm(person: GrammarPerson, number: GrammarNumber, septik: Septik): Phrasal {
+        let builder = this.possessiveBuilder(person, number);
+        if (builder.isEmpty()) {
+            return NOT_SUPPORTED_PHRASAL;
+        }
+
+        if (septik == Septik.Shygys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getShygysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        }
+
         return NOT_SUPPORTED_PHRASAL;
     }
 }

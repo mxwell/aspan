@@ -3227,6 +3227,64 @@ ALL_TESTS.push(["nounSeptikShygysTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounShygysComboTest", function() {
+    const relations = [
+        ["ағаш", "ағаштардан"],
+        ["сұрақ", "сұрақтардан"],
+        ["бөлме", "бөлмелерден"],
+        ["дүкен", "дүкендерден"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSeptikForm(Septik.Shygys),
+            "Noun, plural, shygys septik"
+        );
+    }
+
+    T_EQ_ASSERT(
+        "аузымнан",
+        new NounBuilder("ауыз").possessiveSeptikForm(GrammarPerson.First, GrammarNumber.Singular, Septik.Shygys),
+        "Noun, first person singular possessive, shygys septik, alternating special case"
+    );
+    T_EQ_ASSERT(
+        "ауызымнан",
+        new NounBuilder("ауыз").possessiveSeptikForm(GrammarPerson.First, GrammarNumber.Singular, Septik.Shygys).alternative,
+        "Noun, first person singular possessive, shygys septik, alternating special case"
+    );
+    T_EQ_ASSERT(
+        "аузынан",
+        new NounBuilder("ауыз").possessiveSeptikForm(GrammarPerson.Third, GrammarNumber.Singular, Septik.Shygys),
+        "Noun, third person singular possessive, shygys septik, alternating special case"
+    );
+    T_EQ_ASSERT(
+        "ауызынан",
+        new NounBuilder("ауыз").possessiveSeptikForm(GrammarPerson.Third, GrammarNumber.Singular, Septik.Shygys).alternative,
+        "Noun, third person singular possessive, shygys septik, alternating special case"
+    );
+
+    const variants = [
+        ["шырқымнан", "шырқымыздан"],
+        ["шырқыңнан", "шырықтарыңнан"],
+        ["шырқыңыздан", "шырықтарыңыздан"],
+        ["шырқынан", "шырықтарынан"],
+    ];
+    let builder = new NounBuilder("шырық")
+    for (let i = 0; i < GRAMMAR_PERSONS.length; i++) {
+        const person = GRAMMAR_PERSONS[i];
+        for (let j = 0; j < GRAMMAR_NUMBERS.length; j++) {
+            const number = GRAMMAR_NUMBERS[j];
+            const result = builder.possessiveSeptikForm(person, number, Septik.Shygys);
+            T_EQ_ASSERT(
+                variants[i][j],
+                result,
+                "Noun, shygys septik, special case"
+            );
+        }
+    }
+
+}]);
+
 /* End of tests */
 
 testAll();

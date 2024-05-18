@@ -92,14 +92,19 @@ class Phrasal {
 const NOT_SUPPORTED: string = "<not supported>";
 const NOT_SUPPORTED_PHRASAL = new Phrasal([], NOT_SUPPORTED, false, null);
 
+type MaybePhrasalBuilder = PhrasalBuilder | null;
+
 class PhrasalBuilder {
     private parts: PhrasalPart[];
     private forbidden: boolean;
-    private alternative: MaybePhrasal;
+    private alternative: MaybePhrasalBuilder;
 
     constructor() {
         this.parts = [];
         this.alternative = null;
+    }
+    isEmpty(): boolean {
+        return this.parts.length === 0;
     }
     addPart(part: PhrasalPart, allowEmpty: boolean = false): PhrasalBuilder {
         if (part.content.length > 0 || allowEmpty) {
@@ -198,6 +203,9 @@ class PhrasalBuilder {
         );
     }
     septikAffix(affix: string): PhrasalBuilder {
+        if (this.alternative != null) {
+            this.alternative.septikAffix(affix);
+        }
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.SeptikAffix, affix)
         );
@@ -209,7 +217,7 @@ class PhrasalBuilder {
     markForbidden(): PhrasalBuilder {
         return this.setForbidden(true);
     }
-    addAlternative(alternative: Phrasal): PhrasalBuilder {
+    addAlternative(alternative: PhrasalBuilder): PhrasalBuilder {
         this.alternative = alternative;
         return this;
     }
@@ -226,11 +234,16 @@ class PhrasalBuilder {
         for (let i = 0; i < this.parts.length; ++i) {
             partStrings.push(`${this.parts[i].content}`);
         }
+        const builtAlternative = (
+            this.alternative != null
+            ? this.alternative.build()
+            : null
+        );
         return new Phrasal(
             this.parts,
             partStrings.join(""),
             this.forbidden,
-            this.alternative,
+            builtAlternative,
         );
     }
 }
