@@ -3112,6 +3112,46 @@ ALL_TESTS.push(["nounThirdPersonPossessiveTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounPluralPossessiveTest", function() {
+    const relations = [
+        ["айна", "айналарым"],
+        ["ауыз", "ауыздарым"],
+        ["тау", "тауларым"],
+        ["дәрігер", "дәрігерлерім"],
+        ["күй", "күйлерім"],
+        ["дос", "достарым"],
+        ["ғалым", "ғалымдарым"],
+        ["таң", "таңдарым"],
+        ["гүл", "гүлдерім"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralPossessive(GrammarPerson.First, GrammarNumber.Singular),
+            "Noun, plural, first person singular possessive"
+        );
+    }
+
+    const thirdRelations = [
+        ["айна", "айналары"],
+        ["ауыз", "ауыздары"],
+        ["тау", "таулары"],
+        ["дәрігер", "дәрігерлері"],
+        ["күй", "күйлері"],
+        ["дос", "достары"],
+        ["ғалым", "ғалымдары"],
+        ["таң", "таңдары"],
+        ["гүл", "гүлдері"],
+    ];
+    for (const [noun, expected] of thirdRelations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralPossessive(GrammarPerson.Third, GrammarNumber.Singular),
+            "Noun, plural, third person singular possessive"
+        );
+    }
+}]);
+
 ALL_TESTS.push(["nounPossessiveDropVowelTest", function() {
     const relations: Record<string, string[][]> = {
         "ауыз": [["аузы", "ауызы"], ["аузым", "ауызым"], ["ауыздары"]],

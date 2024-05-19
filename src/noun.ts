@@ -150,6 +150,18 @@ class NounBuilder {
         return builder.build();
     }
 
+    pluralPossessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        if (person != GrammarPerson.First) {
+            return this.possessive(person, GrammarNumber.Plural);
+        }
+        let builder = this.pluralBuilder();
+        const extraVowel = YI[this.softOffset];
+        const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
+        return builder
+            .possessiveAffix(`${extraVowel}${affix}`)
+            .build();
+    }
+
     private getShygysAffix(last: string, thirdPersonPoss: boolean): string {
         if (thirdPersonPoss || checkCharPresence(last, CONS_GROUP6)) {
             return NANNEN[this.softOffset];
