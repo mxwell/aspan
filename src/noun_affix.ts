@@ -6,6 +6,10 @@ const DANDEN = ["дан", "ден"];
 const TANTEN = ["тан", "тен"];
 const NANNEN = ["нан", "нен"];
 
+const DADE = ["да", "де"];
+const TATE = ["та", "те"];
+const NDANDE = ["нда", "нде"];
+
 const NOUN_POSSESSIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["м", "м"],

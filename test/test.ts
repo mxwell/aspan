@@ -3325,6 +3325,96 @@ ALL_TESTS.push(["nounShygysComboTest", function() {
 
 }]);
 
+ALL_TESTS.push(["nounSeptikJatysTest", function() {
+    const relations = [
+        ["аялдама", "аялдамада"],
+        ["гимназия", "гимназияда"],
+        ["Алматы", "Алматыда"],
+        ["көрме", "көрмеде"],
+        ["әуежай", "әуежайда"],
+        ["көл", "көлде"],
+        ["жер", "жерде"],
+        ["Қамал", "Қамалда"],
+        ["пойыз", "пойызда"],
+        ["сөз", "сөзде"],
+        ["картоп", "картопта"],
+        ["көкөніс", "көкөністе"],
+        ["мың", "мыңда"],
+        ["еден", "еденде"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).septikForm(Septik.Jatys),
+            "Noun, jatys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPluralSeptikJatysTest", function() {
+    const relations = [
+        ["аялдама", "аялдамаларда"],
+        ["гимназия", "гимназияларда"],
+        ["көрме", "көрмелерде"],
+        ["әуежай", "әуежайларда"],
+        ["көл", "көлдерде"],
+        ["жер", "жерлерде"],
+        ["пойыз", "пойыздарда"],
+        ["сөз", "сөздерде"],
+        ["картоп", "картоптарда"],
+        ["көкөніс", "көкөністерде"],
+        ["мың", "мыңдарда"],
+        ["еден", "едендерде"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSeptikForm(Septik.Jatys),
+            "Noun, plural, jatys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPossessiveJatysTest", function() {
+    const relations: Record<string, string[]> = {
+        "ағаш": ["ағашымда", "ағашымызда", "ағашыңда", "ағаштарыңда", "ағашыңызда", "ағаштарыңызда", "ағашында", "ағаштарында"],
+        "сұрақ": ["сұрағымда", "сұрағымызда", "сұрағыңда", "сұрақтарыңда", "сұрағыңызда", "сұрақтарыңызда", "сұрағында", "сұрақтарында"],
+        "бөлме": ["бөлмемде", "бөлмемізде", "бөлмеңде", "бөлмелеріңде", "бөлмеңізде", "бөлмелеріңізде", "бөлмесінде", "бөлмелерінде"],
+        "дүкен": ["дүкенімде", "дүкенімізде", "дүкеніңде", "дүкендеріңде", "дүкеніңізде", "дүкендеріңізде", "дүкенінде", "дүкендерінде"],
+        "ауыз": ["аузымда", "аузымызда", "аузыңда", "ауыздарыңда", "аузыңызда", "ауыздарыңызда", "аузында", "ауыздарында"],
+    };
+    for (const noun in relations) {
+        const forms = relations[noun];
+        let i = 0;
+        for (const person of GRAMMAR_PERSONS) {
+            for (const number of GRAMMAR_NUMBERS) {
+                const form = forms[i++];
+                T_EQ_ASSERT(
+                    form,
+                    new NounBuilder(noun).possessiveSeptikForm(person, number, Septik.Jatys),
+                    "Noun, possessive, jatys septik"
+                );
+            }
+        }
+    }
+
+    const alternativeForms = [
+        "ауызымда", "ауызымызда", "ауызыңда", null, "ауызыңызда", null, "ауызында", null
+    ];
+    let i = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const form = alternativeForms[i++];
+            if (form == null) continue;
+            T_EQ_ASSERT(
+                form,
+                new NounBuilder("ауыз").possessiveSeptikForm(person, number, Septik.Jatys).alternative,
+                "Noun, possessive, jatys septik, alternative"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();
