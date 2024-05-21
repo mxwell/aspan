@@ -22,6 +22,9 @@ class ModifiedBase {
     }
 }
 
+type MaybeGrammarPerson = GrammarPerson | null;
+type MaybeGrammarNumber = GrammarNumber | null;
+
 class NounBuilder {
     private nounDictForm: string
     private soft: boolean
@@ -182,6 +185,20 @@ class NounBuilder {
         }
     }
 
+    private getBarysAffix(last: string, person: MaybeGrammarPerson, number: MaybeGrammarNumber): string {
+        if ((person == GrammarPerson.First && number == GrammarNumber.Singular) || person == GrammarPerson.Second) {
+            return AE[this.softOffset];
+        } else if (person == GrammarPerson.Third) {
+            return NANE[this.softOffset];
+        } else {
+            if (vowel(last) || checkCharPresence(last, CONS_GROUP1_2)) {
+                return GAGE[this.softOffset];
+            } else {
+                return KAKE[this.softOffset];
+            }
+        }
+    }
+
     septikForm(septik: Septik): Phrasal {
         if (septik == Septik.Shygys) {
             let lastBase = getLastItem(this.nounDictForm);
@@ -193,6 +210,13 @@ class NounBuilder {
         } else if (septik == Septik.Jatys) {
             let lastBase = getLastItem(this.nounDictForm);
             let affix = this.getJatysAffix(lastBase, false);
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Barys) {
+            let lastBase = getLastItem(this.nounDictForm);
+            let affix = this.getBarysAffix(lastBase, null, null);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
@@ -210,6 +234,11 @@ class NounBuilder {
                 .build();
         } else if (septik == Septik.Jatys) {
             const affix = DADE[this.softOffset];
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Barys) {
+            const affix = GAGE[this.softOffset];
             return builder
                 .septikAffix(affix)
                 .build();
@@ -232,6 +261,12 @@ class NounBuilder {
         } else if (septik == Septik.Jatys) {
             const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getJatysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Barys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getBarysAffix(lastBase, person, number);
             return builder
                 .septikAffix(affix)
                 .build();

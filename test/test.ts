@@ -3415,6 +3415,96 @@ ALL_TESTS.push(["nounPossessiveJatysTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSeptikBarysTest", function() {
+    const relations = [
+        ["аялдама", "аялдамаға"],
+        ["гимназия", "гимназияға"],
+        ["Алматы", "Алматыға"],
+        ["көрме", "көрмеге"],
+        ["әуежай", "әуежайға"],
+        ["көл", "көлге"],
+        ["жер", "жерге"],
+        ["Қамал", "Қамалға"],
+        ["пойыз", "пойызға"],
+        ["сөз", "сөзге"],
+        ["картоп", "картопқа"],
+        ["көкөніс", "көкөніске"],
+        ["мың", "мыңға"],
+        ["еден", "еденге"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).septikForm(Septik.Barys),
+            "Noun, barys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPluralSeptikBarysTest", function() {
+    const relations = [
+        ["аялдама", "аялдамаларға"],
+        ["гимназия", "гимназияларға"],
+        ["көрме", "көрмелерге"],
+        ["әуежай", "әуежайларға"],
+        ["көл", "көлдерге"],
+        ["жер", "жерлерге"],
+        ["пойыз", "пойыздарға"],
+        ["сөз", "сөздерге"],
+        ["картоп", "картоптарға"],
+        ["көкөніс", "көкөністерге"],
+        ["мың", "мыңдарға"],
+        ["еден", "едендерге"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSeptikForm(Septik.Barys),
+            "Noun, plural, barys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPossessiveBarysTest", function() {
+    const relations: Record<string, string[]> = {
+        "ағаш": ["ағашыма", "ағашымызға", "ағашыңа", "ағаштарыңа", "ағашыңызға", "ағаштарыңызға", "ағашына", "ағаштарына"],
+        "сұрақ": ["сұрағыма", "сұрағымызға", "сұрағыңа", "сұрақтарыңа", "сұрағыңызға", "сұрақтарыңызға", "сұрағына", "сұрақтарына"],
+        "бөлме": ["бөлмеме", "бөлмемізге", "бөлмеңе", "бөлмелеріңе", "бөлмеңізге", "бөлмелеріңізге", "бөлмесіне", "бөлмелеріне"],
+        "дүкен": ["дүкеніме", "дүкенімізге", "дүкеніңе", "дүкендеріңе", "дүкеніңізге", "дүкендеріңізге", "дүкеніне", "дүкендеріне"],
+        "ауыз": ["аузыма", "аузымызға", "аузыңа", "ауыздарыңа", "аузыңызға", "ауыздарыңызға", "аузына", "ауыздарына"],
+    };
+    for (const noun in relations) {
+        const forms = relations[noun];
+        let i = 0;
+        for (const person of GRAMMAR_PERSONS) {
+            for (const number of GRAMMAR_NUMBERS) {
+                const form = forms[i++];
+                T_EQ_ASSERT(
+                    form,
+                    new NounBuilder(noun).possessiveSeptikForm(person, number, Septik.Barys),
+                    "Noun, possessive, barys septik"
+                );
+            }
+        }
+    }
+
+    const alternativeForms = [
+        "ауызыма", "ауызымызға", "ауызыңа", null, "ауызыңызға", null, "ауызына", null
+    ];
+    let i = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const form = alternativeForms[i++];
+            if (form == null) continue;
+            T_EQ_ASSERT(
+                form,
+                new NounBuilder("ауыз").possessiveSeptikForm(person, number, Septik.Barys).alternative,
+                "Noun, possessive, barys septik, alternative"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();

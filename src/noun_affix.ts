@@ -10,6 +10,10 @@ const DADE = ["да", "де"];
 const TATE = ["та", "те"];
 const NDANDE = ["нда", "нде"];
 
+const GAGE = ["ға", "ге"];
+const KAKE = ["қа", "ке"];
+const NANE = ["на", "не"];
+
 const NOUN_POSSESSIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["м", "м"],
