@@ -14,10 +14,12 @@ const CONS_GROUP1_2 = CONS_GROUP1 + CONS_GROUP2;
 const CONS_GROUP1_3 = CONS_GROUP1 + CONS_GROUP3;
 
 const FORCED_SOFT_VERBS = new Set([
+    "ию",   // https://kaz-tili.kz/gl04.htm
     "кию",  // киемің is a quite frequent form
     "жиду", // https://kaz-tili.kz/gl04.htm
-    "тобарсу", // https://kaz-tili.kz/gl04.htm
-    "итию", // https://kaz-tili.kz/gl04.htm
+    "тобарсу", // https://kaz-tili.kz/gl04.htm , TODO check elsewhere
+    "итию", // https://kaz-tili.kz/glagspr10.htm
+    "тию",  // https://kaz-tili.kz/glagspr10.htm
 ]);
 
 const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
@@ -562,6 +564,7 @@ const OPT_EXCEPT_VERB_MEANINGS = new Map([
     ["жану", [["гореть", "пылать"], ["точить", "править", "оттачивать"]]],
     ["жару", [["колоть", "разрывать"], ["быть обеспеченным"]]],
     ["жуу", [["мыть", "обмывать"], ["быть близким"]]],
+    ["ию", [["гнуть", "сгибать"], ["спускать молоко", "раздобриться"]]],
     ["қабу", [["хватать", "ловить"], ["стегать", "простёгивать"]]],
     ["құру", [["строить", "устанавливать"], ["вымирать", "пропадать"]]],
     ["пысу", [["пугаться", "страшиться"], ["крепнуть", "скручиваться"]]],
