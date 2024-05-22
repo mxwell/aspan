@@ -17,7 +17,6 @@ const FORCED_SOFT_VERBS = new Set([
     "ию",   // https://kaz-tili.kz/gl04.htm
     "кию",  // киемің is a quite frequent form
     "жиду", // https://kaz-tili.kz/gl04.htm
-    "тобарсу", // https://kaz-tili.kz/gl04.htm , TODO check elsewhere
     "итию", // https://kaz-tili.kz/glagspr10.htm
     "тию",  // https://kaz-tili.kz/glagspr10.htm
 ]);
