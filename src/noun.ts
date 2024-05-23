@@ -212,6 +212,18 @@ class NounBuilder {
         }
     }
 
+    private getTabysAffix(last: string, thirdPersonPoss: boolean): string {
+        if (thirdPersonPoss) {
+            return "н";
+        } else if (checkCharPresence(last, VOWELS_GROUP1) || checkCharPresence(last, CONS_GROUP1_2)) {
+            return DYDI[this.softOffset];
+        } else if (vowel(last)) {
+            return NYNI[this.softOffset];
+        } else {
+            return TYTI[this.softOffset];
+        }
+    }
+
     septikForm(septik: Septik): Phrasal {
         if (septik == Septik.Shygys) {
             let lastBase = getLastItem(this.nounDictForm);
@@ -241,6 +253,13 @@ class NounBuilder {
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
+        } else if (septik == Septik.Tabys) {
+            let lastBase = getLastItem(this.nounDictForm);
+            let affix = this.getTabysAffix(lastBase, false);
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .septikAffix(affix)
+                .build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
@@ -264,6 +283,11 @@ class NounBuilder {
                 .build();
         } else if (septik == Septik.Ilik) {
             const affix = DYNGDING[this.softOffset];
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Tabys) {
+            const affix = DYDI[this.softOffset];
             return builder
                 .septikAffix(affix)
                 .build();
@@ -298,6 +322,12 @@ class NounBuilder {
         } else if (septik == Septik.Ilik) {
             const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getIlikAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Tabys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getTabysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();

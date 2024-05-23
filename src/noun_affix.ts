@@ -18,6 +18,8 @@ const DYNGDING = ["дың", "дің"];
 const TYNGTING = ["тың", "тің"];
 const NYNGNING = ["ның", "нің"];
 
+const NYNI = ["ны", "ні"];
+
 const NOUN_POSSESSIVE_AFFIXES: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {
     First: {
         Singular: ["м", "м"],

@@ -3603,6 +3603,100 @@ ALL_TESTS.push(["nounPossessiveIlikTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSeptikTabysTest", function() {
+    const relations = [
+        ["аю", "аюды"],
+        ["ауыз", "ауызды"],
+        ["аялдама", "аялдаманы"],
+        ["гимназия", "гимназияны"],
+        ["көрме", "көрмені"],
+        ["әуежай", "әуежайды"],
+        ["көл", "көлді"],
+        ["жер", "жерді"],
+        ["пойыз", "пойызды"],
+        ["сөз", "сөзді"],
+        ["картоп", "картопты"],
+        ["көкөніс", "көкөністі"],
+        ["мың", "мыңды"],
+        ["еден", "еденді"],
+        ["туфли", "туфлиді"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).septikForm(Septik.Tabys),
+            "Noun, tabys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPluralSeptikTabysTest", function() {
+    const relations = [
+        ["аю", "аюларды"],
+        ["ауыз", "ауыздарды"],
+        ["аялдама", "аялдамаларды"],
+        ["гимназия", "гимназияларды"],
+        ["көрме", "көрмелерді"],
+        ["әуежай", "әуежайларды"],
+        ["көл", "көлдерді"],
+        ["жер", "жерлерді"],
+        ["пойыз", "пойыздарды"],
+        ["сөз", "сөздерді"],
+        ["картоп", "картоптарды"],
+        ["көкөніс", "көкөністерді"],
+        ["мың", "мыңдарды"],
+        ["еден", "едендерді"],
+        ["туфли", "туфлилерді"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSeptikForm(Septik.Tabys),
+            "Noun, plural, tabys septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPossessiveTabysTest", function() {
+    const relations: Record<string, string[]> = {
+        "ағаш": ["ағашымды", "ағашымызды", "ағашыңды", "ағаштарыңды", "ағашыңызды", "ағаштарыңызды", "ағашын", "ағаштарын"],
+        "сұрақ": ["сұрағымды", "сұрағымызды", "сұрағыңды", "сұрақтарыңды", "сұрағыңызды", "сұрақтарыңызды", "сұрағын", "сұрақтарын"],
+        "бөлме": ["бөлмемді", "бөлмемізді", "бөлмеңді", "бөлмелеріңді", "бөлмеңізді", "бөлмелеріңізді", "бөлмесін", "бөлмелерін"],
+        "дүкен": ["дүкенімді", "дүкенімізді", "дүкеніңді", "дүкендеріңді", "дүкеніңізді", "дүкендеріңізді", "дүкенін", "дүкендерін"],
+        "ауыз": ["аузымды", "аузымызды", "аузыңды", "ауыздарыңды", "аузыңызды", "ауыздарыңызды", "аузын", "ауыздарын"],
+    };
+    for (const noun in relations) {
+        const forms = relations[noun];
+        let i = 0;
+        for (const person of GRAMMAR_PERSONS) {
+            for (const number of GRAMMAR_NUMBERS) {
+                const form = forms[i++];
+                T_EQ_ASSERT(
+                    form,
+                    new NounBuilder(noun).possessiveSeptikForm(person, number, Septik.Tabys),
+                    "Noun, possessive, tabys septik"
+                );
+            }
+        }
+    }
+
+    const alternativeForms = [
+        "ауызымды", "ауызымызды", "ауызыңды", null, "ауызыңызды", null, "ауызын", null
+    ];
+    let i = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const form = alternativeForms[i++];
+            if (form == null) continue;
+            T_EQ_ASSERT(
+                form,
+                new NounBuilder("ауыз").possessiveSeptikForm(person, number, Septik.Tabys).alternative,
+                "Noun, possessive, tabys septik, alternative"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();
