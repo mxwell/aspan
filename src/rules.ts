@@ -1,5 +1,6 @@
 const VOWELS = "аәеиоөуүұыіэюя";
 const VOWELS_EXCEPT_U_I = "аәеоөүұыіэюя";
+const VOWELS_GROUP1 = "ию";
 const SOFT_VOWELS = "әеөүі";
 const HARD_VOWELS = "аоұы";
 const CONS_GROUP1 = "руйл";

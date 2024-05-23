@@ -55,3 +55,8 @@ const OPTIONALLY_DROP_LAST_VOWEL_NOUNS = new Set([
     "нарық",
     "тұрық",
 ]);
+
+const FORCED_SOFT_NOUNS = new Set([
+    "коньки",
+    "туфли",
+]);

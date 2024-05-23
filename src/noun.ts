@@ -32,7 +32,10 @@ class NounBuilder {
 
     constructor(nounDictForm: string) {
         this.nounDictForm = nounDictForm
-        this.soft = wordIsSoft(nounDictForm);
+        this.soft = (
+            wordIsSoft(nounDictForm) ||
+            FORCED_SOFT_NOUNS.has(nounDictForm)
+        );
         this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
     }
 
@@ -199,6 +202,16 @@ class NounBuilder {
         }
     }
 
+    private getIlikAffix(last: string, thirdPersonPoss: boolean): string {
+        if (checkCharPresence(last, VOWELS_GROUP1) || checkCharPresence(last, CONS_GROUP1_3)) {
+            return DYNGDING[this.softOffset];
+        } else if (vowel(last) || checkCharPresence(last, CONS_GROUP6) || thirdPersonPoss) {
+            return NYNGNING[this.softOffset];
+        } else {
+            return TYNGTING[this.softOffset];
+        }
+    }
+
     septikForm(septik: Septik): Phrasal {
         if (septik == Septik.Shygys) {
             let lastBase = getLastItem(this.nounDictForm);
@@ -221,6 +234,13 @@ class NounBuilder {
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
+        } else if (septik == Septik.Ilik) {
+            let lastBase = getLastItem(this.nounDictForm);
+            let affix = this.getIlikAffix(lastBase, false);
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .septikAffix(affix)
+                .build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
@@ -239,6 +259,11 @@ class NounBuilder {
                 .build();
         } else if (septik == Septik.Barys) {
             const affix = GAGE[this.softOffset];
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Ilik) {
+            const affix = DYNGDING[this.softOffset];
             return builder
                 .septikAffix(affix)
                 .build();
@@ -267,6 +292,12 @@ class NounBuilder {
         } else if (septik == Septik.Barys) {
             const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getBarysAffix(lastBase, person, number);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Ilik) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getIlikAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
