@@ -224,6 +224,16 @@ class NounBuilder {
         }
     }
 
+    private getKomektesAffix(last: string, thirdPersonPoss: boolean): string {
+        if (thirdPersonPoss || vowel(last) || checkCharPresence(last, CONS_GROUP1_6)) {
+            return "мен";
+        } else if (checkCharPresence(last, CONS_GROUP3)) {
+            return "бен";
+        } else {
+            return "пен";
+        }
+    }
+
     septikForm(septik: Septik): Phrasal {
         if (septik == Septik.Shygys) {
             let lastBase = getLastItem(this.nounDictForm);
@@ -260,6 +270,13 @@ class NounBuilder {
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
+        } else if (septik == Septik.Komektes) {
+            let lastBase = getLastItem(this.nounDictForm);
+            let affix = this.getKomektesAffix(lastBase, false);
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .septikAffix(affix)
+                .build();
         }
         return NOT_SUPPORTED_PHRASAL;
     }
@@ -288,6 +305,11 @@ class NounBuilder {
                 .build();
         } else if (septik == Septik.Tabys) {
             const affix = DYDI[this.softOffset];
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Komektes) {
+            const affix = "мен";
             return builder
                 .septikAffix(affix)
                 .build();
@@ -328,6 +350,12 @@ class NounBuilder {
         } else if (septik == Septik.Tabys) {
             const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getTabysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Komektes) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getKomektesAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();

@@ -3697,6 +3697,88 @@ ALL_TESTS.push(["nounPossessiveTabysTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSeptikKomektesTest", function() {
+    const relations = [
+        ["аю", "аюмен"],
+        ["ауыз", "ауызбен"],
+        ["аялдама", "аялдамамен"],
+        ["гимназия", "гимназиямен"],
+        ["көрме", "көрмемен"],
+        ["әуежай", "әуежаймен"],
+        ["көл", "көлмен"],
+        ["жер", "жермен"],
+        ["пойыз", "пойызбен"],
+        ["сөз", "сөзбен"],
+        ["картоп", "картоппен"],
+        ["көкөніс", "көкөніспен"],
+        ["мың", "мыңмен"],
+        ["еден", "еденмен"],
+        ["туфли", "туфлимен"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).septikForm(Septik.Komektes),
+            "Noun, komektes septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPluralSeptikKomektesTest", function() {
+    const relations = [
+        ["аю", "аюлармен"],
+        ["әуежай", "әуежайлармен"],
+        ["мың", "мыңдармен"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSeptikForm(Septik.Komektes),
+            "Noun, plural, komektes septik"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["nounPossessiveKomektesTest", function() {
+    const relations: Record<string, string[]> = {
+        "ағаш": ["ағашыммен", "ағашымызбен", "ағашыңмен", "ағаштарыңмен", "ағашыңызбен", "ағаштарыңызбен", "ағашымен", "ағаштарымен"],
+        "сұрақ": ["сұрағыммен", "сұрағымызбен", "сұрағыңмен", "сұрақтарыңмен", "сұрағыңызбен", "сұрақтарыңызбен", "сұрағымен", "сұрақтарымен"],
+        "бөлме": ["бөлмеммен", "бөлмемізбен", "бөлмеңмен", "бөлмелеріңмен", "бөлмеңізбен", "бөлмелеріңізбен", "бөлмесімен", "бөлмелерімен"],
+        "дүкен": ["дүкеніммен", "дүкенімізбен", "дүкеніңмен", "дүкендеріңмен", "дүкеніңізбен", "дүкендеріңізбен", "дүкенімен", "дүкендерімен"],
+        "ауыз": ["аузыммен", "аузымызбен", "аузыңмен", "ауыздарыңмен", "аузыңызбен", "ауыздарыңызбен", "аузымен", "ауыздарымен"],
+    };
+    for (const noun in relations) {
+        const forms = relations[noun];
+        let i = 0;
+        for (const person of GRAMMAR_PERSONS) {
+            for (const number of GRAMMAR_NUMBERS) {
+                const form = forms[i++];
+                T_EQ_ASSERT(
+                    form,
+                    new NounBuilder(noun).possessiveSeptikForm(person, number, Septik.Komektes),
+                    "Noun, possessive, komektes septik"
+                );
+            }
+        }
+    }
+
+    const alternativeForms = [
+        "ауызыммен", "ауызымызбен", "ауызыңмен", null, "ауызыңызбен", null, "ауызымен", null
+    ];
+    let i = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const form = alternativeForms[i++];
+            if (form == null) continue;
+            T_EQ_ASSERT(
+                form,
+                new NounBuilder("ауыз").possessiveSeptikForm(person, number, Septik.Komektes).alternative,
+                "Noun, possessive, komektes septik, alternative"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();

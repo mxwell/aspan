@@ -13,6 +13,7 @@ const CONS_GROUP7 = "руй";
 const CONS_GROUP8 = "жзлмнң";
 const CONS_GROUP1_2 = CONS_GROUP1 + CONS_GROUP2;
 const CONS_GROUP1_3 = CONS_GROUP1 + CONS_GROUP3;
+const CONS_GROUP1_6 = CONS_GROUP1 + CONS_GROUP6;
 
 const FORCED_SOFT_VERBS = new Set([
     "ию",   // https://kaz-tili.kz/gl04.htm
