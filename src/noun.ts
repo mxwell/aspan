@@ -64,9 +64,22 @@ class NounBuilder {
     }
 
     private getDropVowelType(): DropVowelType {
-        if (DROP_LAST_VOWEL_NOUNS.has(this.nounDictForm)) {
+        let sep = this.nounDictForm.length - 1;
+        while (sep >= 0) {
+            const ch = this.nounDictForm[sep];
+            if (ch == ' ' || ch == '-') {
+                break;
+            }
+            --sep;
+        }
+        const lastPart = (
+            sep < 0
+            ? this.nounDictForm
+            : this.nounDictForm.substring(sep + 1)
+        );
+        if (DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
             return DropVowelType.DropLast;
-        } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(this.nounDictForm)) {
+        } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
             return DropVowelType.OptionallyDropLast;
         } else {
             return DropVowelType.Regular;
