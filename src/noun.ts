@@ -248,7 +248,11 @@ class NounBuilder {
     }
 
     septikForm(septik: Septik): Phrasal {
-        if (septik == Septik.Shygys) {
+        if (septik == Septik.Atau) {
+            return new PhrasalBuilder()
+                .nounBase(this.nounDictForm)
+                .build();
+        } else if (septik == Septik.Shygys) {
             let lastBase = getLastItem(this.nounDictForm);
             let affix = this.getShygysAffix(lastBase, false);
             return new PhrasalBuilder()

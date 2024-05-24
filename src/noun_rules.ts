@@ -20,6 +20,8 @@ enum Septik {
     Komektes,
 };
 
+const SEPTIKS: Septik[] = [Septik.Atau, Septik.Shygys, Septik.Jatys, Septik.Barys, Septik.Ilik, Septik.Tabys, Septik.Komektes];
+
 const DROP_LAST_VOWEL_NOUNS = new Set([
     "әріп",
     "бөрік",

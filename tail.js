@@ -5,8 +5,10 @@ export {
     PART_EXPLANATION_TYPE,
     PRONOUN_BY_PERSON_NUMBER,
     POSSESSIVE_BY_PERSON_NUMBER,
+    SEPTIKS,
     validateVerb,
     getOptExceptVerbMeanings,
     validPresentContPair,
-    VerbBuilder
+    NounBuilder,
+    VerbBuilder,
 }
