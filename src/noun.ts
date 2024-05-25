@@ -169,16 +169,23 @@ class NounBuilder {
         return builder.build();
     }
 
-    pluralPossessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+    private pluralPossessiveBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         if (person != GrammarPerson.First) {
-            return this.possessive(person, GrammarNumber.Plural);
+            return this.possessiveBuilder(person, GrammarNumber.Plural);
         }
         let builder = this.pluralBuilder();
         const extraVowel = YI[this.softOffset];
         const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
         return builder
-            .possessiveAffix(`${extraVowel}${affix}`)
-            .build();
+            .possessiveAffix(`${extraVowel}${affix}`);
+    }
+
+    pluralPossessive(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        let builder = this.pluralPossessiveBuilder(person, number);
+        if (builder.isEmpty()) {
+            return NOT_SUPPORTED_PHRASAL;
+        }
+        return builder.build();
     }
 
     private getShygysAffix(last: string, thirdPersonPoss: boolean): string {
@@ -339,6 +346,56 @@ class NounBuilder {
 
     possessiveSeptikForm(person: GrammarPerson, number: GrammarNumber, septik: Septik): Phrasal {
         let builder = this.possessiveBuilder(person, number);
+        if (builder.isEmpty()) {
+            return NOT_SUPPORTED_PHRASAL;
+        }
+
+        if (septik == Septik.Atau) {
+            return builder
+                .build();
+        } else if (septik == Septik.Shygys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getShygysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Jatys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getJatysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Barys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getBarysAffix(lastBase, person, number);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Ilik) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getIlikAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Tabys) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getTabysAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        } else if (septik == Septik.Komektes) {
+            const lastBase = getLastItem(builder.getLastItem());
+            const affix = this.getKomektesAffix(lastBase, person == GrammarPerson.Third);
+            return builder
+                .septikAffix(affix)
+                .build();
+        }
+
+        return NOT_SUPPORTED_PHRASAL;
+    }
+
+    pluralPossessiveSeptikForm(person: GrammarPerson, number: GrammarNumber, septik: Septik): Phrasal {
+        let builder = this.pluralPossessiveBuilder(person, number);
         if (builder.isEmpty()) {
             return NOT_SUPPORTED_PHRASAL;
         }

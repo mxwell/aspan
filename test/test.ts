@@ -3779,6 +3779,52 @@ ALL_TESTS.push(["nounPossessiveKomektesTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounPluralPossessiveSeptikTest", function() {
+    const relations: Record<GrammarPerson, string[]> = {
+        First: ["ағаштарым", "ағаштарымнан", "ағаштарымда", "ағаштарыма", "ағаштарымның", "ағаштарымды", "ағаштарыммен"],
+        Second: ["ағаштарың", "ағаштарыңнан", "ағаштарыңда", "ағаштарыңа", "ағаштарыңның", "ағаштарыңды", "ағаштарыңмен"],
+        SecondPolite: ["ағаштарыңыз", "ағаштарыңыздан", "ағаштарыңызда", "ағаштарыңызға", "ағаштарыңыздың", "ағаштарыңызды", "ағаштарыңызбен"],
+        Third: ["ағаштары", "ағаштарынан", "ағаштарында", "ағаштарына", "ағаштарының", "ағаштарын", "ағаштарымен"],
+    };
+
+    let nounBuilder = new NounBuilder("ағаш");
+    for (const person of GRAMMAR_PERSONS) {
+        const forms = relations[person];
+        let i = 0;
+        for (const septik of SEPTIKS) {
+            const form = forms[i++];
+            T_EQ_ASSERT(
+                form,
+                nounBuilder.pluralPossessiveSeptikForm(person, GrammarNumber.Singular, septik),
+                "Noun, plural, possessive, septik",
+            );
+        }
+    }
+}]);
+
+ALL_TESTS.push(["nounPluralPossessivePluralSeptikTest", function() {
+    const relations: Record<GrammarPerson, string[]> = {
+        First: ["ағаштарымыз", "ағаштарымыздан", "ағаштарымызда", "ағаштарымызға", "ағаштарымыздың", "ағаштарымызды", "ағаштарымызбен"],
+        Second: ["ағаштарың", "ағаштарыңнан", "ағаштарыңда", "ағаштарыңа", "ағаштарыңның", "ағаштарыңды", "ағаштарыңмен"],
+        SecondPolite: ["ағаштарыңыз", "ағаштарыңыздан", "ағаштарыңызда", "ағаштарыңызға", "ағаштарыңыздың", "ағаштарыңызды", "ағаштарыңызбен"],
+        Third: ["ағаштары", "ағаштарынан", "ағаштарында", "ағаштарына", "ағаштарының", "ағаштарын", "ағаштарымен"],
+    };
+
+    let nounBuilder = new NounBuilder("ағаш");
+    for (const person of GRAMMAR_PERSONS) {
+        const forms = relations[person];
+        let i = 0;
+        for (const septik of SEPTIKS) {
+            const form = forms[i++];
+            T_EQ_ASSERT(
+                form,
+                nounBuilder.pluralPossessiveSeptikForm(person, GrammarNumber.Plural, septik),
+                "Noun, plural, possessive by plural, septik",
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();
