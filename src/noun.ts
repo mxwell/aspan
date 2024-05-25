@@ -300,7 +300,10 @@ class NounBuilder {
 
     pluralSeptikForm(septik: Septik): Phrasal {
         let builder = this.pluralBuilder();
-        if (septik == Septik.Shygys) {
+        if (septik == Septik.Atau) {
+            return builder
+                .build();
+        } else if (septik == Septik.Shygys) {
             const affix = DANDEN[this.softOffset];
             return builder
                 .septikAffix(affix)
@@ -340,7 +343,10 @@ class NounBuilder {
             return NOT_SUPPORTED_PHRASAL;
         }
 
-        if (septik == Septik.Shygys) {
+        if (septik == Septik.Atau) {
+            return builder
+                .build();
+        } else if (septik == Septik.Shygys) {
             const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getShygysAffix(lastBase, person == GrammarPerson.Third);
             return builder
