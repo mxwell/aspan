@@ -7,6 +7,7 @@ export {
     POSSESSIVE_BY_PERSON_NUMBER,
     SEPTIKS,
     validateVerb,
+    getDeclAltInfo,
     getOptExceptVerbMeanings,
     validPresentContPair,
     NounBuilder,

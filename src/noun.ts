@@ -1,3 +1,46 @@
+function extractLastNounPart(nounDictForm: string): string {
+    let sep = nounDictForm.length - 1;
+    while (sep >= 0) {
+        const ch = nounDictForm[sep];
+        if (ch == ' ' || ch == '-') {
+            break;
+        }
+        --sep;
+    }
+    if (sep < 0) {
+        return nounDictForm;
+    }
+    return nounDictForm.substring(sep + 1);
+}
+
+class DeclensionAltInfo {
+    noun: string
+    dropVowelMeaning: string
+    keepVowelMeaning: string
+    constructor(noun: string, dropVowelMeaning: string, keepVowelMeaning: string) {
+        this.noun = noun;
+        this.dropVowelMeaning = dropVowelMeaning;
+        this.keepVowelMeaning = keepVowelMeaning;
+    }
+}
+
+type MaybeDeclensionAltInfo = DeclensionAltInfo | null;
+
+function getDeclAltInfo(nounDictForm: string): MaybeDeclensionAltInfo {
+    const lastPart = extractLastNounPart(nounDictForm);
+    if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
+        const meanings = OPTIONALLY_DROP_LAST_VOWEL_NOUNS.get(lastPart);
+        if (meanings.length == 2) {
+            return new DeclensionAltInfo(
+                lastPart,
+                meanings[1],
+                meanings[0]
+            );
+        }
+    }
+    return null;
+}
+
 function replaceBaseLastForPossessive(base: string, lastBase: string): string {
     const replacement = BASE_REPLACEMENT_PKKH.get(lastBase);
     if (replacement != null) {
@@ -64,19 +107,7 @@ class NounBuilder {
     }
 
     private getDropVowelType(): DropVowelType {
-        let sep = this.nounDictForm.length - 1;
-        while (sep >= 0) {
-            const ch = this.nounDictForm[sep];
-            if (ch == ' ' || ch == '-') {
-                break;
-            }
-            --sep;
-        }
-        const lastPart = (
-            sep < 0
-            ? this.nounDictForm
-            : this.nounDictForm.substring(sep + 1)
-        );
+        const lastPart = extractLastNounPart(this.nounDictForm);
         if (DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
             return DropVowelType.DropLast;
         } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
