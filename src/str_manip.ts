@@ -4,6 +4,10 @@ function getLastItem(s: string): string {
     return s[s.length - 1];
 }
 
+function getLastItemLowered(s: string): string {
+    return getLastItem(s).toLowerCase();
+}
+
 function checkCharPresence(c: string, target: string): boolean {
     for (let i = 0; i < target.length; i++) {
         if (target[i] == c) {

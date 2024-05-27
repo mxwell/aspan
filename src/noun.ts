@@ -27,7 +27,7 @@ class DeclensionAltInfo {
 type MaybeDeclensionAltInfo = DeclensionAltInfo | null;
 
 function getDeclAltInfo(nounDictForm: string): MaybeDeclensionAltInfo {
-    const lastPart = extractLastNounPart(nounDictForm);
+    const lastPart = extractLastNounPart(nounDictForm).toLowerCase();
     if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
         const meanings = OPTIONALLY_DROP_LAST_VOWEL_NOUNS.get(lastPart);
         if (meanings.length == 2) {
@@ -93,7 +93,7 @@ class NounBuilder {
     }
 
     private pluralBuilder(): PhrasalBuilder {
-        let lastBase = getLastItem(this.nounDictForm);
+        let lastBase = getLastItemLowered(this.nounDictForm);
         let pluralAffix = this.getPluralAffix(lastBase);
 
         return new PhrasalBuilder()
@@ -107,7 +107,7 @@ class NounBuilder {
     }
 
     private getDropVowelType(): DropVowelType {
-        const lastPart = extractLastNounPart(this.nounDictForm);
+        const lastPart = extractLastNounPart(this.nounDictForm).toLowerCase();
         if (DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
             return DropVowelType.DropLast;
         } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
@@ -291,7 +291,7 @@ class NounBuilder {
                 .nounBase(this.nounDictForm)
                 .build();
         } else if (septik == Septik.Shygys) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getShygysAffix(lastBase, false);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)

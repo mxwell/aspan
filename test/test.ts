@@ -3158,6 +3158,7 @@ ALL_TESTS.push(["nounPluralPossessiveTest", function() {
 ALL_TESTS.push(["nounPossessiveDropVowelTest", function() {
     const relations: Record<string, string[][]> = {
         "ауыз": [["аузы", "ауызы"], ["аузым", "ауызым"], ["ауыздары"]],
+        "АУЫЗ": [["АУЗы", "АУЫЗы"], ["АУЗым", "АУЫЗым"], ["АУЫЗдары"]],
         "әріп": [["әрпі"], ["әрпім"], ["әріптері"]],
         "бөрік": [["бөркі"], ["бөркім"], ["бөріктері"]],
         "ғұрып": [["ғұрпы"], ["ғұрпым"], ["ғұрыптары"]],
@@ -3822,6 +3823,21 @@ ALL_TESTS.push(["nounPluralPossessivePluralSeptikTest", function() {
                 "Noun, plural, possessive by plural, septik",
             );
         }
+    }
+}]);
+
+ALL_TESTS.push(["declAltInfoTest", function() {
+    const positives = [
+        "ауыз",
+        "ааа-ауыз",
+        "ААА-АУЫЗ",
+    ];
+    for (const noun of positives) {
+        const info = getDeclAltInfo(noun);
+        T_ASSERT(
+            info != null,
+            `Declension alternative info should be present for ${noun}`
+        );
     }
 }]);
 
