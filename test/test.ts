@@ -766,11 +766,39 @@ ALL_TESTS.push(["testVerbSounds", function() {
 
 ALL_TESTS.push(["softTest", function() {
     const softWords = [
+        "би",
         "дәус",
-        "зек",
+        "ЗЕК",
+        "ит",
+        "коньки",
+        "көркею",
+        "суши",
+        "сүю",
+        "тию",
+        "туфли",
     ];
     for (const word of softWords) {
         T_ASSERT(wordIsSoft(word), "Word " + word + " must be soft");
+    }
+}]);
+
+ALL_TESTS.push(["hardTest", function() {
+    const hardWords = [
+        "аю",
+        "Әлия",
+        "бояу",
+        "жаю",
+        "қияр",
+        "қою",
+        "ми",
+        "ою",
+        "секция",
+        "СУ",
+        "тауық",
+        "ту",
+    ];
+    for (const word of hardWords) {
+        T_ASSERT(!wordIsSoft(word), "Word " + word + " must be hard");
     }
 }]);
 
