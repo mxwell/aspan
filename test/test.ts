@@ -3261,7 +3261,7 @@ ALL_TESTS.push(["nounSeptikShygysTest", function() {
         ["картоп", "картоптан"],
         ["көкөніс", "көкөністен"],
         ["мың", "мыңнан"],
-        ["еден", "еденнен"],
+        ["ЕДЕН", "ЕДЕНнен"],
     ];
     for (const [noun, expected] of relations) {
         T_EQ_ASSERT(
@@ -3345,7 +3345,7 @@ ALL_TESTS.push(["nounSeptikJatysTest", function() {
         ["картоп", "картопта"],
         ["көкөніс", "көкөністе"],
         ["мың", "мыңда"],
-        ["еден", "еденде"],
+        ["ЕДЕН", "ЕДЕНде"],
     ];
     for (const [noun, expected] of relations) {
         T_EQ_ASSERT(
@@ -3369,7 +3369,7 @@ ALL_TESTS.push(["nounPluralSeptikJatysTest", function() {
         ["картоп", "картоптарда"],
         ["көкөніс", "көкөністерде"],
         ["мың", "мыңдарда"],
-        ["еден", "едендерде"],
+        ["ЕДЕН", "ЕДЕНдерде"],
     ];
     for (const [noun, expected] of relations) {
         T_EQ_ASSERT(
@@ -3435,7 +3435,7 @@ ALL_TESTS.push(["nounSeptikBarysTest", function() {
         ["картоп", "картопқа"],
         ["көкөніс", "көкөніске"],
         ["мың", "мыңға"],
-        ["еден", "еденге"],
+        ["ЕДЕН", "ЕДЕНге"],
     ];
     for (const [noun, expected] of relations) {
         T_EQ_ASSERT(
@@ -3459,7 +3459,7 @@ ALL_TESTS.push(["nounPluralSeptikBarysTest", function() {
         ["картоп", "картоптарға"],
         ["көкөніс", "көкөністерге"],
         ["мың", "мыңдарға"],
-        ["еден", "едендерге"],
+        ["ЕДЕН", "ЕДЕНдерге"],
     ];
     for (const [noun, expected] of relations) {
         T_EQ_ASSERT(
@@ -3525,7 +3525,7 @@ ALL_TESTS.push(["nounSeptikIlikTest", function() {
         ["картоп", "картоптың"],
         ["көкөніс", "көкөністің"],
         ["мың", "мыңның"],
-        ["еден", "еденнің"],
+        ["ЕДЕН", "ЕДЕНнің"],
         ["туфли", "туфлидің"],
     ];
     for (const [noun, expected] of relations) {
@@ -3552,7 +3552,7 @@ ALL_TESTS.push(["nounPluralSeptikIlikTest", function() {
         ["картоп", "картоптардың"],
         ["көкөніс", "көкөністердің"],
         ["мың", "мыңдардың"],
-        ["еден", "едендердің"],
+        ["ЕДЕН", "ЕДЕНдердің"],
         ["туфли", "туфлилердің"],
     ];
     for (const [noun, expected] of relations) {
@@ -3619,7 +3619,7 @@ ALL_TESTS.push(["nounSeptikTabysTest", function() {
         ["картоп", "картопты"],
         ["көкөніс", "көкөністі"],
         ["мың", "мыңды"],
-        ["еден", "еденді"],
+        ["ЕДЕН", "ЕДЕНді"],
         ["туфли", "туфлиді"],
     ];
     for (const [noun, expected] of relations) {
@@ -3646,7 +3646,7 @@ ALL_TESTS.push(["nounPluralSeptikTabysTest", function() {
         ["картоп", "картоптарды"],
         ["көкөніс", "көкөністерді"],
         ["мың", "мыңдарды"],
-        ["еден", "едендерді"],
+        ["ЕДЕН", "ЕДЕНдерді"],
         ["туфли", "туфлилерді"],
     ];
     for (const [noun, expected] of relations) {
@@ -3713,7 +3713,7 @@ ALL_TESTS.push(["nounSeptikKomektesTest", function() {
         ["картоп", "картоппен"],
         ["көкөніс", "көкөніспен"],
         ["мың", "мыңмен"],
-        ["еден", "еденмен"],
+        ["ЕДЕН", "ЕДЕНмен"],
         ["туфли", "туфлимен"],
     ];
     for (const [noun, expected] of relations) {

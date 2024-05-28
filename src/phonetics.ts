@@ -16,7 +16,7 @@ function isHardVowel(c: string): boolean {
 
 function wordIsSoft(w: string): boolean {
     for (let i = w.length - 1; i >= 0; --i) {
-        let c = w[i];
+        let c = w[i].toLowerCase();
         if (isSoftVowel(c)) {
             return true;
         }

@@ -298,35 +298,35 @@ class NounBuilder {
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Jatys) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getJatysAffix(lastBase, false);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Barys) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getBarysAffix(lastBase, null, null);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Ilik) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getIlikAffix(lastBase, false);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Tabys) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getTabysAffix(lastBase, false);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Komektes) {
-            let lastBase = getLastItem(this.nounDictForm);
+            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getKomektesAffix(lastBase, false);
             return new PhrasalBuilder()
                 .nounBase(this.nounDictForm)
