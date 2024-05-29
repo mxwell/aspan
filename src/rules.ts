@@ -15,12 +15,15 @@ const CONS_GROUP1_2 = CONS_GROUP1 + CONS_GROUP2;
 const CONS_GROUP1_3 = CONS_GROUP1 + CONS_GROUP3;
 const CONS_GROUP1_6 = CONS_GROUP1 + CONS_GROUP6;
 
-const FORCED_SOFT_VERBS = new Set([
-    "ию",   // https://kaz-tili.kz/gl04.htm
-    "кию",  // киемің is a quite frequent form
-    "жиду", // https://kaz-tili.kz/gl04.htm
-    "итию", // https://kaz-tili.kz/glagspr10.htm
-    "тию",  // https://kaz-tili.kz/glagspr10.htm
+const HARD_SOFT_EXCEPTIONS = new Map([
+    // false - hard, true - soft
+    ["аңқию", false],
+    ["балпию", false],
+    ["дардию", false],
+    ["жарбию", false],
+    ["қалтию", false],
+    ["қию", false],
+    ["ми", false],
 ]);
 
 const VERB_PERS_AFFIXES1: Record<GrammarPerson, Record<GrammarNumber, string[]>> = {

@@ -57,8 +57,3 @@ const OPTIONALLY_DROP_LAST_VOWEL_NOUNS = new Map<string, string[]>([
     ["нарық", ["расценка, тариф", "расценка, тариф"]],
     ["тұрық", ["длина", "местожительство"]],
 ]);
-
-const FORCED_SOFT_NOUNS = new Set([
-    "коньки",
-    "туфли",
-]);

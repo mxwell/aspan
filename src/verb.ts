@@ -111,10 +111,7 @@ class VerbBuilder {
         this.forceExceptional = forceExceptional;
         this.regularVerbBase = this.verbBase;
         this.needsYaSuffix = false;
-        this.soft = (
-            wordIsSoft(this.verbBase)
-            || FORCED_SOFT_VERBS.has(verbDictForm)
-        );
+        this.soft = wordIsSoft(this.verbDictForm);
         this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
 
         /* exceptions */

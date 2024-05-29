@@ -6,21 +6,51 @@ function genuineVowel(c: string): boolean {
     return checkCharPresence(c, VOWELS_EXCEPT_U_I);
 }
 
-function isSoftVowel(c: string): boolean {
-    return checkCharPresence(c, SOFT_VOWELS);
-}
+enum SoftHardType {
+    SOFT_STRONG,
+    SOFT_WEAK,
+    NEUTRAL,
+    HARD_WEAK,
+    HARD_STRONG,
+};
 
-function isHardVowel(c: string): boolean {
-    return checkCharPresence(c, HARD_VOWELS);
-}
+const VOWELS_BY_SOFT_HARD = new Map<string, SoftHardType>([
+    ["ә", SoftHardType.SOFT_STRONG],
+    ["е", SoftHardType.SOFT_STRONG],
+    ["ө", SoftHardType.SOFT_STRONG],
+    ["ү", SoftHardType.SOFT_STRONG],
+    ["і", SoftHardType.SOFT_STRONG],
 
-function wordIsSoft(w: string): boolean {
+    ["и", SoftHardType.SOFT_WEAK],
+
+    ["ю", SoftHardType.NEUTRAL],
+    ["у", SoftHardType.NEUTRAL],
+
+    ["а", SoftHardType.HARD_STRONG],
+    ["о", SoftHardType.HARD_STRONG],
+    ["ұ", SoftHardType.HARD_STRONG],
+    ["ы", SoftHardType.HARD_STRONG],
+    ["я", SoftHardType.HARD_STRONG],
+]);
+
+function wordIsSoft(raw: string): boolean {
+    const w = raw.toLowerCase();
+    if (HARD_SOFT_EXCEPTIONS.has(w)) {
+        return HARD_SOFT_EXCEPTIONS.get(w);
+    }
     for (let i = w.length - 1; i >= 0; --i) {
-        let c = w[i].toLowerCase();
-        if (isSoftVowel(c)) {
+        let c = w[i];
+        const vtype = VOWELS_BY_SOFT_HARD.get(c);
+        if (vtype == undefined) {
+            continue;
+        }
+        if (vtype == SoftHardType.SOFT_STRONG) {
             return true;
         }
-        if (isHardVowel(c)) {
+        if (vtype == SoftHardType.SOFT_WEAK) {
+            return true;
+        }
+        if (vtype == SoftHardType.HARD_STRONG) {
             return false;
         }
     }

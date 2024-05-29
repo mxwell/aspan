@@ -75,10 +75,7 @@ class NounBuilder {
 
     constructor(nounDictForm: string) {
         this.nounDictForm = nounDictForm
-        this.soft = (
-            wordIsSoft(nounDictForm) ||
-            FORCED_SOFT_NOUNS.has(nounDictForm)
-        );
+        this.soft = wordIsSoft(nounDictForm);
         this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
     }
 
