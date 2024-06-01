@@ -10,6 +10,10 @@ const DADE = ["да", "де"];
 const TATE = ["та", "те"];
 const NDANDE = ["нда", "нде"];
 
+const DAGYDEGI = ["дағы", "дегі"];
+const TAGYTEGI = ["тағы", "тегі"];
+const NDAGYNDEGI = ["ндағы", "ндегі"];
+
 const GAGE = ["ға", "ге"];
 const KAKE = ["қа", "ке"];
 const NANE = ["на", "не"];

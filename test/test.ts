@@ -3884,6 +3884,41 @@ ALL_TESTS.push(["declAltInfoTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounRelatedAdjTest", function() {
+    const relations = [
+        ["даңғыл", "даңғылдағы"],
+        ["Асүй", "Асүйдегі"],
+        ["бет", "беттегі"],
+        ["жұмыс", "жұмыстағы"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).relatedAdj(),
+            "Noun, related adj"
+        );
+    }
+
+    let nounBuilder = new NounBuilder("даңғыл");
+    const possForms = [
+        "даңғылымдағы", "даңғылымыздағы",
+        "даңғылыңдағы", "даңғылдарыңдағы",
+        "даңғылыңыздағы", "даңғылдарыңыздағы",
+        "даңғылындағы", "даңғылдарындағы",
+    ]
+    let formIndex = 0;
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const form = possForms[formIndex++];
+            T_EQ_ASSERT(
+                form,
+                nounBuilder.possessiveRelatedAdj(person, number),
+                "Noun, possessive related adj"
+            );
+        }
+    }
+}]);
+
 /* End of tests */
 
 testAll();

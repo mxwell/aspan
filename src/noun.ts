@@ -236,6 +236,16 @@ class NounBuilder {
         }
     }
 
+    private getRelatedAdjAffix(last: string, thirdPersonPoss: boolean): string {
+        if (thirdPersonPoss) {
+            return NDAGYNDEGI[this.softOffset];
+        } else if (vowel(last) || checkCharPresence(last, CONS_GROUP1_2)) {
+            return DAGYDEGI[this.softOffset];
+        } else {
+            return TAGYTEGI[this.softOffset];
+        }
+    }
+
     private getBarysAffix(last: string, person: MaybeGrammarPerson, number: MaybeGrammarNumber): string {
         if ((person == GrammarPerson.First && number == GrammarNumber.Singular) || person == GrammarPerson.Second) {
             return AE[this.softOffset];
@@ -470,5 +480,26 @@ class NounBuilder {
         }
 
         return NOT_SUPPORTED_PHRASAL;
+    }
+
+    relatedAdj(): Phrasal {
+        let lastBase = getLastItemLowered(this.nounDictForm);
+        let affix = this.getRelatedAdjAffix(lastBase, false);
+        return new PhrasalBuilder()
+            .nounBase(this.nounDictForm)
+            .septikAffix(affix)
+            .build();
+    }
+
+    possessiveRelatedAdj(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        let builder = this.possessiveBuilder(person, number);
+        if (builder.isEmpty()) {
+            return NOT_SUPPORTED_PHRASAL;
+        }
+        const lastBase = getLastItem(builder.getLastItem());
+        const affix = this.getRelatedAdjAffix(lastBase, person == GrammarPerson.Third);
+        return builder
+            .septikAffix(affix)
+            .build();
     }
 }
