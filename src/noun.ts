@@ -482,6 +482,25 @@ class NounBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
 
+    private getSpecialPossessiveAffix(last: string): string {
+        if (genuineVowel(last)) {
+            return "нікі";
+        } else if (checkCharPresence(last, CONS_GROUP1_2)) {
+            return "дікі";
+        } else {
+            return "тікі";
+        }
+    }
+
+    specialPossessive(): Phrasal {
+        let lastBase = getLastItemLowered(this.nounDictForm);
+        let affix = this.getSpecialPossessiveAffix(lastBase);
+        return new PhrasalBuilder()
+            .nounBase(this.nounDictForm)
+            .possessiveAffix(affix)
+            .build();
+    }
+
     relatedAdj(): Phrasal {
         let lastBase = getLastItemLowered(this.nounDictForm);
         let affix = this.getRelatedAdjAffix(lastBase, false);

@@ -3869,6 +3869,26 @@ ALL_TESTS.push(["nounPluralPossessivePluralSeptikTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["nounSpecialPossessiveTest", function() {
+    const relations = [
+        ["бала", "баланікі"],
+        ["туысқан", "туысқандікі"],
+        ["ШЕШЕ", "ШЕШЕнікі"],
+        ["әке", "әкенікі"],
+        ["қонақ", "қонақтікі"],
+        ["тілмаш", "тілмаштікі"],
+        ["бойдақ", "бойдақтікі"],
+        ["студент", "студенттікі"],
+    ];
+    for (const [noun, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).specialPossessive(),
+            "Noun, special possessive"
+        );
+    }
+}]);
+
 ALL_TESTS.push(["declAltInfoTest", function() {
     const positives = [
         "ауыз",
