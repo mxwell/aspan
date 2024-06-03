@@ -501,6 +501,14 @@ class NounBuilder {
             .build();
     }
 
+    pluralSpecialPossessive(): Phrasal {
+        let builder = this.pluralBuilder();
+        const affix = "дікі";
+        return builder
+            .possessiveAffix(affix)
+            .build();
+    }
+
     relatedAdj(): Phrasal {
         let lastBase = getLastItemLowered(this.nounDictForm);
         let affix = this.getRelatedAdjAffix(lastBase, false);

@@ -3887,6 +3887,18 @@ ALL_TESTS.push(["nounSpecialPossessiveTest", function() {
             "Noun, special possessive"
         );
     }
+
+    const pluralRelations = [
+        ["қыз", "қыздардікі"],
+        ["БАЛА", "БАЛАлардікі"],
+    ];
+    for (const [noun, expected] of pluralRelations) {
+        T_EQ_ASSERT(
+            expected,
+            new NounBuilder(noun).pluralSpecialPossessive(),
+            "Noun, plural special possessive"
+        );
+    }
 }]);
 
 ALL_TESTS.push(["declAltInfoTest", function() {
