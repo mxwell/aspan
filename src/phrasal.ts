@@ -71,6 +71,10 @@ class PhrasalPart {
         this.aux = aux;
         this.explanation = explanation;
     }
+
+    copy(content: string): PhrasalPart {
+        return new PhrasalPart(this.partType, content, this.aux, this.explanation);
+    }
 }
 
 type MaybePhrasal = Phrasal | null;
@@ -102,6 +106,15 @@ class PhrasalBuilder {
     constructor() {
         this.parts = [];
         this.alternative = null;
+    }
+    copy(): PhrasalBuilder {
+        let copy = new PhrasalBuilder();
+        for (let i = 0; i < this.parts.length; ++i) {
+            copy.parts.push(this.parts[i]);
+        }
+        copy.forbidden = this.forbidden;
+        copy.alternative = this.alternative;
+        return copy;
     }
     isEmpty(): boolean {
         return this.parts.length === 0;
@@ -221,13 +234,35 @@ class PhrasalBuilder {
         this.alternative = alternative;
         return this;
     }
-    getLastItem(): string {
+    getFirstPart(): PhrasalPart {
+        return this.parts[0];
+    }
+    getLastNonemptyIndex(): number {
         let parts = this.parts;
         let index = parts.length - 1;
         while (index > 0 && parts[index].content.length === 0) {
             index--;
         }
-        return getLastItem(parts[index].content);
+        return index;
+    }
+    getLastItem(): string {
+        const index = this.getLastNonemptyIndex();
+        return getLastItemLowered(this.parts[index].content);
+    }
+    getLastPart(): PhrasalPart {
+        const index = this.getLastNonemptyIndex();
+        return this.parts[index];
+    }
+    replaceLastPart(part: PhrasalPart): PhrasalBuilder {
+        let index = this.getLastNonemptyIndex();
+        this.parts[index] = part;
+        return this;
+    }
+    replaceLast(replacement: string): PhrasalBuilder {
+        let index = this.getLastNonemptyIndex();
+        let lastPart = this.getLastPart();
+        const replaced = replaceLast(lastPart.content, replacement);
+        return this.replaceLastPart(lastPart.copy(replaced));
     }
     build(): Phrasal {
         let partStrings: string[] = [];

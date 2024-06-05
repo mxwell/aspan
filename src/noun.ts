@@ -41,25 +41,32 @@ function getDeclAltInfo(nounDictForm: string): MaybeDeclensionAltInfo {
     return null;
 }
 
-function replaceBaseLastForPossessive(base: string, lastBase: string): string {
+function replaceBaseLastForPossessive(baseBuilder: PhrasalBuilder, lastBase: string): PhrasalBuilder {
     const replacement = BASE_REPLACEMENT_PKKH.get(lastBase);
     if (replacement != null) {
-        return replaceLast(base, replacement);
+        return baseBuilder.replaceLast(replacement);
     } else {
-        return base;
+        return baseBuilder;
     }
 }
 
-function dropLastVowel(base: string): string {
+function dropLastVowelImpl(base: string): string {
     const n = base.length;
     return base.substring(0, n - 2) + base[n - 1];
 }
 
+function dropLastVowel(baseBuilder: PhrasalBuilder): PhrasalBuilder {
+    const lastPart = baseBuilder.getLastPart();
+    const modified = dropLastVowelImpl(lastPart.content);
+    const modifiedPart = lastPart.copy(modified);
+    return baseBuilder.replaceLastPart(modifiedPart);
+}
+
 class ModifiedBase {
-    base: string
+    base: PhrasalBuilder
     endsWithVowel: boolean
 
-    constructor(base: string, endsWithVowel: boolean) {
+    constructor(base: PhrasalBuilder, endsWithVowel: boolean) {
         this.base = base;
         this.endsWithVowel = endsWithVowel;
     }
@@ -69,14 +76,37 @@ type MaybeGrammarPerson = GrammarPerson | null;
 type MaybeGrammarNumber = GrammarNumber | null;
 
 class NounBuilder {
-    private nounDictForm: string
+    private baseBuilder: PhrasalBuilder
     private soft: boolean
     private softOffset: number
 
-    constructor(nounDictForm: string) {
-        this.nounDictForm = nounDictForm
-        this.soft = wordIsSoft(nounDictForm);
-        this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
+    public constructor(nounDictForm: string);
+    public constructor(baseBuilder: PhrasalBuilder, soft: boolean);
+    public constructor(...arr: any[]) {
+        if (arr.length == 1) {
+            if (typeof arr[0] === 'string') {
+                const nounDictForm = arr[0];
+                this.baseBuilder = new PhrasalBuilder().nounBase(nounDictForm);
+                this.soft = wordIsSoft(nounDictForm);
+                this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
+            } else {
+                throw new Error("Invalid single arguments");
+            }
+        } else if (arr.length == 2) {
+            if (arr[0] instanceof PhrasalBuilder && typeof arr[1] === 'boolean') {
+                this.baseBuilder = arr[0];
+                this.soft = arr[1];
+                this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
+            } else {
+                throw new Error("Invalid pair of arguments");
+            }
+        } else {
+            throw new Error("Invalid number of arguments");
+        }
+    }
+
+    private copyBase(): PhrasalBuilder {
+        return this.baseBuilder.copy();
     }
 
     private getPluralAffix(baseLast): string {
@@ -90,11 +120,10 @@ class NounBuilder {
     }
 
     private pluralBuilder(): PhrasalBuilder {
-        let lastBase = getLastItemLowered(this.nounDictForm);
+        let lastBase = this.baseBuilder.getLastItem();
         let pluralAffix = this.getPluralAffix(lastBase);
 
-        return new PhrasalBuilder()
-            .nounBase(this.nounDictForm)
+        return this.copyBase()
             .pluralAffix(pluralAffix);
     }
 
@@ -104,7 +133,8 @@ class NounBuilder {
     }
 
     private getDropVowelType(): DropVowelType {
-        const lastPart = extractLastNounPart(this.nounDictForm).toLowerCase();
+        const rawBase = this.baseBuilder.getFirstPart().content;
+        const lastPart = extractLastNounPart(rawBase).toLowerCase();
         if (DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
             return DropVowelType.DropLast;
         } else if (OPTIONALLY_DROP_LAST_VOWEL_NOUNS.has(lastPart)) {
@@ -116,21 +146,21 @@ class NounBuilder {
 
     private modifyBaseForSomePossessive(): ModifiedBase[] {
         const dropVowelType = this.getDropVowelType();
-        let lastBase = getLastItem(this.nounDictForm);
+        let lastBase = this.baseBuilder.getLastItem();
         if (dropVowelType == DropVowelType.Regular) {
-            const replacedStr = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
-            const replaced = new ModifiedBase(replacedStr, genuineVowel(getLastItem(replacedStr)));
-            return [replaced];
+            let builderWithReplacement = replaceBaseLastForPossessive(this.copyBase(), lastBase);
+            const modifiedBase = new ModifiedBase(builderWithReplacement, genuineVowel(builderWithReplacement.getLastItem()));
+            return [modifiedBase];
         } else if (dropVowelType == DropVowelType.DropLast) {
-            const droppedStr = dropLastVowel(this.nounDictForm);
-            const dropped = new ModifiedBase(droppedStr, false);
-            return [dropped];
+            let builderWithDrop = dropLastVowel(this.copyBase());
+            const modifiedBase = new ModifiedBase(builderWithDrop, false);
+            return [modifiedBase];
         } else {
-            const droppedStr = dropLastVowel(this.nounDictForm);
-            const dropped = new ModifiedBase(droppedStr, false);
-            const replacedStr = replaceBaseLastForPossessive(this.nounDictForm, lastBase);
-            const replaced = new ModifiedBase(replacedStr, genuineVowel(getLastItem(replacedStr)));
-            return [dropped, replaced];
+            let builderWithDrop = dropLastVowel(this.copyBase());
+            const modifiedWithDrop = new ModifiedBase(builderWithDrop, false);
+            const builderWithReplacement = replaceBaseLastForPossessive(this.copyBase(), lastBase);
+            const modifiedWithReplacement = new ModifiedBase(builderWithReplacement, genuineVowel(builderWithReplacement.getLastItem()));
+            return [modifiedWithDrop, modifiedWithReplacement];
         }
     }
 
@@ -146,8 +176,7 @@ class NounBuilder {
             }
         }
         const affix = NOUN_POSSESSIVE_AFFIXES[person][number][this.softOffset];
-        return new PhrasalBuilder()
-            .nounBase(base.base)
+        return base.base.copy()
             .possessiveAffix(`${extra}${affix}`);
     }
 
@@ -294,49 +323,40 @@ class NounBuilder {
 
     septikForm(septik: Septik): Phrasal {
         if (septik == Septik.Atau) {
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .build();
-        } else if (septik == Septik.Shygys) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
+        }
+
+        const lastBase = this.baseBuilder.getLastItem();
+
+        if (septik == Septik.Shygys) {
             let affix = this.getShygysAffix(lastBase, false);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Jatys) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getJatysAffix(lastBase, false);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Barys) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getBarysAffix(lastBase, null, null);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Ilik) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getIlikAffix(lastBase, false);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Tabys) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getTabysAffix(lastBase, false);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Komektes) {
-            let lastBase = getLastItemLowered(this.nounDictForm);
             let affix = this.getKomektesAffix(lastBase, false);
-            return new PhrasalBuilder()
-                .nounBase(this.nounDictForm)
+            return this.copyBase()
                 .septikAffix(affix)
                 .build();
         }
@@ -391,38 +411,36 @@ class NounBuilder {
         if (septik == Septik.Atau) {
             return builder
                 .build();
-        } else if (septik == Septik.Shygys) {
-            const lastBase = getLastItem(builder.getLastItem());
+        }
+
+        const lastBase = builder.getLastItem();
+
+        if (septik == Septik.Shygys) {
             const affix = this.getShygysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Jatys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getJatysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Barys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getBarysAffix(lastBase, person, number);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Ilik) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getIlikAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Tabys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getTabysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Komektes) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getKomektesAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
@@ -441,38 +459,36 @@ class NounBuilder {
         if (septik == Septik.Atau) {
             return builder
                 .build();
-        } else if (septik == Septik.Shygys) {
-            const lastBase = getLastItem(builder.getLastItem());
+        }
+
+        const lastBase = builder.getLastItem();
+
+        if (septik == Septik.Shygys) {
             const affix = this.getShygysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Jatys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getJatysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Barys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getBarysAffix(lastBase, person, number);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Ilik) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getIlikAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Tabys) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getTabysAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
                 .build();
         } else if (septik == Septik.Komektes) {
-            const lastBase = getLastItem(builder.getLastItem());
             const affix = this.getKomektesAffix(lastBase, person == GrammarPerson.Third);
             return builder
                 .septikAffix(affix)
@@ -493,10 +509,9 @@ class NounBuilder {
     }
 
     specialPossessive(): Phrasal {
-        let lastBase = getLastItemLowered(this.nounDictForm);
+        const lastBase = this.baseBuilder.getLastItem();
         let affix = this.getSpecialPossessiveAffix(lastBase);
-        return new PhrasalBuilder()
-            .nounBase(this.nounDictForm)
+        return this.copyBase()
             .possessiveAffix(affix)
             .build();
     }
@@ -510,10 +525,9 @@ class NounBuilder {
     }
 
     relatedAdj(): Phrasal {
-        let lastBase = getLastItemLowered(this.nounDictForm);
+        const lastBase = this.baseBuilder.getLastItem();
         let affix = this.getRelatedAdjAffix(lastBase, false);
-        return new PhrasalBuilder()
-            .nounBase(this.nounDictForm)
+        return this.copyBase()
             .septikAffix(affix)
             .build();
     }
@@ -523,7 +537,7 @@ class NounBuilder {
         if (builder.isEmpty()) {
             return NOT_SUPPORTED_PHRASAL;
         }
-        const lastBase = getLastItem(builder.getLastItem());
+        const lastBase = builder.getLastItem();
         const affix = this.getRelatedAdjAffix(lastBase, person == GrammarPerson.Third);
         return builder
             .septikAffix(affix)
