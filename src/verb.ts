@@ -910,9 +910,9 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     /* Өткен шақ есімше */
-    pastParticiple(sentenceType: SentenceType): Phrasal {
+    pastParticipleBuilder(sentenceType: SentenceType): MaybePhrasalBuilder {
         if (sentenceType == SentenceType.Statement) {
-            return this.remotePastCommonBuilder().build();
+            return this.remotePastCommonBuilder();
         } else if (sentenceType == SentenceType.Negative) {
             let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
@@ -922,18 +922,20 @@ class VerbBuilder {
             return new PhrasalBuilder()
                 .verbBase(baseAndLast.base)
                 .negation(particle)
-                .tenseAffix(affix)
-                .build();
+                .tenseAffix(affix);
         } else if (sentenceType == SentenceType.Question) {
             return this.buildQuestionForm(
                     this.remotePastCommonBuilder()
-                ).build();
+            );
         }
-        return NOT_SUPPORTED_PHRASAL;
+        return null;
     }
-    presentParticiple(sentenceType: SentenceType): Phrasal {
+    pastParticiple(sentenceType: SentenceType): Phrasal {
+        return finalizeMaybePhrasalBuilder(this.pastParticipleBuilder(sentenceType));
+    }
+    presentParticipleBuilder(sentenceType: SentenceType): MaybePhrasalBuilder {
         if (sentenceType == SentenceType.Statement) {
-            return this.presentParticipleCommonBuilder(false).build();
+            return this.presentParticipleCommonBuilder(false);
         } else if (sentenceType == SentenceType.Negative) {
             let base = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
@@ -943,18 +945,20 @@ class VerbBuilder {
             return new PhrasalBuilder()
                 .verbBase(baseAndLast.base)
                 .negation(particle)
-                .tenseAffix(affix)
-                .build();
+                .tenseAffix(affix);
         } else if (sentenceType == SentenceType.Question) {
             return this.buildQuestionForm(
                     this.presentParticipleCommonBuilder(false)
-                ).build();
+                );
         }
-        return NOT_SUPPORTED_PHRASAL;
+        return null;
     }
-    futureParticiple(sentenceType: SentenceType): Phrasal {
+    presentParticiple(sentenceType: SentenceType): Phrasal {
+        return finalizeMaybePhrasalBuilder(this.presentParticipleBuilder(sentenceType));
+    }
+    futureParticipleBuilder(sentenceType: SentenceType): MaybePhrasalBuilder {
         if (sentenceType == SentenceType.Statement) {
-            return this.possibleFutureCommonBuilder().build();
+            return this.possibleFutureCommonBuilder();
         } else if (sentenceType == SentenceType.Negative) {
             let specialBase = this.fixUpSpecialBaseForConsonant();
             let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
@@ -963,13 +967,15 @@ class VerbBuilder {
             return new PhrasalBuilder()
                 .verbBase(baseAndLast.base)
                 .negation(particle)
-                .tenseAffix(affix)
-                .build();
+                .tenseAffix(affix);
         } else if (sentenceType == SentenceType.Question) {
             return this.buildQuestionForm(
                     this.possibleFutureCommonBuilder()
-                ).build();
+                );
         }
-        return NOT_SUPPORTED_PHRASAL;
+        return null;
+    }
+    futureParticiple(sentenceType: SentenceType): Phrasal {
+        return finalizeMaybePhrasalBuilder(this.futureParticipleBuilder(sentenceType));
     }
 }

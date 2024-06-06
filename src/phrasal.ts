@@ -282,3 +282,10 @@ class PhrasalBuilder {
         );
     }
 }
+
+function finalizeMaybePhrasalBuilder(builder: MaybePhrasalBuilder): Phrasal {
+    if (builder === null) {
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    return builder.build();
+}

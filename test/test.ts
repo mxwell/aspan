@@ -3951,6 +3951,118 @@ ALL_TESTS.push(["nounRelatedAdjTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["pastParticipleDeclensionTest", function() {
+    let verbBuilder = new VerbBuilder("келу");
+    let nounBuilder = new NounBuilder(
+        verbBuilder.pastParticipleBuilder(SentenceType.Statement),
+        verbBuilder.soft
+    );
+
+    const septikForms = [
+        "келген",
+        "келгеннен",
+        "келгенде",
+        "келгенге",
+        "келгеннің",
+        "келгенді",
+        "келгенмен",
+    ];
+    for (const index in SEPTIKS) {
+        const septik = SEPTIKS[index];
+        T_EQ_ASSERT(
+            septikForms[index],
+            nounBuilder.septikForm(septik),
+            "Past participle, declension, septik form"
+        );
+    }
+    const pluralSeptikForms = [
+        "келгендер",
+        "келгендерден",
+        "келгендерде",
+        "келгендерге",
+        "келгендердің",
+        "келгендерді",
+        "келгендермен",
+    ];
+    for (const index in SEPTIKS) {
+        const septik = SEPTIKS[index];
+        T_EQ_ASSERT(
+            pluralSeptikForms[index],
+            nounBuilder.pluralSeptikForm(septik),
+            "Past participle, declension, plural septik form"
+        );
+    }
+    const possessiveSeptikForms = [
+        "келгенім",
+        "келгенімнен",
+        "келгенімде",
+        "келгеніме",
+        "келгенімнің",
+        "келгенімді",
+        "келгеніммен",
+    ];
+    for (const index in SEPTIKS) {
+        const septik = SEPTIKS[index];
+        T_EQ_ASSERT(
+            possessiveSeptikForms[index],
+            nounBuilder.possessiveSeptikForm(GrammarPerson.First, GrammarNumber.Singular, septik),
+            "Past participle, declension, possessive septik form"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["presentParticipleDeclensionTest", function() {
+    let verbBuilder = new VerbBuilder("келу");
+    let nounBuilder = new NounBuilder(
+        verbBuilder.presentParticipleBuilder(SentenceType.Statement),
+        verbBuilder.soft
+    );
+
+    const septikForms = [
+        "келетін",
+        "келетіннен",
+        "келетінде",
+        "келетінге",
+        "келетіннің",
+        "келетінді",
+        "келетінмен",
+    ];
+    for (const index in SEPTIKS) {
+        const septik = SEPTIKS[index];
+        T_EQ_ASSERT(
+            septikForms[index],
+            nounBuilder.septikForm(septik),
+            "Present participle, declension, septik form"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["futureParticipleDeclensionTest", function() {
+    let verbBuilder = new VerbBuilder("келу");
+    let nounBuilder = new NounBuilder(
+        verbBuilder.futureParticipleBuilder(SentenceType.Statement),
+        verbBuilder.soft
+    );
+
+    const septikForms = [
+        "келерлер",
+        "келерлерден",
+        "келерлерде",
+        "келерлерге",
+        "келерлердің",
+        "келерлерді",
+        "келерлермен",
+    ];
+    for (const index in SEPTIKS) {
+        const septik = SEPTIKS[index];
+        T_EQ_ASSERT(
+            septikForms[index],
+            nounBuilder.pluralSeptikForm(septik),
+            "Future participle, declension, plural septik form"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();
