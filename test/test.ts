@@ -3162,6 +3162,74 @@ ALL_TESTS.push(["PresentColloquialExceptionTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["verbExceptionDetectionTest", function() {
+    let builder = new VerbBuilder("жүрек қобалжу");
+    T_EQ_ASSERT(
+        "жүрек қобалжымаймын",
+        builder.presentTransitiveForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    let auxBuilder = new VerbBuilder("жату");
+    T_EQ_ASSERT(
+        "жүрек қобалжымай жатырмын",
+        builder.presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, auxBuilder, false),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымаятырмын",
+        builder.presentColloquialForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+
+    T_EQ_ASSERT(
+        "жүрек қобалжымадым",
+        builder.pastForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымағанмын",
+        builder.remotePastTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, false),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымаппын",
+        builder.pastUncertainTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымайтынмын",
+        builder.pastTransitiveTense(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+
+    T_EQ_ASSERT(
+        "жүрек қобалжымаспын",
+        builder.possibleFutureForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымақ емеспін",
+        builder.intentionFutureForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+
+    T_EQ_ASSERT(
+        "жүрек қобалжымасам",
+        builder.conditionalMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжымайын",
+        builder.imperativeMood(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative),
+        "Last word of verb is exceptional",
+    );
+    T_EQ_ASSERT(
+        "жүрек қобалжығым келмейді",
+        builder.wantClause(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Negative, VerbShak.PresentTransitive),
+        "Last word of verb is exceptional",
+    );
+}]);
+
 ALL_TESTS.push(["nounPluralTest", function() {
     const relations = [
         ["айна", "айналар"],

@@ -49,3 +49,11 @@ function replaceFirst(s: string, replacement: string): string {
     }
     return `${replacement}${s.slice(1, n)}`;
 }
+
+function getLastWord(s: string): string {
+    let space = s.lastIndexOf(" ");
+    if (space == -1) {
+        return s;
+    }
+    return s.slice(space + 1);
+}

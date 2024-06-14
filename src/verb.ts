@@ -13,18 +13,15 @@ function validateVerb(verbDictForm: string): boolean {
 }
 
 function isVerbException(verbDictForm: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verbDictForm);
+    const lastWord = getLastWord(verbDictForm);
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(lastWord);
 }
 
 type MaybeMeanings = string[][] | null;
 
 function getOptExceptVerbMeanings(verbDictForm: string): MaybeMeanings {
-    let space = verbDictForm.lastIndexOf(" ");
-    if (space == -1) {
-        return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm);
-    } else {
-        return OPT_EXCEPT_VERB_MEANINGS.get(verbDictForm.substring(space + 1));
-    }
+    const lastWord = getLastWord(verbDictForm);
+    return OPT_EXCEPT_VERB_MEANINGS.get(lastWord);
 }
 
 function isVerbException2(verbDictForm: string): boolean {
