@@ -4,6 +4,7 @@ from logging.config import dictConfig
 import os
 from os.path import join as pj
 import sys
+import threading
 
 from flask import Flask, jsonify, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
@@ -35,7 +36,7 @@ def read_token(path):
 
 class Un(object):
 
-    def __init__(self, audio_workdir, yc_api_key):
+    def __init__(self, audio_workdir, yc_api_key, db_conn):
         self.audio_workdir = audio_workdir
         self.counter = 101
 
@@ -61,6 +62,9 @@ class Un(object):
         self.model = model_repository.synthesis_model()
         self.model.voice = "amira"
 
+        self.db_lock = threading.Lock()
+        self.db_conn = db_conn
+
     def make_filepath_for_counter(self, counter):
         name = "gen_{:03d}".format(counter)
         path_prefix = pj(self.audio_workdir, name)
@@ -71,7 +75,18 @@ class Un(object):
         self.counter += 1
         return self.make_filepath_for_counter(cur)
 
-    def generate(self, text):
+    def validate_verb(self, verb):
+        with self.db_lock:
+            cursor = self.db_conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM Verbs WHERE verb = ?", (verb,))
+            count = cursor.fetchone()[0]
+            logging.info("Verb %s: count %d", verb, count)
+            return count > 0
+
+    def generate(self, verb, text):
+        if not self.validate_verb(verb):
+            logging.error("Invalid verb: %s", verb)
+            return None
         path = self.make_filepath()
         result = self.model.synthesize(text, raw_format=False)
         result.export(path, format="mp3")
@@ -79,9 +94,29 @@ class Un(object):
         return path
 
 
+def init_db_conn(db_path):
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS Verbs (
+    id INTEGER PRIMARY KEY,
+    verb TEXT NOT NULL,
+    fe BOOLEAN NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    conn.execute("""
+CREATE INDEX IF NOT EXISTS idx_verb ON Verbs (verb);
+    """.strip())
+
+    logging.info("Database connection with %s established", db_path)
+    return conn
+
+
 def init_un_app():
     global unInstance
-    unInstance = Un("audio_workdir", ".secrets/.yc.apikey")
+    db_conn = init_db_conn(DATABASE_PATH)
+    unInstance = Un("audio_workdir", ".secrets/.yc.apikey", db_conn)
     logging.info("Un app initialized")
 
 
@@ -94,31 +129,23 @@ def get_test():
 def get_sound():
     global unInstance
 
+    verb = request.args.get("v")
     form = request.args.get("f")
 
     logging.info("Request: [%s]", form)
 
-    if form:
-        path = unInstance.generate(form)
-        return send_file(path, as_attachment=False)
-    else:
+    if not verb:
+        logging.error("Invalid request: no verb")
+        return jsonify({"message": "Invalid request"}), 400
+    if not form:
+        logging.error("Invalid request: no form")
         return jsonify({"message": "Invalid request"}), 400
 
-
-def init_db_conn(db_path):
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("""
-CREATE TABLE IF NOT EXISTS Verbs (
-    id INTEGER PRIMARY KEY,
-    verb TEXT NOT NULL,
-    fe BOOLEAN NOT NULL,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-    """.strip())
-
-    logging.info("Database connection with %s established", db_path)
-    return conn
+    path = unInstance.generate(verb, form)
+    if not path:
+        logging.error("Failed to generate audio")
+        return jsonify({"message": "Invalid request"}), 400
+    return send_file(path, as_attachment=False)
 
 
 def load_verbs(args):
