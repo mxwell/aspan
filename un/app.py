@@ -7,6 +7,7 @@ import sys
 
 from flask import Flask, jsonify, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
+import sqlite3
 
 dictConfig({
     'version': 1,
@@ -104,8 +105,57 @@ def get_sound():
         return jsonify({"message": "Invalid request"}), 400
 
 
+def init_db_conn(db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS Verbs (
+    id INTEGER PRIMARY KEY,
+    verb TEXT NOT NULL,
+    fe BOOLEAN NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+
+    logging.info("Database connection with %s established", db_path)
+    return conn
+
+
+def load_verbs(args):
+    conn = init_db_conn(args.db_path)
+    cursor = conn.cursor()
+    insert_query = """INSERT INTO Verbs (verb, fe) VALUES (?, ?)"""
+    batch = 0
+    total = 0
+    for line in open(args.verbs_path):
+        parts = line.strip().split("\t")
+        verb = parts[0]
+        cursor.execute(insert_query, (verb, False))
+        batch += 1
+        total += 1
+        if batch >= 100:
+            conn.commit()
+            batch = 0
+    conn.commit()
+    conn.close()
+    logging.info("Loaded %d verbs", total)
+
+
 def main():
-    raise NotImplementedError("This script is not meant to be run as a standalone application")
+    LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
+    logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    load_verbs_parser = subparsers.add_parser("load-verbs")
+    load_verbs_parser.add_argument("--verbs-path", required=True)
+    load_verbs_parser.add_argument("--db-path", default=DATABASE_PATH)
+    load_verbs_parser.set_defaults(func=load_verbs)
+
+    args = parser.parse_args()
+    args.func(args)
+    return 0
 
 
 if __name__ == '__main__':
