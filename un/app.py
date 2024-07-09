@@ -40,11 +40,17 @@ def read_token(path):
     return open(path).read().strip()
 
 
-class Un(object):
+class Synth(object):
 
-    def __init__(self, audio_workdir, yc_api_key, db_conn):
-        self.audio_workdir = audio_workdir
+    def synthesize(self, soft, text, path, name):
+        result = self.get_model(soft).synthesize(text, raw_format=False)
+        result.export(path, format="mp3")
+        logging.info("Generated audio for %s: %s", text, name)
 
+
+class SynthYskV3(Synth):
+
+    def __init__(self, yc_api_key):
         logging.info("YSK: configuring...")
         assert isinstance(yc_api_key, str), f"Invalid type: {type(yc_api_key)}"
 
@@ -61,6 +67,24 @@ class Un(object):
 
         self.soft_model = model_repository.synthesis_model()
         self.soft_model.voice = "amira"
+
+    def get_model(self, soft):
+        if soft:
+            return self.soft_model
+        return self.model
+
+    def generate_audio(self, soft, text, path, name):
+        result = self.get_model(soft).synthesize(text, raw_format=False)
+        result.export(path, format="mp3")
+        logging.info("Generated audio for %s: %s", text, name)
+
+
+class Un(object):
+
+    def __init__(self, audio_workdir, synth, db_conn):
+        self.audio_workdir = audio_workdir
+        assert isinstance(synth, Synth)
+        self.synth = synth
 
         self.boto_session = boto3.session.Session()
         self.s3 = self.boto_session.client(
@@ -124,17 +148,6 @@ class Un(object):
         audio_url = f"{BUCKET_URL}{name}.mp3"
         return audio_url
 
-    def get_model(self, soft):
-        if soft:
-            return self.soft_model
-        else:
-            return self.model
-
-    def generate_audio(self, soft, text, path, name):
-        result = self.get_model(soft).synthesize(text, raw_format=False)
-        result.export(path, format="mp3")
-        logging.info("Generated audio for %s: %s", text, name)
-
     def get_audio_file(self, verb, fe, verb_id, text, soft):
         existing_audio_name = self.check_text_audio(verb_id, text)
         if existing_audio_name:
@@ -144,7 +157,7 @@ class Un(object):
         if not name:
             return None
         path = self.make_audio_path(name)
-        self.generate_audio(soft, text, path, name)
+        self.synth.generate_audio(soft, text, path, name)
         self.upload_audio_to_s3(path, name)
         self.store_text_audio_to_db(verb_id, text, name)
         return path
@@ -171,7 +184,7 @@ class Un(object):
         if not name:
             return None
         path = self.make_audio_path(name)
-        self.generate_audio(soft, text, path, name)
+        self.synth.generate_audio(soft, text, path, name)
         self.upload_audio_to_s3(path, name)
         self.store_text_audio_to_db(verb_id, text, name)
         os.unlink(path)
@@ -210,7 +223,9 @@ CREATE TABLE IF NOT EXISTS Audio (
 def init_un_app():
     global unInstance
     db_conn = init_db_conn(DATABASE_PATH)
-    unInstance = Un("audio_workdir", ".secrets/.yc.apikey", db_conn)
+    yc_api_key = ".secrets/.yc.apikey"
+    synth = SynthYskV3(yc_api_key)
+    unInstance = Un("audio_workdir", synth, db_conn)
     logging.info("Un app initialized")
 
 
