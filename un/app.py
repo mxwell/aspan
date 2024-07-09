@@ -10,6 +10,8 @@ from flask import Flask, jsonify, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
 import sqlite3
 
+from lib.translit import transliterate
+
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -38,15 +40,6 @@ class Un(object):
 
     def __init__(self, audio_workdir, yc_api_key, db_conn):
         self.audio_workdir = audio_workdir
-        self.counter = 101
-
-        while True:
-            path = self.make_filepath_for_counter(self.counter)
-            if not os.path.exists(path):
-                break
-            self.counter += 1
-
-        logging.info("Counter initialized to %d", self.counter)
 
         logging.info("YSK: configuring...")
         assert isinstance(yc_api_key, str), f"Invalid type: {type(yc_api_key)}"
@@ -68,15 +61,14 @@ class Un(object):
         self.db_lock = threading.Lock()
         self.db_conn = db_conn
 
-    def make_filepath_for_counter(self, counter):
-        name = "gen_{:03d}".format(counter)
-        path_prefix = pj(self.audio_workdir, name)
-        return "{}.mp3".format(path_prefix)
-
-    def make_filepath(self):
-        cur = self.counter
-        self.counter += 1
-        return self.make_filepath_for_counter(cur)
+    def make_audio_name(self, verb, fe, text):
+        verbT = transliterate(verb)
+        if not verbT:
+            return None
+        textT = transliterate(text)
+        if not textT:
+            return None
+        return f"{verbT}{int(fe)}{textT}"
 
     def check_verb_and_get_soft(self, verb, fe):
         with self.db_lock:
@@ -95,16 +87,28 @@ class Un(object):
         else:
             return self.model
 
+    def generate_audio(self, soft, text, path, name):
+        result = self.get_model(soft).synthesize(text, raw_format=False)
+        result.export(path, format="mp3")
+        logging.info("Generated audio for %s: %s", text, name)
+
+    def get_audio_file(self, verb, fe, text, soft):
+        name = self.make_audio_name(verb, fe, text)
+        if not name:
+            return None
+        path = pj(self.audio_workdir, f"{name}.mp3")
+        if os.path.exists(path):
+            logging.info("Audio file already exists for name %s", name)
+        else:
+            self.generate_audio(soft, text, path, name)
+        return path
+
     def generate(self, verb, fe, text):
         present, soft = self.check_verb_and_get_soft(verb, fe)
         if not present:
             logging.error("Unknown verb: %s, %s", verb, str(fe))
             return None
-        path = self.make_filepath()
-        result = self.get_model(soft).synthesize(text, raw_format=False)
-        result.export(path, format="mp3")
-        logging.info("Generated audio for %s: %s", text, path)
-        return path
+        return self.get_audio_file(verb, fe, text, soft)
 
 
 def init_db_conn(db_path):
