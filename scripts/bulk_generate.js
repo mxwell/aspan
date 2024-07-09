@@ -7,6 +7,7 @@ const kDetectSuggestCommand = "detect_suggest_forms";
 const kSuggestInfinitiveCommand = "suggest_infinitive";
 const kSuggestInfinitiveTranslationCommand = "suggest_infinitive_translation";
 const kPresentContinuousFormsCommand = "present_continuous_forms";
+const kVerbsWithMetaCommand = "verbs_with_meta";
 
 const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
@@ -251,6 +252,28 @@ function createPresentContinuousForms(verb, auxBuilder) {
         ));
     }
 
+    return rows;
+}
+
+class VerbWithMeta {
+    constructor(verb, fe, softOffset) {
+        this.verb = verb;
+        this.fe = fe;
+        this.softOffset = softOffset;
+    }
+}
+
+function createVerbsWithMeta(verb) {
+    const builder = new aspan.VerbBuilder(verb, false);
+
+    let rows = [
+        new VerbWithMeta(verb, false, builder.softOffset),
+    ];
+    const optExceptMeaning = aspan.getOptExceptVerbMeanings(verb);
+    if (optExceptMeaning != null) {
+        const feBuilder = new aspan.VerbBuilder(verb, true);
+        rows.push(new VerbWithMeta(verb, true, feBuilder.softOffset));
+    }
     return rows;
 }
 
@@ -571,6 +594,14 @@ async function processLineByLine(args) {
                 }
             }
         }
+    } else if (args.command == kVerbsWithMetaCommand) {
+        const rows = createVerbsWithMeta(inputVerb);
+        for (let i = 0; i < rows.length; ++i) {
+            const row = rows[i];
+            const fe = row.fe ? 1 : 0;
+            outputStream.write(`${row.verb}\t${fe}\t${row.softOffset}\n`);
+            outputCounter += 1;
+        }
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
@@ -607,6 +638,8 @@ function parseArgs() {
     } else if (command == kSuggestInfinitiveTranslationCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else if (command == kPresentContinuousFormsCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kVerbsWithMetaCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else {
         throw new Error(`Unsupported command: ${command}`);
