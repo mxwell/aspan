@@ -3,12 +3,13 @@ import logging
 from logging.config import dictConfig
 import os
 from os.path import join as pj
+import sqlite3
 import sys
 import threading
+import uuid
 
 from flask import Flask, jsonify, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
-import sqlite3
 
 from lib.translit import transliterate
 
@@ -68,7 +69,8 @@ class Un(object):
         textT = transliterate(text)
         if not textT:
             return None
-        return f"{verbT}{int(fe)}{textT}"
+        suffix = str(uuid.uuid4())[:6]
+        return f"{verbT}{int(fe)}{textT}_{suffix}"
 
     # returns `(id: int, soft: boolean)` or `None, None`
     def check_verb_and_get_soft(self, verb, fe):
