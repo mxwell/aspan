@@ -70,16 +70,40 @@ class Un(object):
             return None
         return f"{verbT}{int(fe)}{textT}"
 
+    # returns `(id: int, soft: boolean)` or `None, None`
     def check_verb_and_get_soft(self, verb, fe):
         with self.db_lock:
             cursor = self.db_conn.cursor()
-            query = "SELECT soft FROM Verbs WHERE verb = ? AND fe = ?"
+            query = "SELECT id, soft FROM Verbs WHERE verb = ? AND fe = ?"
             cursor.execute(query, (verb, fe))
             result = cursor.fetchone()
             if result is not None:
-                return True, result[0]
+                return result[0], result[1]
             else:
-                return False, None
+                return None, None
+
+    # returns `audio_name: string` or `None`
+    def check_text_audio(self, verb_id, text):
+        with self.db_lock:
+            cursor = self.db_conn.cursor()
+            query = "SELECT audio FROM Audio WHERE verb_id = ? AND text = ?"
+            cursor.execute(query, (verb_id, text))
+            result = cursor.fetchone()
+            if result is not None:
+                return result[0]
+            else:
+                return None
+
+    def store_text_audio_to_db(self, verb_id, text, audio_name):
+        with self.db_lock:
+            cursor = self.db_conn.cursor()
+            insert_query = "INSERT INTO Audio (verb_id, text, audio) VALUES (?, ?, ?)"""
+            cursor.execute(insert_query, (verb_id, text, audio_name))
+            self.db_conn.commit()
+            logging.info("Stored to db: %d, %s, %s", verb_id, text, audio_name)
+
+    def make_audio_path(self, name):
+        return pj(self.audio_workdir, f"{name}.mp3")
 
     def get_model(self, soft):
         if soft:
@@ -92,23 +116,25 @@ class Un(object):
         result.export(path, format="mp3")
         logging.info("Generated audio for %s: %s", text, name)
 
-    def get_audio_file(self, verb, fe, text, soft):
+    def get_audio_file(self, verb, fe, verb_id, text, soft):
+        existing_audio_name = self.check_text_audio(verb_id, text)
+        if existing_audio_name:
+            logging.info("Audio is found in DB: %s", existing_audio_name)
+            return self.make_audio_path(existing_audio_name)
         name = self.make_audio_name(verb, fe, text)
         if not name:
             return None
-        path = pj(self.audio_workdir, f"{name}.mp3")
-        if os.path.exists(path):
-            logging.info("Audio file already exists for name %s", name)
-        else:
-            self.generate_audio(soft, text, path, name)
+        path = self.make_audio_path(name)
+        self.generate_audio(soft, text, path, name)
+        self.store_text_audio_to_db(verb_id, text, name)
         return path
 
     def generate(self, verb, fe, text):
-        present, soft = self.check_verb_and_get_soft(verb, fe)
-        if not present:
+        verb_id, soft = self.check_verb_and_get_soft(verb, fe)
+        if not verb_id:
             logging.error("Unknown verb: %s, %s", verb, str(fe))
             return None
-        return self.get_audio_file(verb, fe, text, soft)
+        return self.get_audio_file(verb, fe, verb_id, text, soft)
 
 
 def init_db_conn(db_path):
@@ -124,6 +150,16 @@ CREATE TABLE IF NOT EXISTS Verbs (
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_verb ON Verbs (verb, fe);
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS Audio (
+    verb_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    audio TEXT NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (verb_id, text)
+);
     """.strip())
 
     logging.info("Database connection with %s established", db_path)
@@ -159,8 +195,13 @@ def get_sound():
     if not verb:
         logging.error("Invalid request: no verb")
         return jsonify({"message": "Invalid request"}), 400
+    if len(verb) > 64:
+        logging.error("Invalid request: verb length %d", len(verb))
     if not form:
         logging.error("Invalid request: no form")
+        return jsonify({"message": "Invalid request"}), 400
+    if len(form) > 128:
+        logging.error("Invalid request: form length %d", len(form))
         return jsonify({"message": "Invalid request"}), 400
 
     path = unInstance.generate(verb, fe, form)
