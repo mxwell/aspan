@@ -3,6 +3,7 @@ import logging
 from logging.config import dictConfig
 import os
 from os.path import join as pj
+import requests
 import sqlite3
 import sys
 import threading
@@ -47,6 +48,44 @@ class Synth(object):
         result.export(path, format="mp3")
         logging.info("Generated audio for %s: %s", text, name)
 
+    def get_voice(self, soft):
+        if soft:
+            return "amira"
+        return "madi"
+
+
+class SynthYskV1(Synth):
+
+    def __init__(self, yc_api_key, yc_folder_id):
+        self.headers = {
+            "Authorization": f"Api-Key {yc_api_key}",
+        }
+        self.yc_folder_id = yc_folder_id
+        self.url = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
+
+    def request(self, soft, text):
+        data = {
+            "text": text,
+            "lang": "kk-KK",
+            "voice": self.get_voice(soft),
+            "format": "mp3",
+            "folderId": self.yc_folder_id,
+        }
+        with requests.post(self.url, headers=self.headers, data=data, stream=True) as resp:
+            if resp.status_code != 200:
+                raise RuntimeError("Invalid response received: code: %d, message: %s" % (resp.status_code, resp.text))
+
+            for chunk in resp.iter_content(chunk_size=None):
+                yield chunk
+
+    def generate_audio(self, soft, text, path, name):
+        total = 0
+        with open(path, "wb") as output_file:
+            for audio_content in self.request(soft, text):
+                output_file.write(audio_content)
+                total += len(audio_content)
+        logging.info("Generated audio of %d for %s: %s", total, text, name)
+
 
 class SynthYskV3(Synth):
 
@@ -63,10 +102,10 @@ class SynthYskV3(Synth):
         logging.info("YSK: configured credentials")
 
         self.model = model_repository.synthesis_model()
-        self.model.voice = "madi"
+        self.model.voice = self.get_voice(False)
 
         self.soft_model = model_repository.synthesis_model()
-        self.soft_model.voice = "amira"
+        self.soft_model.voice = self.get_voice(True)
 
     def get_model(self, soft):
         if soft:
@@ -223,8 +262,11 @@ CREATE TABLE IF NOT EXISTS Audio (
 def init_un_app():
     global unInstance
     db_conn = init_db_conn(DATABASE_PATH)
-    yc_api_key = ".secrets/.yc.apikey"
-    synth = SynthYskV3(yc_api_key)
+    yc_api_key_path = ".secrets/.yc.apikey"
+    yc_api_key = read_token(yc_api_key_path)
+    yc_folder_id = read_token(".secrets/.yc.folderid")
+    # synth = SynthYskV3(yc_api_key_path)
+    synth = SynthYskV1(yc_api_key, yc_folder_id)
     unInstance = Un("audio_workdir", synth, db_conn)
     logging.info("Un app initialized")
 
