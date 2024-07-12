@@ -13,6 +13,7 @@ import boto3
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
 
+from lib.limiter import Limiter
 from lib.translit import transliterate
 
 dictConfig({
@@ -124,6 +125,7 @@ class Un(object):
         self.audio_workdir = audio_workdir
         assert isinstance(synth, Synth)
         self.synth = synth
+        self.limiter = Limiter(60)
 
         self.boto_session = boto3.session.Session()
         self.s3 = self.boto_session.client(
@@ -187,6 +189,12 @@ class Un(object):
         audio_url = f"{BUCKET_URL}{name}.mp3"
         return audio_url
 
+    def acquire(self):
+        if not self.limiter.acquire():
+            logging.info("Audio generation was rate limited")
+            return False
+        return True
+
     def get_audio_file(self, verb, fe, verb_id, text, soft):
         existing_audio_name = self.check_text_audio(verb_id, text)
         if existing_audio_name:
@@ -196,6 +204,8 @@ class Un(object):
         if not name:
             return None
         path = self.make_audio_path(name)
+        if not self.acquire():
+            return None
         self.synth.generate_audio(soft, text, path, name)
         self.upload_audio_to_s3(path, name)
         self.store_text_audio_to_db(verb_id, text, name)
@@ -209,25 +219,27 @@ class Un(object):
             return None
         return self.get_audio_file(verb, fe, verb_id, text, soft)
 
-    # returns an URL to a remote file or `None`
+    # returns an URL to a remote file or `None`, and a status code
     def generate_audio_url(self, verb, fe, text):
         verb_id, soft = self.check_verb_and_get_soft(verb, fe)
         if not verb_id:
             logging.error("Unknown verb: %s, %s", verb, str(fe))
-            return None
+            return None, 400
         existing_audio_name = self.check_text_audio(verb_id, text)
         if existing_audio_name:
             logging.info("Audio is found in DB: %s", existing_audio_name)
-            return self.make_audio_url(existing_audio_name)
+            return self.make_audio_url(existing_audio_name), 200
         name = self.make_audio_name(verb, fe, text)
         if not name:
-            return None
+            return None, 400
         path = self.make_audio_path(name)
+        if not self.acquire():
+            return None, 429
         self.synth.generate_audio(soft, text, path, name)
         self.upload_audio_to_s3(path, name)
         self.store_text_audio_to_db(verb_id, text, name)
         os.unlink(path)
-        return self.make_audio_url(name)
+        return self.make_audio_url(name), 201
 
 
 def init_db_conn(db_path):
@@ -273,6 +285,9 @@ def init_un_app():
 
 @app.route("/api/v1/test", methods=["GET"])
 def get_test():
+    global unInstance
+    for i in range(10):
+        unInstance.acquire()
     return jsonify({"message": "You've reached Un!"}), 200
 
 
@@ -302,10 +317,10 @@ def get_sound():
         logging.error("Invalid request: form length %d", len(form))
         return jsonify({"message": "Invalid request"}), 400
 
-    url = unInstance.generate_audio_url(verb, fe, form)
+    url, status_code = unInstance.generate_audio_url(verb, fe, form)
     if not url:
         logging.error("Failed to generate audio")
-        return jsonify({"message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request"}), status_code
     return redirect(url, code=302)
 
 
