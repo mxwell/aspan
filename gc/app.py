@@ -11,6 +11,9 @@ import uuid
 
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 
+from lib.auth import Auth
+
+
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -33,9 +36,13 @@ gc_instance = None
 
 class Gc(object):
 
-    def __init__(self, db_conn):
+    def __init__(self, db_conn, auth):
         self.db_lock = threading.Lock()
         self.db_conn = db_conn
+        self.auth = auth
+
+    def check_user(self, request_data):
+        return self.auth.check_user(request_data, self.db_lock, self.db_conn)
 
     def do_get_translations(self, src_lang, dst_lang, word):
         query = """
@@ -151,6 +158,22 @@ CREATE INDEX IF NOT EXISTS idx_translation ON translations(word_id);
 CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_id);
     """.strip())
 
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    email_verified INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    given_name TEXT NOT NULL,
+    family_name TEXT NOT NULL,
+    locale TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    conn.execute("""
+CREATE INDEX IF NOT EXISTS idx_users ON users(email);
+    """.strip())
+
     logging.info("Database connection with %s established", db_path)
     return conn
 
@@ -158,7 +181,8 @@ CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_i
 def init_gc_app():
     global gc_instance
     db_conn = init_db_conn(DATABASE_PATH)
-    gc_instance = Gc(db_conn)
+    auth = Auth()
+    gc_instance = Gc(db_conn, auth)
     logging.info("GC app initialized")
 
 
@@ -169,6 +193,15 @@ def valid_lang(lang):
 @app.route("/api/v1/test", methods=["GET"])
 def get_test():
     return jsonify({"message": "You've reached GC!"}), 200
+
+
+@app.route("/api/v1/check_user", methods=["POST"])
+def post_check_user():
+    global gc_instance
+
+    request_data = request.json
+    message, code = gc_instance.check_user(request_data)
+    return jsonify({"message": message}), code
 
 
 @app.route("/api/v1/get_translation", methods=["GET"])
