@@ -41,7 +41,9 @@ class Gc(object):
         query = """
         SELECT
             w1.word AS source_word,
-            w2.word AS translated_word
+            w1.pos AS source_pos,
+            w2.word AS translation_word,
+            w2.pos AS translation_pos
         FROM
             words w1
         JOIN
@@ -63,7 +65,9 @@ class Gc(object):
         translations = [
             {
                 "word": row["source_word"],
-                "translated_word": row["translated_word"],
+                "pos": row["source_pos"],
+                "translation_word": row["translation_word"],
+                "translation_pos": row["translation_pos"],
             }
             for row in results
         ]
@@ -82,6 +86,7 @@ def init_db_conn(db_path):
 CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     word TEXT NOT NULL,
+    pos TEXT NOT NULL,
     lang TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
