@@ -74,9 +74,49 @@ class Gc(object):
 
         return translations
 
+    def do_get_inversed_translations(self, src_lang, dst_lang, word):
+        query = """
+        SELECT
+            w1.word AS source_word,
+            w1.pos AS source_pos,
+            w2.word AS translation_word,
+            w2.pos AS translation_pos
+        FROM
+            words w1
+        JOIN
+            translations t ON w1.word_id = t.translated_word_id
+        JOIN
+            words w2 ON t.word_id = w2.word_id
+        WHERE
+            w1.word = ?
+            AND w1.lang = ?
+            AND w2.lang = ?
+        LIMIT 100;
+        """
+
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (word, src_lang, dst_lang))
+
+        results = cursor.fetchall()
+
+        translations = [
+            {
+                "word": row["source_word"],
+                "pos": row["source_pos"],
+                "translation_word": row["translation_word"],
+                "translation_pos": row["translation_pos"],
+            }
+            for row in results
+        ]
+
+        return translations
+
     def get_translation(self, src_lang, dst_lang, word):
         with self.db_lock:
-            return self.do_get_translations(src_lang, dst_lang, word)
+            if src_lang == "kk":
+                return self.do_get_translations(src_lang, dst_lang, word)
+            else:
+                return self.do_get_inversed_translations(src_lang, dst_lang, word)
 
 
 def init_db_conn(db_path):
@@ -106,6 +146,9 @@ CREATE TABLE IF NOT EXISTS translations (
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_translation ON translations(word_id);
+    """.strip())
+    conn.execute("""
+CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_id);
     """.strip())
 
     logging.info("Database connection with %s established", db_path)
