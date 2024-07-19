@@ -44,6 +44,9 @@ class Gc(object):
     def check_user(self, request_data):
         return self.auth.check_user(request_data, self.db_lock, self.db_conn)
 
+    def create_user(self, request_data):
+        return self.auth.create_user(request_data, self.db_lock, self.db_conn)
+
     def do_get_translations(self, src_lang, dst_lang, word):
         query = """
         SELECT
@@ -163,9 +166,8 @@ CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     email TEXT NOT NULL,
     email_verified INTEGER NOT NULL,
+    sub TEXT NOT NULL,
     name TEXT NOT NULL,
-    given_name TEXT NOT NULL,
-    family_name TEXT NOT NULL,
     locale TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -202,6 +204,15 @@ def post_check_user():
     request_data = request.json
     message, code = gc_instance.check_user(request_data)
     return jsonify({"message": message}), code
+
+
+@app.route("/api/v1/create_user", methods=["POST"])
+def post_create_user():
+    global gc_instance
+
+    request_data = request.json
+    message, token, code = gc_instance.create_user(request_data)
+    return jsonify({"message": message, "token": token}), code
 
 
 @app.route("/api/v1/get_translation", methods=["GET"])
