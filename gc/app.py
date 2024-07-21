@@ -55,6 +55,7 @@ class Gc(object):
         SELECT
             w1.word AS source_word,
             w1.pos AS source_pos,
+            w1.exc_verb AS source_exc_verb,
             w2.word AS translation_word,
             w2.pos AS translation_pos
         FROM
@@ -79,6 +80,7 @@ class Gc(object):
             {
                 "word": row["source_word"],
                 "pos": row["source_pos"],
+                "exc_verb": row["source_exc_verb"],
                 "translation_word": row["translation_word"],
                 "translation_pos": row["translation_pos"],
             }
@@ -92,6 +94,7 @@ class Gc(object):
         SELECT
             w1.word AS source_word,
             w1.pos AS source_pos,
+            w1.exc_verb AS source_exc_verb,
             w2.word AS translation_word,
             w2.pos AS translation_pos
         FROM
@@ -116,6 +119,7 @@ class Gc(object):
             {
                 "word": row["source_word"],
                 "pos": row["source_pos"],
+                "exc_verb": row["source_exc_verb"],
                 "translation_word": row["translation_word"],
                 "translation_pos": row["translation_pos"],
             }
@@ -140,6 +144,7 @@ CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     word TEXT NOT NULL,
     pos TEXT NOT NULL,
+    exc_verb INT NOT NULL DEFAULT 0,
     lang TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
