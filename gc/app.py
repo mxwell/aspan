@@ -47,6 +47,9 @@ class Gc(object):
     def create_user(self, request_data):
         return self.auth.create_user(request_data, self.db_lock, self.db_conn)
 
+    def get_token(self, request_data):
+        return self.auth.get_token(request_data, self.db_lock, self.db_conn)
+
     def do_get_translations(self, src_lang, dst_lang, word):
         query = """
         SELECT
@@ -212,6 +215,15 @@ def post_create_user():
 
     request_data = request.json
     message, token, code = gc_instance.create_user(request_data)
+    return jsonify({"message": message, "token": token}), code
+
+
+@app.route("/api/v1/get_token", methods=["POST"])
+def post_get_token():
+    global gc_instance
+
+    request_data = request.json
+    message, token, code = gc_instance.get_token(request_data)
     return jsonify({"message": message, "token": token}), code
 
 
