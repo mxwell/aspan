@@ -12,6 +12,7 @@ import uuid
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
+from lib.word_info import WordInfo
 
 
 dictConfig({
@@ -32,6 +33,10 @@ dictConfig({
 DATABASE_PATH = "gc.db"
 app = Flask("gc_app")
 gc_instance = None
+
+
+def validate_lang(lang):
+    return lang == "en" or lang == "kk" or lang == "ru"
 
 
 class Gc(object):
@@ -134,6 +139,46 @@ class Gc(object):
                 return self.do_get_translations(src_lang, dst_lang, word)
             else:
                 return self.do_get_inversed_translations(src_lang, dst_lang, word)
+
+    def do_get_words(self, word, lang):
+        query = """
+        SELECT
+            word_id,
+            word,
+            pos,
+            exc_verb,
+            lang,
+            strftime('%s', created_at) as created_at_unix_epoch
+        FROM words
+        WHERE
+            word = ?
+            AND lang = ?
+        ORDER BY word_id
+        LIMIT 100;
+        """
+
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (word, lang))
+
+        results = cursor.fetchall()
+
+        words = [
+            WordInfo(
+                row["word_id"],
+                row["word"],
+                row["pos"],
+                row["exc_verb"] > 0,
+                row["lang"],
+                int(row["created_at_unix_epoch"]),
+            )
+            for row in results
+        ]
+
+        return words
+
+    def get_words(self, word, lang):
+        with self.db_lock:
+            return self.do_get_words(word, lang)
 
 
 def init_db_conn(db_path):
@@ -254,6 +299,24 @@ def get_translation():
 
     translations = gc_instance.get_translation(src_lang, dst_lang, word)
     return jsonify({"translations": translations}), 200
+
+
+@app.route("/api/v1/get_words", methods=["GET"])
+def get_words():
+    global gc_instance
+
+    word = request.args.get("w")
+    lang = request.args.get("lang")
+
+    if not word:
+        logging.error("Invalid word")
+        return jsonify({"message": "Invalid word"}), 400
+    if not validate_lang(lang):
+        logging.error("Invalid language")
+        return jsonify({"message": "Invalid language"}), 400
+
+    words = gc_instance.get_words(word, lang)
+    return jsonify({"words": words}), 200
 
 
 def main():
