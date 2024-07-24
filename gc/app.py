@@ -12,6 +12,7 @@ import uuid
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
+from lib.pos import parse_pos
 from lib.word_info import WordInfo
 
 
@@ -180,6 +181,20 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_words(word, lang)
 
+    def do_add_word(self, word, pos, exc_verb, lang):
+        query = """
+        INSERT INTO words (word, pos, exc_verb, lang) VALUES (?, ?, ?, ?);
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (word, pos, exc_verb, lang))
+        self.db_conn.commit()
+        return cursor.lastrowid
+
+    # Returns ID of an inserted word
+    def add_word(self, word, pos, exc_verb, lang):
+        with self.db_lock:
+            return self.do_add_word(word, pos, exc_verb, lang)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -317,6 +332,34 @@ def get_words():
 
     words = gc_instance.get_words(word, lang)
     return jsonify({"words": words}), 200
+
+
+@app.route("/api/v1/add_word", methods=["POST"])
+def post_add_word():
+    global gc_instance
+
+    request_data = request.json
+    word = request_data.get("w")
+    pos = request_data.get("pos")
+    exc_verb = request_data.get("ev", False) == True
+    lang = request_data.get("lang")
+
+    if not word:
+        logging.error("Invalid word")
+        return jsonify({"message": "Invalid word"}), 400
+    posTag = parse_pos(pos)
+    if posTag is None:
+        logging.error("Invalid pos: %s", pos)
+        return jsonify({"message": "Invalid pos"}), 400
+    if not validate_lang(lang):
+        logging.error("Invalid language")
+        return jsonify({"message": "Invalid language"}), 400
+
+    word_id = gc_instance.add_word(word, pos, exc_verb, lang)
+    if word_id is None:
+        logging.error("No word_id after insertion")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "word_id": word_id}), 201
 
 
 def main():
