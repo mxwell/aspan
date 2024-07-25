@@ -40,6 +40,20 @@ def validate_lang(lang):
     return lang == "en" or lang == "kk" or lang == "ru"
 
 
+def read_words(fetched_results):
+    return [
+        WordInfo(
+            row["word_id"],
+            row["word"],
+            row["pos"],
+            row["exc_verb"] > 0,
+            row["lang"],
+            int(row["created_at_unix_epoch"]),
+        )
+        for row in fetched_results
+    ]
+
+
 class Gc(object):
 
     def __init__(self, db_conn, auth):
@@ -141,6 +155,8 @@ class Gc(object):
             else:
                 return self.do_get_inversed_translations(src_lang, dst_lang, word)
 
+
+
     def do_get_words(self, word, lang):
         query = """
         SELECT
@@ -161,21 +177,8 @@ class Gc(object):
         cursor = self.db_conn.cursor()
         cursor.execute(query, (word, lang))
 
-        results = cursor.fetchall()
-
-        words = [
-            WordInfo(
-                row["word_id"],
-                row["word"],
-                row["pos"],
-                row["exc_verb"] > 0,
-                row["lang"],
-                int(row["created_at_unix_epoch"]),
-            )
-            for row in results
-        ]
-
-        return words
+        fetched_results = cursor.fetchall()
+        return read_words(fetched_results)
 
     def get_words(self, word, lang):
         with self.db_lock:
@@ -194,6 +197,75 @@ class Gc(object):
     def add_word(self, word, pos, exc_verb, lang):
         with self.db_lock:
             return self.do_add_word(word, pos, exc_verb, lang)
+
+    # Returns WordInfo or None
+    def do_get_word_by_id(self, word_id):
+        query = """
+        SELECT
+            word_id,
+            word,
+            pos,
+            exc_verb,
+            lang,
+            strftime('%s', created_at) as created_at_unix_epoch
+        FROM words
+        WHERE
+            word_id = ?
+        LIMIT 10;
+        """
+
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (word_id,))
+
+        fetched_results = cursor.fetchall()
+        words = read_words(fetched_results)
+        if len(words) == 1:
+            return words[0]
+        logging.error("do_get_word_by_id: unexpected number of words for ID %d: %d", word_id, len(words))
+        return None
+
+    def count_translations_with_word_ids(self, src_id, dst_id):
+        query = """
+        SELECT COUNT(*)
+        FROM translations
+        WHERE word_id = ?
+        AND translated_word_id = ?;
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (src_id, dst_id))
+        count = cursor.fetchone()[0]
+        cursor.close()
+        return count
+
+    # Returns ID of an inserted translation or None
+    def do_add_translation(self, src_id, dst_id, user_id):
+        src_word = self.do_get_word_by_id(src_id)
+        if src_word is None or src_word.lang != "kk":
+            logging.error("do_add_translation: invalid src word ID %d", src_id)
+            return None
+
+        dst_word = self.do_get_word_by_id(dst_id)
+        if dst_word is None or dst_word.lang == "kk":
+            logging.error("do_add_translation: invalid dst word ID %d", dst_id)
+            return None
+
+        existing = self.count_translations_with_word_ids(src_id, dst_id)
+        if existing > 0:
+            logging.error("do_add_translation: %d existing translations", existing)
+            return None
+
+        query = """
+        INSERT INTO translations (word_id, translated_word_id, user_id) VALUES (?, ?, ?);
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (src_id, dst_id, user_id))
+        self.db_conn.commit()
+        return cursor.lastrowid
+
+    # Returns ID of an inserted translation or None
+    def add_translation(self, src_id, dst_id, user_id):
+        with self.db_lock:
+            return self.do_add_translation(src_id, dst_id, user_id)
 
 
 def init_db_conn(db_path):
@@ -360,6 +432,33 @@ def post_add_word():
         logging.error("No word_id after insertion")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "word_id": word_id}), 201
+
+
+@app.route("/api/v1/add_translation", methods=["POST"])
+def post_add_translation():
+    global gc_instance
+
+    request_data = request.json
+    src_id = request_data.get("src")
+    dst_id = request_data.get("dst")
+    user_id = 1
+
+    if not isinstance(src_id, int):
+        logging.error("Invalid src: %s", str(src_id))
+        return jsonify({"message": "Invalid src"}), 400
+    if not isinstance(dst_id, int):
+        logging.error("Invalid dst: %s", str(dst_id))
+        return jsonify({"message": "Invalid dst"}), 400
+
+    translation_id = gc_instance.add_translation(
+        int(src_id),
+        int(dst_id),
+        user_id,
+    )
+    if translation_id is None:
+        logging.error("No translation_id after insertion")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "translation_id": translation_id}), 201
 
 
 def main():
