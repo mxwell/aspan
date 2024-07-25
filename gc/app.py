@@ -198,24 +198,24 @@ class Gc(object):
         return count
 
     # Returns ID of an inserted word or None
-    def do_add_word(self, word, pos, exc_verb, lang):
+    def do_add_word(self, word, pos, exc_verb, lang, user_id):
         existing = self.count_words(word, pos, exc_verb, lang)
         if existing > 0:
             logging.error("do_add_word: %d existing words", existing)
             return None
 
         query = """
-        INSERT INTO words (word, pos, exc_verb, lang) VALUES (?, ?, ?, ?);
+        INSERT INTO words (word, pos, exc_verb, lang, user_id) VALUES (?, ?, ?, ?, ?);
         """
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, pos, exc_verb, lang))
+        cursor.execute(query, (word, pos, exc_verb, lang, user_id))
         self.db_conn.commit()
         return cursor.lastrowid
 
     # Returns ID of an inserted word or None
-    def add_word(self, word, pos, exc_verb, lang):
+    def add_word(self, word, pos, exc_verb, lang, user_id):
         with self.db_lock:
-            return self.do_add_word(word, pos, exc_verb, lang)
+            return self.do_add_word(word, pos, exc_verb, lang, user_id)
 
     # Returns WordInfo or None
     def do_get_word_by_id(self, word_id):
@@ -308,6 +308,7 @@ CREATE TABLE IF NOT EXISTS words (
     word TEXT NOT NULL,
     pos TEXT NOT NULL,
     exc_verb INT NOT NULL DEFAULT 0,
+    user_id INTEGER NOT NULL,
     lang TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -462,7 +463,7 @@ def post_add_word():
         logging.error("Invalid language")
         return jsonify({"message": "Invalid language"}), 400
 
-    word_id = gc_instance.add_word(word, pos, exc_verb, lang)
+    word_id = gc_instance.add_word(word, pos, exc_verb, lang, user_id)
     if word_id is None:
         logging.error("No word_id after insertion")
         return jsonify({"message": "Internal error"}), 500
