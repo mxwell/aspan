@@ -286,6 +286,18 @@ class Gc(object):
         with self.db_lock:
             return self.do_add_translation(src_id, dst_id, user_id)
 
+    # Returns user ID or None
+    def get_user_id_from_header(self, headers):
+        auth_header = headers.get("Authorization")
+        if not auth_header:
+            logging.error("get_user_id_from_header: no header")
+            return None
+        if not auth_header.startswith("Bearer "):
+            logging.error("get_user_id_from_header: invalid header format: %s", auth_header)
+            return None
+        token = auth_header[7:]
+        return self.auth.extract_user_id_from_token(token)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -429,6 +441,10 @@ def get_words():
 def post_add_word():
     global gc_instance
 
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
     request_data = request.json
     word = request_data.get("w")
     pos = request_data.get("pos")
@@ -457,10 +473,13 @@ def post_add_word():
 def post_add_translation():
     global gc_instance
 
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
     request_data = request.json
     src_id = request_data.get("src")
     dst_id = request_data.get("dst")
-    user_id = 1
 
     if not isinstance(src_id, int):
         logging.error("Invalid src: %s", str(src_id))

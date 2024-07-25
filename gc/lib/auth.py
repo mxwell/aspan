@@ -1,2 +1,4 @@
 class Auth(object):
-    pass
+
+    def extract_user_id_from_token(self, token):
+        return 1
