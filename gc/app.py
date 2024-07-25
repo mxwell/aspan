@@ -155,8 +155,6 @@ class Gc(object):
             else:
                 return self.do_get_inversed_translations(src_lang, dst_lang, word)
 
-
-
     def do_get_words(self, word, lang):
         query = """
         SELECT
@@ -184,7 +182,28 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_words(word, lang)
 
+    def count_words(self, word, pos, exc_verb, lang):
+        query = """
+        SELECT COUNT(*)
+        FROM words
+        WHERE word = ?
+        AND pos = ?
+        AND exc_verb = ?
+        AND lang = ?;
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (word, pos, exc_verb, lang))
+        count = cursor.fetchone()[0]
+        cursor.close()
+        return count
+
+    # Returns ID of an inserted word or None
     def do_add_word(self, word, pos, exc_verb, lang):
+        existing = self.count_words(word, pos, exc_verb, lang)
+        if existing > 0:
+            logging.error("do_add_word: %d existing words", existing)
+            return None
+
         query = """
         INSERT INTO words (word, pos, exc_verb, lang) VALUES (?, ?, ?, ?);
         """
@@ -193,7 +212,7 @@ class Gc(object):
         self.db_conn.commit()
         return cursor.lastrowid
 
-    # Returns ID of an inserted word
+    # Returns ID of an inserted word or None
     def add_word(self, word, pos, exc_verb, lang):
         with self.db_lock:
             return self.do_add_word(word, pos, exc_verb, lang)
