@@ -1,4 +1,6 @@
-.PHONY: install_deps populate_db debug_server
+IMAGE_TAG="un"
+
+.PHONY: install_deps populate_db debug_server upload_files bash_in_image
 
 install_deps: requirements.txt
 	pip3 install --user -r requirements.txt
@@ -10,4 +12,16 @@ debug_server:
 	python3 -m flask --app app.py run
 
 upload_files:
-	scp -r app.py container_entry.sh Dockerfile lib Makefile .secrets g1:/gc-bundle/
+	scp -r app.py container_entry.sh lib Makefile .secrets g1:/gc-bundle/
+
+logs:
+	mkdir -p $@
+
+sockets:
+	mkdir -p $@
+
+bash_in_image: logs sockets .secrets
+	docker run -it --rm --network host -v "${PWD}:/workdir" ${IMAGE_TAG} bash
+
+run_image: logs sockets .secrets
+	docker run -d --rm --name gc_server -v "${PWD}:/workdir" ${IMAGE_TAG}

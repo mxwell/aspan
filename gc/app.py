@@ -364,12 +364,12 @@ def valid_lang(lang):
     return lang == "en" or lang == "kk" or lang == "ru"
 
 
-@app.route("/api/v1/test", methods=["GET"])
+@app.route("/gcapi/v1/test", methods=["GET"])
 def get_test():
     return jsonify({"message": "You've reached GC!"}), 200
 
 
-@app.route("/api/v1/check_user", methods=["POST"])
+@app.route("/gcapi/v1/check_user", methods=["POST"])
 def post_check_user():
     global gc_instance
 
@@ -378,7 +378,7 @@ def post_check_user():
     return jsonify({"message": message}), code
 
 
-@app.route("/api/v1/create_user", methods=["POST"])
+@app.route("/gcapi/v1/create_user", methods=["POST"])
 def post_create_user():
     global gc_instance
 
@@ -387,7 +387,7 @@ def post_create_user():
     return jsonify({"message": message, "token": token}), code
 
 
-@app.route("/api/v1/get_token", methods=["POST"])
+@app.route("/gcapi/v1/get_token", methods=["POST"])
 def post_get_token():
     global gc_instance
 
@@ -396,7 +396,7 @@ def post_get_token():
     return jsonify({"message": message, "token": token}), code
 
 
-@app.route("/api/v1/get_translation", methods=["GET"])
+@app.route("/gcapi/v1/get_translation", methods=["GET"])
 def get_translation():
     global gc_instance
 
@@ -420,7 +420,7 @@ def get_translation():
     return jsonify({"translations": translations}), 200
 
 
-@app.route("/api/v1/get_words", methods=["GET"])
+@app.route("/gcapi/v1/get_words", methods=["GET"])
 def get_words():
     global gc_instance
 
@@ -438,7 +438,7 @@ def get_words():
     return jsonify({"words": words}), 200
 
 
-@app.route("/api/v1/add_word", methods=["POST"])
+@app.route("/gcapi/v1/add_word", methods=["POST"])
 def post_add_word():
     global gc_instance
 
@@ -470,7 +470,7 @@ def post_add_word():
     return jsonify({"message": "ok", "word_id": word_id}), 201
 
 
-@app.route("/api/v1/add_translation", methods=["POST"])
+@app.route("/gcapi/v1/add_translation", methods=["POST"])
 def post_add_translation():
     global gc_instance
 

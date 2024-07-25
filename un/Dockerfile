@@ -8,7 +8,9 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install \
+    PyJWT==2.3.0 \
     flask \
+    google-auth \
     uwsgi \
     boto3 \
     yandex-speechkit==1.3.3
