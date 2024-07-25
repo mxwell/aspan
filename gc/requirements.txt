@@ -1,1 +1,2 @@
 google-auth
+PyJWT==2.3.0
