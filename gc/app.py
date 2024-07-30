@@ -505,7 +505,8 @@ def post_add_translation():
     if insertion_result is None:
         logging.error("No insertion_result after insertion")
         return jsonify({"message": "Internal error"}), 500
-    if insertion_result.translation_id is None:
+    translation_id = insertion_result.translation_id
+    if translation_id is None:
         logging.error("No translation_id after insertion: %s", insertion_result.error_message)
         return jsonify({"message": insertion_result.error_message}), 500
     return jsonify({"message": "ok", "translation_id": translation_id}), 201
