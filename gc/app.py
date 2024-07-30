@@ -54,6 +54,14 @@ def read_words(fetched_results):
     ]
 
 
+class InsertionResult(object):
+
+    # One of args must be None
+    def __init__(self, translation_id, error_message):
+        self.translation_id = translation_id
+        self.error_message = error_message
+
+
 class Gc(object):
 
     def __init__(self, db_conn, auth):
@@ -256,22 +264,22 @@ class Gc(object):
         cursor.close()
         return count
 
-    # Returns ID of an inserted translation or None
+    # Returns InsertionResult
     def do_add_translation(self, src_id, dst_id, user_id):
         src_word = self.do_get_word_by_id(src_id)
         if src_word is None or src_word.lang != "kk":
             logging.error("do_add_translation: invalid src word ID %d", src_id)
-            return None
+            return InsertionResult(None, "invalid_src")
 
         dst_word = self.do_get_word_by_id(dst_id)
         if dst_word is None or dst_word.lang == "kk":
             logging.error("do_add_translation: invalid dst word ID %d", dst_id)
-            return None
+            return InsertionResult(None, "invalid_dst")
 
         existing = self.count_translations_with_word_ids(src_id, dst_id)
         if existing > 0:
             logging.error("do_add_translation: %d existing translations", existing)
-            return None
+            return InsertionResult(None, "duplicate")
 
         query = """
         INSERT INTO translations (word_id, translated_word_id, user_id) VALUES (?, ?, ?);
@@ -279,9 +287,9 @@ class Gc(object):
         cursor = self.db_conn.cursor()
         cursor.execute(query, (src_id, dst_id, user_id))
         self.db_conn.commit()
-        return cursor.lastrowid
+        return InsertionResult(cursor.lastrowid, None)
 
-    # Returns ID of an inserted translation or None
+    # Returns InsertionResult
     def add_translation(self, src_id, dst_id, user_id):
         with self.db_lock:
             return self.do_add_translation(src_id, dst_id, user_id)
@@ -489,14 +497,17 @@ def post_add_translation():
         logging.error("Invalid dst: %s", str(dst_id))
         return jsonify({"message": "Invalid dst"}), 400
 
-    translation_id = gc_instance.add_translation(
+    insertion_result = gc_instance.add_translation(
         int(src_id),
         int(dst_id),
         user_id,
     )
-    if translation_id is None:
-        logging.error("No translation_id after insertion")
+    if insertion_result is None:
+        logging.error("No insertion_result after insertion")
         return jsonify({"message": "Internal error"}), 500
+    if insertion_result.translation_id is None:
+        logging.error("No translation_id after insertion: %s", insertion_result.error_message)
+        return jsonify({"message": insertion_result.error_message}), 500
     return jsonify({"message": "ok", "translation_id": translation_id}), 201
 
 
