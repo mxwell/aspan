@@ -15,6 +15,9 @@ RUN pip install \
     boto3 \
     yandex-speechkit==1.3.3
 
+RUN pip install \
+    cryptography
+
 WORKDIR /workdir
 
 CMD [ "bash", "/workdir/container_entry.sh" ]
