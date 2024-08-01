@@ -306,6 +306,49 @@ class Gc(object):
         token = auth_header[7:]
         return self.auth.extract_user_id_from_token(token)
 
+    def do_extract_feed(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                u.name AS name,
+                w1.word AS src_word,
+                w1.lang AS src_lang,
+                w2.word AS dst_word,
+                w2.lang AS dst_lang,
+                strftime('%s', t.created_at) AS created_at
+            FROM
+                translations t
+            JOIN
+                users u ON t.user_id = u.user_id
+            JOIN
+                words w1 ON t.word_id = w1.word_id
+            JOIN
+                words w2 ON t.translated_word_id = w2.word_id
+            WHERE t.created_at >= datetime('now', '-2 days')
+            ORDER BY t.created_at DESC
+            LIMIT 100;
+        """)
+
+        results = cursor.fetchall()
+
+        translations = [
+            {
+                "name": row["name"],
+                "src_word": row["src_word"],
+                "src_lang": row["src_lang"],
+                "dst_word": row["dst_word"],
+                "dst_lang": row["dst_lang"],
+                "created_at": int(row["created_at"]),
+            }
+            for row in results
+        ]
+
+        return translations
+
+    def get_feed(self):
+        with self.db_lock:
+            return self.do_extract_feed()
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -339,6 +382,9 @@ CREATE INDEX IF NOT EXISTS idx_translation ON translations(word_id);
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_id);
+    """.strip())
+    conn.execute("""
+CREATE INDEX IF NOT EXISTS idx_translation_timestamps ON translations(created_at);
     """.strip())
 
     conn.execute("""
@@ -510,6 +556,17 @@ def post_add_translation():
         logging.error("No translation_id after insertion: %s", insertion_result.error_message)
         return jsonify({"message": insertion_result.error_message}), 500
     return jsonify({"message": "ok", "translation_id": translation_id}), 201
+
+
+@app.route("/gcapi/v1/get_feed", methods=["GET"])
+def get_feed():
+    global gc_instance
+
+    feed = gc_instance.get_feed()
+    if feed is None:
+        logging.error("null feed")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "feed": feed}), 200
 
 
 def main():
