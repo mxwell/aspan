@@ -524,7 +524,7 @@ def post_add_word():
     if not validate_lang(lang):
         logging.error("Invalid language")
         return jsonify({"message": "Invalid language"}), 400
-    if (not comment) or len(comment) > 256:
+    if comment is None or len(comment) > 256:
         logging.error("Invalid comment")
         return jsonify({"message": "Invalid comment"}), 400
 
@@ -554,7 +554,7 @@ def post_add_translation():
     if not isinstance(dst_id, int):
         logging.error("Invalid dst: %s", str(dst_id))
         return jsonify({"message": "Invalid dst"}), 400
-    if (not reference) or len(reference) > 256:
+    if reference is None or len(reference) > 256:
         logging.error("Invalid reference: %s", str(reference))
         return jsonify({"message": "Invalid reference"}), 400
 
