@@ -48,6 +48,7 @@ def read_words(fetched_results):
             row["pos"],
             row["exc_verb"] > 0,
             row["lang"],
+            row["comment"],
             int(row["created_at_unix_epoch"]),
         )
         for row in fetched_results
@@ -171,6 +172,7 @@ class Gc(object):
             pos,
             exc_verb,
             lang,
+            comment,
             strftime('%s', created_at) as created_at_unix_epoch
         FROM words
         WHERE
@@ -190,40 +192,42 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_words(word, lang)
 
-    def count_words(self, word, pos, exc_verb, lang):
+    def count_words(self, word, pos, exc_verb, lang, comment):
         query = """
         SELECT COUNT(*)
         FROM words
         WHERE word = ?
         AND pos = ?
         AND exc_verb = ?
-        AND lang = ?;
+        AND lang = ?
+        AND comment = ?
+        ;
         """
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, pos, exc_verb, lang))
+        cursor.execute(query, (word, pos, exc_verb, lang, comment))
         count = cursor.fetchone()[0]
         cursor.close()
         return count
 
     # Returns ID of an inserted word or None
-    def do_add_word(self, word, pos, exc_verb, lang, user_id):
-        existing = self.count_words(word, pos, exc_verb, lang)
+    def do_add_word(self, word, pos, exc_verb, lang, comment, user_id):
+        existing = self.count_words(word, pos, exc_verb, comment, lang)
         if existing > 0:
             logging.error("do_add_word: %d existing words", existing)
             return None
 
         query = """
-        INSERT INTO words (word, pos, exc_verb, lang, user_id) VALUES (?, ?, ?, ?, ?);
+        INSERT INTO words (word, pos, exc_verb, lang, comment, user_id) VALUES (?, ?, ?, ?, ?, ?);
         """
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, pos, exc_verb, lang, user_id))
+        cursor.execute(query, (word, pos, exc_verb, lang, comment, user_id))
         self.db_conn.commit()
         return cursor.lastrowid
 
     # Returns ID of an inserted word or None
-    def add_word(self, word, pos, exc_verb, lang, user_id):
+    def add_word(self, word, pos, exc_verb, lang, comment, user_id):
         with self.db_lock:
-            return self.do_add_word(word, pos, exc_verb, lang, user_id)
+            return self.do_add_word(word, pos, exc_verb, lang, comment, user_id)
 
     # Returns WordInfo or None
     def do_get_word_by_id(self, word_id):
@@ -234,6 +238,7 @@ class Gc(object):
             pos,
             exc_verb,
             lang,
+            comment,
             strftime('%s', created_at) as created_at_unix_epoch
         FROM words
         WHERE
@@ -265,7 +270,7 @@ class Gc(object):
         return count
 
     # Returns InsertionResult
-    def do_add_translation(self, src_id, dst_id, user_id):
+    def do_add_translation(self, src_id, dst_id, reference, user_id):
         src_word = self.do_get_word_by_id(src_id)
         if src_word is None or src_word.lang != "kk":
             logging.error("do_add_translation: invalid src word ID %d", src_id)
@@ -282,17 +287,17 @@ class Gc(object):
             return InsertionResult(None, "duplicate")
 
         query = """
-        INSERT INTO translations (word_id, translated_word_id, user_id) VALUES (?, ?, ?);
+        INSERT INTO translations (word_id, translated_word_id, reference, user_id) VALUES (?, ?, ?, ?);
         """
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (src_id, dst_id, user_id))
+        cursor.execute(query, (src_id, dst_id, reference, user_id))
         self.db_conn.commit()
         return InsertionResult(cursor.lastrowid, None)
 
     # Returns InsertionResult
-    def add_translation(self, src_id, dst_id, user_id):
+    def add_translation(self, src_id, dst_id, reference, user_id):
         with self.db_lock:
-            return self.do_add_translation(src_id, dst_id, user_id)
+            return self.do_add_translation(src_id, dst_id, reference, user_id)
 
     # Returns user ID or None
     def get_user_id_from_header(self, headers):
@@ -359,6 +364,7 @@ CREATE TABLE IF NOT EXISTS words (
     word TEXT NOT NULL,
     pos TEXT NOT NULL,
     exc_verb INT NOT NULL DEFAULT 0,
+    comment TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     lang TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -373,6 +379,7 @@ CREATE TABLE IF NOT EXISTS translations (
     translation_id INTEGER PRIMARY KEY,
     word_id INTEGER NOT NULL,
     translated_word_id INTEGER NOT NULL,
+    reference TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -505,6 +512,7 @@ def post_add_word():
     pos = request_data.get("pos")
     exc_verb = request_data.get("ev", False) == True
     lang = request_data.get("lang")
+    comment = request_data.get("com")
 
     if not word:
         logging.error("Invalid word")
@@ -516,8 +524,11 @@ def post_add_word():
     if not validate_lang(lang):
         logging.error("Invalid language")
         return jsonify({"message": "Invalid language"}), 400
+    if (not comment) or len(comment) > 256:
+        logging.error("Invalid comment")
+        return jsonify({"message": "Invalid comment"}), 400
 
-    word_id = gc_instance.add_word(word, pos, exc_verb, lang, user_id)
+    word_id = gc_instance.add_word(word, pos, exc_verb, lang, comment, user_id)
     if word_id is None:
         logging.error("No word_id after insertion")
         return jsonify({"message": "Internal error"}), 500
@@ -535,6 +546,7 @@ def post_add_translation():
     request_data = request.json
     src_id = request_data.get("src")
     dst_id = request_data.get("dst")
+    reference = request_data.get("ref")
 
     if not isinstance(src_id, int):
         logging.error("Invalid src: %s", str(src_id))
@@ -542,10 +554,14 @@ def post_add_translation():
     if not isinstance(dst_id, int):
         logging.error("Invalid dst: %s", str(dst_id))
         return jsonify({"message": "Invalid dst"}), 400
+    if (not reference) or len(reference) > 256:
+        logging.error("Invalid reference: %s", str(reference))
+        return jsonify({"message": "Invalid reference"}), 400
 
     insertion_result = gc_instance.add_translation(
         int(src_id),
         int(dst_id),
+        reference,
         user_id,
     )
     if insertion_result is None:

@@ -8,4 +8,5 @@ class WordInfo:
     pos: str
     exc_verb: bool
     lang: str
+    comment: str
     created_at: int
