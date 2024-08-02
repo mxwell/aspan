@@ -85,8 +85,10 @@ class Gc(object):
             w1.word AS source_word,
             w1.pos AS source_pos,
             w1.exc_verb AS source_exc_verb,
+            w1.comment AS source_comment,
             w2.word AS translation_word,
-            w2.pos AS translation_pos
+            w2.pos AS translation_pos,
+            w2.comment AS translation_comment
         FROM
             words w1
         JOIN
@@ -110,8 +112,10 @@ class Gc(object):
                 "word": row["source_word"],
                 "pos": row["source_pos"],
                 "exc_verb": row["source_exc_verb"],
+                "comment": row["source_comment"],
                 "translation_word": row["translation_word"],
                 "translation_pos": row["translation_pos"],
+                "translation_comment": row["translation_comment"]
             }
             for row in results
         ]
@@ -124,8 +128,10 @@ class Gc(object):
             w1.word AS source_word,
             w1.pos AS source_pos,
             w1.exc_verb AS source_exc_verb,
+            w1.comment AS source_comment,
             w2.word AS translation_word,
-            w2.pos AS translation_pos
+            w2.pos AS translation_pos,
+            w2.comment AS translation_comment
         FROM
             words w1
         JOIN
@@ -149,8 +155,10 @@ class Gc(object):
                 "word": row["source_word"],
                 "pos": row["source_pos"],
                 "exc_verb": row["source_exc_verb"],
+                "comment": row["source_comment"],
                 "translation_word": row["translation_word"],
                 "translation_pos": row["translation_pos"],
+                "translation_comment": row["translation_comment"]
             }
             for row in results
         ]
