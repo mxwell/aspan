@@ -79,31 +79,52 @@ class Gc(object):
     def get_token(self, request_data):
         return self.auth.get_token(request_data, self.db_lock, self.db_conn)
 
-    def do_get_translations(self, src_lang, dst_lang, word):
-        query = """
-        SELECT
-            w1.word AS source_word,
-            w1.pos AS source_pos,
-            w1.exc_verb AS source_exc_verb,
-            w1.comment AS source_comment,
-            w2.word AS translation_word,
-            w2.pos AS translation_pos,
-            w2.comment AS translation_comment
-        FROM
-            words w1
-        JOIN
-            translations t ON w1.word_id = t.word_id
-        JOIN
-            words w2 ON t.translated_word_id = w2.word_id
-        WHERE
-            w1.word = ?
-            AND w1.lang = ?
-            AND w2.lang = ?
-        LIMIT 100;
-        """
-
+    def do_get_translations(self, src_lang, dst_lang, both_dirs, word):
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, src_lang, dst_lang))
+        if both_dirs:
+            cursor.execute("""
+                SELECT
+                    w1.word AS source_word,
+                    w1.pos AS source_pos,
+                    w1.exc_verb AS source_exc_verb,
+                    w1.comment AS source_comment,
+                    w2.word AS translation_word,
+                    w2.pos AS translation_pos,
+                    w2.comment AS translation_comment
+                FROM
+                    words w1
+                JOIN
+                    translations t ON w1.word_id = t.word_id
+                JOIN
+                    words w2 ON t.translated_word_id = w2.word_id
+                WHERE
+                    (w1.word = ? OR w2.word = ?)
+                    AND w1.lang = ?
+                    AND w2.lang = ?
+                LIMIT 100;
+            """, (word, word, src_lang, dst_lang))
+        else:
+            cursor.execute("""
+                SELECT
+                    w1.word AS source_word,
+                    w1.pos AS source_pos,
+                    w1.exc_verb AS source_exc_verb,
+                    w1.comment AS source_comment,
+                    w2.word AS translation_word,
+                    w2.pos AS translation_pos,
+                    w2.comment AS translation_comment
+                FROM
+                    words w1
+                JOIN
+                    translations t ON w1.word_id = t.word_id
+                JOIN
+                    words w2 ON t.translated_word_id = w2.word_id
+                WHERE
+                    w1.word = ?
+                    AND w1.lang = ?
+                    AND w2.lang = ?
+                LIMIT 100;
+            """, (word, src_lang, dst_lang))
 
         results = cursor.fetchall()
 
@@ -122,31 +143,52 @@ class Gc(object):
 
         return translations
 
-    def do_get_inversed_translations(self, src_lang, dst_lang, word):
-        query = """
-        SELECT
-            w1.word AS source_word,
-            w1.pos AS source_pos,
-            w1.exc_verb AS source_exc_verb,
-            w1.comment AS source_comment,
-            w2.word AS translation_word,
-            w2.pos AS translation_pos,
-            w2.comment AS translation_comment
-        FROM
-            words w1
-        JOIN
-            translations t ON w1.word_id = t.translated_word_id
-        JOIN
-            words w2 ON t.word_id = w2.word_id
-        WHERE
-            w1.word = ?
-            AND w1.lang = ?
-            AND w2.lang = ?
-        LIMIT 100;
-        """
-
+    def do_get_inversed_translations(self, src_lang, dst_lang, both_dirs, word):
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, src_lang, dst_lang))
+        if both_dirs:
+            cursor.execute("""
+                SELECT
+                    w1.word AS source_word,
+                    w1.pos AS source_pos,
+                    w1.exc_verb AS source_exc_verb,
+                    w1.comment AS source_comment,
+                    w2.word AS translation_word,
+                    w2.pos AS translation_pos,
+                    w2.comment AS translation_comment
+                FROM
+                    words w1
+                JOIN
+                    translations t ON w1.word_id = t.translated_word_id
+                JOIN
+                    words w2 ON t.word_id = w2.word_id
+                WHERE
+                    (w1.word = ? OR w2.word = ?)
+                    AND w1.lang = ?
+                    AND w2.lang = ?
+                LIMIT 100;
+            """, (word, word, src_lang, dst_lang))
+        else:
+            cursor.execute("""
+                SELECT
+                    w1.word AS source_word,
+                    w1.pos AS source_pos,
+                    w1.exc_verb AS source_exc_verb,
+                    w1.comment AS source_comment,
+                    w2.word AS translation_word,
+                    w2.pos AS translation_pos,
+                    w2.comment AS translation_comment
+                FROM
+                    words w1
+                JOIN
+                    translations t ON w1.word_id = t.translated_word_id
+                JOIN
+                    words w2 ON t.word_id = w2.word_id
+                WHERE
+                    w1.word = ?
+                    AND w1.lang = ?
+                    AND w2.lang = ?
+                LIMIT 100;
+            """, (word, src_lang, dst_lang))
 
         results = cursor.fetchall()
 
@@ -165,12 +207,12 @@ class Gc(object):
 
         return translations
 
-    def get_translation(self, src_lang, dst_lang, word):
+    def get_translation(self, src_lang, dst_lang, both_dirs, word):
         with self.db_lock:
             if src_lang == "kk":
-                return self.do_get_translations(src_lang, dst_lang, word)
+                return self.do_get_translations(src_lang, dst_lang, both_dirs, word)
             else:
-                return self.do_get_inversed_translations(src_lang, dst_lang, word)
+                return self.do_get_inversed_translations(src_lang, dst_lang, both_dirs, word)
 
     def do_get_words(self, word, lang):
         query = """
@@ -471,9 +513,10 @@ def get_translation():
 
     src_lang = request.args.get("src")
     dst_lang = request.args.get("dst")
+    both_dirs = request.args.get("both") == "1"
     word = request.args.get("w")
 
-    logging.info("Request /get_translation %s->%s: %s", src_lang, dst_lang, word)
+    logging.info("Request /get_translation %s->%s, both dirs %s: %s", src_lang, dst_lang, str(both_dirs), word)
 
     if not valid_lang(src_lang):
         logging.error("Invalid src")
@@ -485,7 +528,7 @@ def get_translation():
         logging.error("Invalid word")
         return jsonify({"message": "Invalid request"}), 400
 
-    translations = gc_instance.get_translation(src_lang, dst_lang, word)
+    translations = gc_instance.get_translation(src_lang, dst_lang, both_dirs, word)
     return jsonify({"translations": translations}), 200
 
 
