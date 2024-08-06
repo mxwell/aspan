@@ -13,6 +13,7 @@ from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
 from lib.pos import parse_pos
+from lib.review import ReviewStatus
 from lib.word_info import WordInfo
 
 
@@ -58,8 +59,8 @@ def read_words(fetched_results):
 class InsertionResult(object):
 
     # One of args must be None
-    def __init__(self, translation_id, error_message):
-        self.translation_id = translation_id
+    def __init__(self, inserted_id, error_message):
+        self.inserted_id = inserted_id
         self.error_message = error_message
 
 
@@ -349,6 +350,36 @@ class Gc(object):
         with self.db_lock:
             return self.do_add_translation(src_id, dst_id, reference, user_id)
 
+    # Returns InsertionResult
+    def do_add_review(self, src_id, dst_id, reference, user_id):
+        src_word = self.do_get_word_by_id(src_id)
+        if src_word is None or src_word.lang != "kk":
+            logging.error("do_add_review: invalid src word ID %d", src_id)
+            return InsertionResult(None, "invalid_src")
+
+        dst_word = self.do_get_word_by_id(dst_id)
+        if dst_word is None or dst_word.lang == "kk":
+            logging.error("do_add_review: invalid dst word ID %d", dst_id)
+            return InsertionResult(None, "invalid_dst")
+
+        existing = self.count_translations_with_word_ids(src_id, dst_id)
+        if existing > 0:
+            logging.error("do_add_review: %d existing translations", existing)
+            return InsertionResult(None, "duplicate")
+
+        query = """
+        INSERT INTO reviews (word_id, translated_word_id, reference, user_id, status) VALUES (?, ?, ?, ?, ?);
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (src_id, dst_id, reference, user_id, ReviewStatus.NEW.name))
+        self.db_conn.commit()
+        return InsertionResult(cursor.lastrowid, None)
+
+    # Returns InsertionResult
+    def add_review(self, src_id, dst_id, reference, user_id):
+        with self.db_lock:
+            return self.do_add_review(src_id, dst_id, reference, user_id)
+
     # Returns user ID or None
     def get_user_id_from_header(self, headers):
         auth_header = headers.get("Authorization")
@@ -442,6 +473,18 @@ CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_i
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_translation_timestamps ON translations(created_at);
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id INTEGER PRIMARY KEY,
+    word_id INTEGER NOT NULL,
+    translated_word_id INTEGER NOT NULL,
+    reference TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
     """.strip())
 
     conn.execute("""
@@ -618,11 +661,50 @@ def post_add_translation():
     if insertion_result is None:
         logging.error("No insertion_result after insertion")
         return jsonify({"message": "Internal error"}), 500
-    translation_id = insertion_result.translation_id
-    if translation_id is None:
-        logging.error("No translation_id after insertion: %s", insertion_result.error_message)
+    inserted_id = insertion_result.inserted_id
+    if inserted_id is None:
+        logging.error("No inserted_id after insertion: %s", insertion_result.error_message)
         return jsonify({"message": insertion_result.error_message}), 500
-    return jsonify({"message": "ok", "translation_id": translation_id}), 201
+    return jsonify({"message": "ok", "translation_id": inserted_id}), 201
+
+
+@app.route("/gcapi/v1/add_review", methods=["POST"])
+def post_add_review():
+    global gc_instance
+
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    request_data = request.json
+    src_id = request_data.get("src")
+    dst_id = request_data.get("dst")
+    reference = request_data.get("ref")
+
+    if not isinstance(src_id, int):
+        logging.error("Invalid src: %s", str(src_id))
+        return jsonify({"message": "Invalid src"}), 400
+    if not isinstance(dst_id, int):
+        logging.error("Invalid dst: %s", str(dst_id))
+        return jsonify({"message": "Invalid dst"}), 400
+    if reference is None or len(reference) > 256:
+        logging.error("Invalid reference: %s", str(reference))
+        return jsonify({"message": "Invalid reference"}), 400
+
+    insertion_result = gc_instance.add_review(
+        int(src_id),
+        int(dst_id),
+        reference,
+        user_id,
+    )
+    if insertion_result is None:
+        logging.error("No insertion_result after insertion")
+        return jsonify({"message": "Internal error"}), 500
+    inserted_id = insertion_result.inserted_id
+    if inserted_id is None:
+        logging.error("No inserted_id after insertion: %s", insertion_result.error_message)
+        return jsonify({"message": insertion_result.error_message}), 500
+    return jsonify({"message": "ok", "review_id": inserted_id}), 201
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
