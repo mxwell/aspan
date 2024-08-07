@@ -392,6 +392,55 @@ class Gc(object):
         token = auth_header[7:]
         return self.auth.extract_user_id_from_token(token)
 
+    def do_get_reviews(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                r.review_id as review_id,
+                u.name AS name,
+                w1.word AS src_word,
+                w1.lang AS src_lang,
+                w2.word AS dst_word,
+                w2.lang AS dst_lang,
+                r.reference AS reference,
+                r.status AS status,
+                strftime('%s', r.created_at) AS created_at
+            FROM
+                reviews r
+            JOIN
+                users u ON r.user_id = u.user_id
+            JOIN
+                words w1 ON r.word_id = w1.word_id
+            JOIN
+                words w2 ON r.translated_word_id = w2.word_id
+            WHERE r.status == "NEW"
+            ORDER BY r.created_at DESC
+            LIMIT 1000;
+        """)
+
+        results = cursor.fetchall()
+
+        reviews = [
+            {
+                "review_id": row["review_id"],
+                "name": row["name"],
+                "src_word": row["src_word"],
+                "src_lang": row["src_lang"],
+                "dst_word": row["dst_word"],
+                "dst_lang": row["dst_lang"],
+                "reference": row["reference"],
+                "status": row["status"],
+                "created_at": int(row["created_at"]),
+            }
+            for row in results
+        ]
+
+        return reviews
+
+    def get_reviews(self):
+        with self.db_lock:
+            return self.do_get_reviews()
+
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
         cursor.execute("""
@@ -705,6 +754,17 @@ def post_add_review():
         logging.error("No inserted_id after insertion: %s", insertion_result.error_message)
         return jsonify({"message": insertion_result.error_message}), 500
     return jsonify({"message": "ok", "review_id": inserted_id}), 201
+
+
+@app.route("/gcapi/v1/get_reviews", methods=["GET"])
+def get_reviews():
+    global gc_instance
+
+    reviews = gc_instance.get_reviews()
+    if reviews is None:
+        logging.error("null reviews")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "reviews": reviews}), 200
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
