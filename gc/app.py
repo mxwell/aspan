@@ -418,8 +418,8 @@ class Gc(object):
                 w2.lang AS dst_lang,
                 r.reference AS reference,
                 r.status AS status,
-                COUNT(CASE WHEN rv.vote = "APPROVE" THEN 1 END) AS approves,
-                COUNT(CASE WHEN rv.vote = "DISAPPROVE" THEN 1 END) AS disapproves,
+                rv.approves AS approves,
+                rv.disapproves AS disapproves,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -429,10 +429,15 @@ class Gc(object):
                 words w1 ON r.word_id = w1.word_id
             JOIN
                 words w2 ON r.translated_word_id = w2.word_id
-            JOIN
-                review_votes rv ON r.review_id = rv.review_id
+            LEFT JOIN (
+                SELECT
+                    review_id,
+                    COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
+                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+                FROM review_votes
+                GROUP BY review_id
+            ) rv ON r.review_id = rv.review_id
             WHERE r.status == "NEW"
-            GROUP BY rv.review_id
             ORDER BY r.created_at DESC
             LIMIT 1000;
         """)
@@ -455,8 +460,8 @@ class Gc(object):
                 "dst_lang": row["dst_lang"],
                 "reference": row["reference"],
                 "status": row["status"],
-                "approves": row["approves"],
-                "disapproves": row["disapproves"],
+                "approves": row["approves"] or 0,
+                "disapproves": row["disapproves"] or 0,
                 "created_at": int(row["created_at"]),
             }
             for row in results
