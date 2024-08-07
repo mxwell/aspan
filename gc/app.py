@@ -13,7 +13,7 @@ from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
 from lib.pos import parse_pos
-from lib.review import ReviewStatus
+from lib.review import ReviewStatus, ReviewVote
 from lib.word_info import WordInfo
 
 
@@ -61,6 +61,14 @@ class InsertionResult(object):
     # One of args must be None
     def __init__(self, inserted_id, error_message):
         self.inserted_id = inserted_id
+        self.error_message = error_message
+
+class AddReviewVoteResult(object):
+
+    def __init__(self, inserted, approves, disapproves, error_message):
+        self.inserted = inserted
+        self.approves = approves
+        self.disapproves = disapproves
         self.error_message = error_message
 
 
@@ -410,6 +418,8 @@ class Gc(object):
                 w2.lang AS dst_lang,
                 r.reference AS reference,
                 r.status AS status,
+                COUNT(CASE WHEN rv.vote = "APPROVE" THEN 1 END) AS approves,
+                COUNT(CASE WHEN rv.vote = "DISAPPROVE" THEN 1 END) AS disapproves,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -419,7 +429,10 @@ class Gc(object):
                 words w1 ON r.word_id = w1.word_id
             JOIN
                 words w2 ON r.translated_word_id = w2.word_id
+            JOIN
+                review_votes rv ON r.review_id = rv.review_id
             WHERE r.status == "NEW"
+            GROUP BY rv.review_id
             ORDER BY r.created_at DESC
             LIMIT 1000;
         """)
@@ -442,16 +455,78 @@ class Gc(object):
                 "dst_lang": row["dst_lang"],
                 "reference": row["reference"],
                 "status": row["status"],
+                "approves": row["approves"],
+                "disapproves": row["disapproves"],
                 "created_at": int(row["created_at"]),
             }
             for row in results
         ]
+        cursor.close()
 
         return reviews
 
     def get_reviews(self):
         with self.db_lock:
             return self.do_get_reviews()
+
+    def count_review_votes_groupped(self, review_id):
+        query = """
+        SELECT
+            COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
+            COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+        FROM review_votes
+        WHERE review_id = ?;
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (review_id,))
+        result = cursor.fetchone()
+        approves = result["approves"]
+        disapproves = result["disapproves"]
+        logging.info("count_review_votes_groupped: review_id %d: %d approves, %d disapproves", review_id, approves, disapproves)
+        cursor.close()
+        return (approves, disapproves)
+
+    def count_review_votes_by_user(self, review_id, user_id):
+        query = """
+        SELECT COUNT(*)
+        FROM review_votes
+        WHERE review_id = ?
+        AND user_id = ?;
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (review_id, user_id))
+        count = cursor.fetchone()[0]
+        cursor.close()
+        return count
+
+    # Returns AddReviewVoteResult
+    def do_add_review_vote(self, review_id, user_id, vote):
+        approves, disapproves = self.count_review_votes_groupped(review_id)
+
+        if approves + disapproves > 0:
+            existing = self.count_review_votes_by_user(review_id, user_id)
+            if existing > 0:
+                logging.error("do_add_review_vote: %d existing vote(s)", existing)
+                return AddReviewVoteResult(False, approves, disapproves, "duplicate")
+
+        query = """
+        INSERT INTO review_votes (review_id, user_id, vote) VALUES (?, ?, ?);
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (review_id, user_id, vote.name))
+        self.db_conn.commit()
+        # TODO move the review to translations if it's approved
+        if vote == ReviewVote.APPROVE:
+            approves += 1
+        else:
+            disapproves += 1
+        return AddReviewVoteResult(True, approves, disapproves, None)
+
+    # Returns AddReviewVoteResult
+    def add_review_vote(self, review_id, user_id, vote):
+        assert isinstance(vote, ReviewVote)
+        with self.db_lock:
+            return self.do_add_review_vote(review_id, user_id, vote)
 
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
@@ -489,6 +564,7 @@ class Gc(object):
             }
             for row in results
         ]
+        cursor.close()
 
         return translations
 
@@ -545,6 +621,16 @@ CREATE TABLE IF NOT EXISTS reviews (
     user_id INTEGER NOT NULL,
     status TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS review_votes (
+    review_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    vote TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (review_id, user_id)
 )
     """.strip())
 
@@ -777,6 +863,36 @@ def get_reviews():
         logging.error("null reviews")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "reviews": reviews}), 200
+
+
+@app.route("/gcapi/v1/add_review_vote", methods=["POST"])
+def post_add_review_vote():
+    global gc_instance
+
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    request_data = request.json
+    review_id = request_data.get("rid")
+    v = request_data.get("v")
+
+    if not isinstance(review_id, int):
+        logging.error("Invalid review_id: %s", str(review_id))
+        return jsonify({"message": "Invalid review"}), 400
+
+    try:
+        vote = ReviewVote[v]
+    except KeyError as e:
+        logging.error("Invalid vote: got KeyError %s", str(e))
+        return jsonify({"message": "Invalid vote"}), 400
+
+    result = gc_instance.add_review_vote(review_id, user_id, vote)
+    if not result.inserted:
+        logging.error("failed to add review vote: %s", result.error_message)
+        message = result.error_message if result.error_message == "duplicate" else "Internal error"
+        return jsonify({"message": message, "approves": result.approves, "disapproves": result.disapproves}), 500
+    return jsonify({"message": "ok", "approves": result.approves, "disapproves": result.disapproves}), 200
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
