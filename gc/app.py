@@ -345,6 +345,7 @@ class Gc(object):
             logging.error("do_add_translation: %d existing translations", existing)
             return InsertionResult(None, "duplicate")
 
+        logging.info("Inserting translation %d -> %s by user %d", src_id, dst_id, user_id)
         query = """
         INSERT INTO translations (word_id, translated_word_id, reference, user_id) VALUES (?, ?, ?, ?);
         """
@@ -399,6 +400,34 @@ class Gc(object):
             return None
         token = auth_header[7:]
         return self.auth.extract_user_id_from_token(token)
+
+    def do_get_review_by_id(self, review_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT *
+            FROM reviews
+            WHERE review_id = ?;
+        """, (review_id,))
+
+        results = cursor.fetchall()
+
+        reviews = [
+            {
+                "word_id": row["word_id"],
+                "translated_word_id": row["translated_word_id"],
+                "reference": row["reference"],
+                "user_id": row["user_id"],
+                "status": row["status"],
+            }
+            for row in results
+        ]
+        cursor.close()
+
+        if len(reviews) != 1:
+            logging.error("do_get_review_by_id: unexpected number of reviews for id %d: %d", review_id, len(reviews))
+            return None
+
+        return reviews[0]
 
     def do_get_reviews(self):
         cursor = self.db_conn.cursor()
@@ -504,6 +533,53 @@ class Gc(object):
         cursor.close()
         return count
 
+    def do_move_votes_from_review_to_translation(self, review_id, translation_id):
+        logging.info("Moving votes from review %d to translation %d", review_id, translation_id)
+        cursor = self.db_conn.cursor()
+        query = """
+        INSERT INTO translation_votes (translation_id, user_id, vote)
+        SELECT ?, user_id, vote
+        FROM review_votes
+        WHERE review_id = ?;
+        """
+        cursor.execute(query, (translation_id, review_id))
+        self.db_conn.commit()
+
+    # Returns InsertionResult
+    def do_copy_review_to_translations(self, review_id):
+        review = self.do_get_review_by_id(review_id)
+        if review is None:
+            logging.info("do_copy_review_to_translations: failed to get a unique review by id")
+            return InsertionResult(None, "no review")
+        if review["status"] != ReviewStatus.NEW.name:
+            logging.info("do_copy_review_to_translations: unexpected review status %s", review["status"])
+            return InsertionResult(None, "no review")
+
+        insertion_result = self.do_add_translation(
+            review["word_id"],
+            review["translated_word_id"],
+            review["reference"],
+            review["user_id"],
+        )
+        if insertion_result.inserted_id is None:
+            logging.info("do_copy_review_to_translations: failed to insert translation")
+            return insertion_result
+
+        self.do_move_votes_from_review_to_translation(review_id, insertion_result.inserted_id)
+        return insertion_result
+
+    def do_set_review_status(self, review_id, status):
+        assert isinstance(status, ReviewStatus)
+        logging.info("Setting status to %s for review %d", status.name, review_id)
+        cursor = self.db_conn.cursor()
+        query = """
+        UPDATE reviews
+        SET status = ?
+        WHERE review_id = ?;
+        """
+        cursor.execute(query, (status.name, review_id))
+        self.db_conn.commit()
+
     # Returns AddReviewVoteResult
     def do_add_review_vote(self, review_id, user_id, vote):
         approves, disapproves = self.count_review_votes_groupped(review_id)
@@ -520,11 +596,18 @@ class Gc(object):
         cursor = self.db_conn.cursor()
         cursor.execute(query, (review_id, user_id, vote.name))
         self.db_conn.commit()
-        # TODO move the review to translations if it's approved
+
         if vote == ReviewVote.APPROVE:
             approves += 1
         else:
             disapproves += 1
+
+        if approves > disapproves:
+            self.do_copy_review_to_translations(review_id)
+            self.do_set_review_status(review_id, ReviewStatus.APPROVED)
+        elif disapproves > approves + 1:
+            self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
+
         return AddReviewVoteResult(True, approves, disapproves, None)
 
     # Returns AddReviewVoteResult
@@ -615,6 +698,16 @@ CREATE INDEX IF NOT EXISTS idx_translation_inv ON translations(translated_word_i
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_translation_timestamps ON translations(created_at);
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS translation_votes (
+    translation_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    vote TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (translation_id, user_id)
+)
     """.strip())
 
     conn.execute("""

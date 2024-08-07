@@ -6,7 +6,7 @@ class ReviewStatus(Enum):
     NEW = 1
     PENDING = 2
     APPROVED = 3
-    DECLINED = 4
+    DISAPPROVED = 4
 
 
 class ReviewVote(Enum):
