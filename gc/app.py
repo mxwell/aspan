@@ -7,6 +7,7 @@ import requests
 import sqlite3
 import sys
 import threading
+import time
 import uuid
 
 from flask import Flask, jsonify, redirect, request, make_response, send_file
@@ -33,6 +34,7 @@ dictConfig({
     }
 })
 DATABASE_PATH = "gc.db"
+CACHE_TTL_SECS = 300
 app = Flask("gc_app")
 gc_instance = None
 
@@ -72,12 +74,32 @@ class AddReviewVoteResult(object):
         self.error_message = error_message
 
 
+class GcCache(object):
+
+    def __init__(self):
+        self.stats = None
+        self.stats_time = None
+
+    def update_stats(self, stats):
+        self.stats = stats
+        self.stats_expiration = time.time() + CACHE_TTL_SECS
+
+    def get_stats(self):
+        if self.stats:
+            if self.stats_expiration < time.time():
+                self.stats = None
+            else:
+                return self.stats
+        return None
+
+
 class Gc(object):
 
     def __init__(self, db_conn, auth):
         self.db_lock = threading.Lock()
         self.db_conn = db_conn
         self.auth = auth
+        self.cache = GcCache()
 
     def check_user(self, request_data):
         return self.auth.check_user(request_data, self.db_lock, self.db_conn)
@@ -660,6 +682,43 @@ class Gc(object):
         with self.db_lock:
             return self.do_extract_feed()
 
+    def do_get_stats(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                COUNT(CASE WHEN w2.lang = "en" THEN 1 END) AS en_count,
+                COUNT(CASE WHEN w2.lang = "ru" THEN 1 END) AS ru_count
+            FROM
+                translations t
+            JOIN
+                words w2 ON t.translated_word_id = w2.word_id
+            ;
+        """)
+
+        results = cursor.fetchall()
+
+        stats = [
+            {
+                "en_count": row["en_count"],
+                "ru_count": row["ru_count"],
+            }
+            for row in results
+        ]
+        cursor.close()
+
+        return stats
+
+    def get_stats(self):
+        cached = self.cache.get_stats()
+        if cached:
+            return cached
+        logging.info("get_stats: No valid cache entry, retrieving from DB")
+        with self.db_lock:
+            stats = self.do_get_stats()
+            if stats:
+                self.cache.update_stats(stats)
+            return stats
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -1002,6 +1061,17 @@ def get_feed():
         logging.error("null feed")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "feed": feed}), 200
+
+
+@app.route("/gcapi/v1/get_stats", methods=["GET"])
+def get_stats():
+    global gc_instance
+
+    stats = gc_instance.get_stats()
+    if stats is None:
+        logging.error("null stats")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "stats": stats}), 200
 
 
 def main():
