@@ -705,8 +705,10 @@ class Gc(object):
             for row in results
         ]
         cursor.close()
+        if len(stats) != 1:
+            return None
 
-        return stats
+        return stats[0]
 
     def get_stats(self):
         cached = self.cache.get_stats()
