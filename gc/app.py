@@ -525,6 +525,82 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_reviews()
 
+    def do_get_reviews_by_dir(self, src_lang, dst_lang):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                r.review_id as review_id,
+                u.name AS name,
+                w1.word AS src_word,
+                w1.pos AS src_pos,
+                w1.exc_verb AS src_exc_verb,
+                w1.comment AS src_comment,
+                w1.lang AS src_lang,
+                w2.word AS dst_word,
+                w2.pos AS dst_pos,
+                w2.exc_verb AS dst_exc_verb,
+                w2.comment AS dst_comment,
+                w2.lang AS dst_lang,
+                r.reference AS reference,
+                r.status AS status,
+                rv.approves AS approves,
+                rv.disapproves AS disapproves,
+                strftime('%s', r.created_at) AS created_at
+            FROM
+                reviews r
+            JOIN
+                users u ON r.user_id = u.user_id
+            JOIN
+                words w1 ON r.word_id = w1.word_id
+            JOIN
+                words w2 ON r.translated_word_id = w2.word_id
+            LEFT JOIN (
+                SELECT
+                    review_id,
+                    COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
+                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+                FROM review_votes
+                GROUP BY review_id
+            ) rv ON r.review_id = rv.review_id
+            WHERE r.status = "NEW"
+                AND w1.lang = ?
+                AND w2.lang = ?
+            ORDER BY r.created_at DESC
+            LIMIT 1000;
+        """, (src_lang, dst_lang))
+
+        results = cursor.fetchall()
+
+        reviews = [
+            {
+                "review_id": row["review_id"],
+                "name": row["name"],
+                "src_word": row["src_word"],
+                "src_pos": row["src_pos"],
+                "src_exc_verb": row["src_exc_verb"],
+                "src_comment": row["src_comment"],
+                "src_lang": row["src_lang"],
+                "dst_word": row["dst_word"],
+                "dst_pos": row["dst_pos"],
+                "dst_exc_verb": row["dst_exc_verb"],
+                "dst_comment": row["dst_comment"],
+                "dst_lang": row["dst_lang"],
+                "reference": row["reference"],
+                "status": row["status"],
+                "approves": row["approves"] or 0,
+                "disapproves": row["disapproves"] or 0,
+                "created_at": int(row["created_at"]),
+            }
+            for row in results
+        ]
+        cursor.close()
+
+        return reviews
+
+    def get_reviews_by_dir(self, src_lang, dst_lang):
+        with self.db_lock:
+            return self.do_get_reviews_by_dir(src_lang, dst_lang)
+
     def count_review_votes_groupped(self, review_id):
         query = """
         SELECT
@@ -1017,7 +1093,23 @@ def post_add_review():
 def get_reviews():
     global gc_instance
 
-    reviews = gc_instance.get_reviews()
+    src_lang = request.args.get("src")
+    dst_lang = request.args.get("dst")
+
+    if not (src_lang is None and dst_lang is None):
+        if not valid_lang(src_lang):
+            logging.error("Invalid src lang")
+            return jsonify({"message": "Invalid request"}), 400
+        if not valid_lang(dst_lang):
+            logging.error("Invalid dst lang")
+            return jsonify({"message": "Invalid request"}), 400
+        if src_lang == dst_lang:
+            logging.error("Invalid combination of src and dst lang")
+            return jsonify({"message": "Invalid request"}), 400
+        reviews = gc_instance.get_reviews_by_dir(src_lang, dst_lang)
+    else:
+        reviews = gc_instance.get_reviews()
+
     if reviews is None:
         logging.error("null reviews")
         return jsonify({"message": "Internal error"}), 500
