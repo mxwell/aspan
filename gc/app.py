@@ -44,18 +44,36 @@ def validate_lang(lang):
 
 
 def read_words(fetched_results):
-    return [
-        WordInfo(
-            row["word_id"],
-            row["word"],
-            row["pos"],
-            row["exc_verb"] > 0,
-            row["lang"],
-            row["comment"],
-            int(row["created_at_unix_epoch"]),
+    grouped = dict()
+    for row in fetched_results:
+        word_id = row["word_id"]
+        if word_id in grouped:
+            grouped[word_id].append(row)
+        else:
+            grouped[word_id] = [row]
+
+    result = []
+    for word_id, group in grouped.items():
+        translated_word_ids = []
+        assert len(group) > 0
+        for row in group:
+            has_translation = "translated_word_id" in row.keys()
+            if has_translation and row["translated_word_id"]:
+                translated_word_ids.append(row["translated_word_id"])
+        row = group[0]
+        result.append(
+            WordInfo(
+                row["word_id"],
+                row["word"],
+                row["pos"],
+                row["exc_verb"] > 0,
+                row["lang"],
+                row["comment"],
+                int(row["created_at_unix_epoch"]),
+                translated_word_ids
+            )
         )
-        for row in fetched_results
-    ]
+    return result
 
 
 class InsertionResult(object):
@@ -245,33 +263,53 @@ class Gc(object):
             else:
                 return self.do_get_inversed_translations(src_lang, dst_lang, both_dirs, word)
 
-    def do_get_words(self, word, lang):
-        query = """
-        SELECT
-            word_id,
-            word,
-            pos,
-            exc_verb,
-            lang,
-            comment,
-            strftime('%s', created_at) as created_at_unix_epoch
-        FROM words
-        WHERE
-            word = ?
-            AND lang = ?
-        ORDER BY word_id
-        LIMIT 100;
-        """
-
+    def do_get_words(self, word, lang, with_translations):
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (word, lang))
+        if with_translations:
+            logging.info("query with translations")
+            cursor.execute("""
+                SELECT
+                    w1.word_id AS word_id,
+                    w1.word AS word,
+                    w1.pos AS pos,
+                    w1.exc_verb AS exc_verb,
+                    w1.lang AS lang,
+                    w1.comment AS comment,
+                    strftime('%s', w1.created_at) as created_at_unix_epoch,
+                    t.translated_word_id AS translated_word_id
+                FROM
+                    words w1
+                LEFT JOIN
+                    translations t ON w1.word_id = t.word_id
+                WHERE
+                    w1.word = ?
+                    AND w1.lang = ?
+                LIMIT 100;
+            """, (word, lang))
+        else:
+            cursor.execute("""
+                SELECT
+                    word_id,
+                    word,
+                    pos,
+                    exc_verb,
+                    lang,
+                    comment,
+                    strftime('%s', created_at) as created_at_unix_epoch
+                FROM words
+                WHERE
+                    word = ?
+                    AND lang = ?
+                ORDER BY word_id
+                LIMIT 100;
+            """, (word, lang))
 
         fetched_results = cursor.fetchall()
         return read_words(fetched_results)
 
-    def get_words(self, word, lang):
+    def get_words(self, word, lang, with_translations):
         with self.db_lock:
-            return self.do_get_words(word, lang)
+            return self.do_get_words(word, lang, with_translations)
 
     def count_words(self, word, pos, exc_verb, lang, comment):
         query = """
@@ -963,6 +1001,7 @@ def get_words():
 
     word = request.args.get("w")
     lang = request.args.get("lang")
+    with_translations = request.args.get("wtrs") == "1"
 
     if not word:
         logging.error("Invalid word")
@@ -971,7 +1010,9 @@ def get_words():
         logging.error("Invalid language")
         return jsonify({"message": "Invalid language"}), 400
 
-    words = gc_instance.get_words(word, lang)
+    logging.info("Request /get_words %s, lang %s, with_translations %s", word, lang, str(with_translations))
+
+    words = gc_instance.get_words(word, lang, with_translations)
     return jsonify({"words": words}), 200
 
 

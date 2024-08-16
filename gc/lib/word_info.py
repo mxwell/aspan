@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from typing import List
 
 @dataclass
 class WordInfo:
@@ -10,3 +10,4 @@ class WordInfo:
     lang: str
     comment: str
     created_at: int
+    translated_word_ids: List[int]
