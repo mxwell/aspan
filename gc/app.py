@@ -266,7 +266,6 @@ class Gc(object):
     def do_get_words(self, word, lang, with_translations):
         cursor = self.db_conn.cursor()
         if with_translations:
-            logging.info("query with translations")
             cursor.execute("""
                 SELECT
                     w1.word_id AS word_id,
