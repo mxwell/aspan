@@ -85,10 +85,12 @@ class InsertionResult(object):
 
 class AddReviewVoteResult(object):
 
-    def __init__(self, inserted, approves, disapproves, error_message):
+    def __init__(self, inserted, approves, disapproves, own_approves, own_disapproves, error_message):
         self.inserted = inserted
         self.approves = approves
         self.disapproves = disapproves
+        self.own_approves = own_approves
+        self.own_disapproves = own_disapproves
         self.error_message = error_message
 
 
@@ -488,7 +490,7 @@ class Gc(object):
 
         return reviews[0]
 
-    def do_get_reviews(self):
+    def do_get_reviews(self, user_id):
         cursor = self.db_conn.cursor()
         cursor.execute("""
             SELECT
@@ -508,6 +510,8 @@ class Gc(object):
                 r.status AS status,
                 rv.approves AS approves,
                 rv.disapproves AS disapproves,
+                rv.own_approves AS own_approves,
+                rv.own_disapproves AS own_disapproves,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -521,14 +525,16 @@ class Gc(object):
                 SELECT
                     review_id,
                     COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
-                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves,
+                    COUNT(CASE WHEN user_id = ? AND vote = "APPROVE" THEN 1 END) AS own_approves,
+                    COUNT(CASE WHEN user_id = ? AND vote = "DISAPPROVE" THEN 1 END) AS own_disapproves
                 FROM review_votes
                 GROUP BY review_id
             ) rv ON r.review_id = rv.review_id
             WHERE r.status == "NEW"
             ORDER BY r.created_at DESC
             LIMIT 1000;
-        """)
+        """, (user_id, user_id))
 
         results = cursor.fetchall()
 
@@ -550,6 +556,8 @@ class Gc(object):
                 "status": row["status"],
                 "approves": row["approves"] or 0,
                 "disapproves": row["disapproves"] or 0,
+                "own_approves": row["own_approves"] or 0,
+                "own_disapproves": row["own_disapproves"] or 0,
                 "created_at": int(row["created_at"]),
             }
             for row in results
@@ -558,11 +566,11 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews(self):
+    def get_reviews(self, user_id):
         with self.db_lock:
-            return self.do_get_reviews()
+            return self.do_get_reviews(user_id)
 
-    def do_get_reviews_by_dir(self, src_lang, dst_lang):
+    def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang):
         cursor = self.db_conn.cursor()
         cursor.execute("""
             SELECT
@@ -582,6 +590,8 @@ class Gc(object):
                 r.status AS status,
                 rv.approves AS approves,
                 rv.disapproves AS disapproves,
+                rv.own_approves AS own_approves,
+                rv.own_disapproves AS own_disapproves,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -595,7 +605,9 @@ class Gc(object):
                 SELECT
                     review_id,
                     COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
-                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+                    COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves,
+                    COUNT(CASE WHEN user_id = ? AND vote = "APPROVE" THEN 1 END) AS own_approves,
+                    COUNT(CASE WHEN user_id = ? AND vote = "DISAPPROVE" THEN 1 END) AS own_disapproves
                 FROM review_votes
                 GROUP BY review_id
             ) rv ON r.review_id = rv.review_id
@@ -604,7 +616,7 @@ class Gc(object):
                 AND w2.lang = ?
             ORDER BY r.created_at DESC
             LIMIT 1000;
-        """, (src_lang, dst_lang))
+        """, (user_id, user_id, src_lang, dst_lang))
 
         results = cursor.fetchall()
 
@@ -626,6 +638,8 @@ class Gc(object):
                 "status": row["status"],
                 "approves": row["approves"] or 0,
                 "disapproves": row["disapproves"] or 0,
+                "own_approves": row["own_approves"] or 0,
+                "own_disapproves": row["own_disapproves"] or 0,
                 "created_at": int(row["created_at"]),
             }
             for row in results
@@ -634,39 +648,30 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews_by_dir(self, src_lang, dst_lang):
+    def get_reviews_by_dir(self, user_id, src_lang, dst_lang):
         with self.db_lock:
-            return self.do_get_reviews_by_dir(src_lang, dst_lang)
+            return self.do_get_reviews_by_dir(user_id, src_lang, dst_lang)
 
-    def count_review_votes_groupped(self, review_id):
+    def count_review_votes_groupped(self, user_id, review_id):
         query = """
         SELECT
             COUNT(CASE WHEN vote = "APPROVE" THEN 1 END) AS approves,
-            COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves
+            COUNT(CASE WHEN vote = "DISAPPROVE" THEN 1 END) AS disapproves,
+            COUNT(CASE WHEN user_id = ? AND vote = "APPROVE" THEN 1 END) AS own_approves,
+            COUNT(CASE WHEN user_id = ? AND vote = "DISAPPROVE" THEN 1 END) AS own_disapproves
         FROM review_votes
         WHERE review_id = ?;
         """
         cursor = self.db_conn.cursor()
-        cursor.execute(query, (review_id,))
+        cursor.execute(query, (user_id, user_id, review_id,))
         result = cursor.fetchone()
         approves = result["approves"]
         disapproves = result["disapproves"]
-        logging.info("count_review_votes_groupped: review_id %d: %d approves, %d disapproves", review_id, approves, disapproves)
+        own_approves = result["own_approves"]
+        own_disapproves = result["own_disapproves"]
+        logging.info("count_review_votes_groupped: review_id %d: %d vs %d, own %d vs %d", review_id, approves, disapproves, own_approves, own_disapproves)
         cursor.close()
-        return (approves, disapproves)
-
-    def count_review_votes_by_user(self, review_id, user_id):
-        query = """
-        SELECT COUNT(*)
-        FROM review_votes
-        WHERE review_id = ?
-        AND user_id = ?;
-        """
-        cursor = self.db_conn.cursor()
-        cursor.execute(query, (review_id, user_id))
-        count = cursor.fetchone()[0]
-        cursor.close()
-        return count
+        return (approves, disapproves, own_approves, own_disapproves)
 
     def do_move_votes_from_review_to_translation(self, review_id, translation_id):
         logging.info("Moving votes from review %d to translation %d", review_id, translation_id)
@@ -717,13 +722,11 @@ class Gc(object):
 
     # Returns AddReviewVoteResult
     def do_add_review_vote(self, review_id, user_id, vote):
-        approves, disapproves = self.count_review_votes_groupped(review_id)
+        approves, disapproves, own_approves, own_disapproves = self.count_review_votes_groupped(user_id, review_id)
 
-        if approves + disapproves > 0:
-            existing = self.count_review_votes_by_user(review_id, user_id)
-            if existing > 0:
-                logging.error("do_add_review_vote: %d existing vote(s)", existing)
-                return AddReviewVoteResult(False, approves, disapproves, "duplicate")
+        if own_approves + own_disapproves > 0:
+            logging.error("do_add_review_vote: %d, %d existing vote(s)", own_approves, own_disapproves)
+            return AddReviewVoteResult(False, approves, disapproves, own_approves, own_disapproves, "duplicate")
 
         query = """
         INSERT INTO review_votes (review_id, user_id, vote) VALUES (?, ?, ?);
@@ -734,8 +737,10 @@ class Gc(object):
 
         if vote == ReviewVote.APPROVE:
             approves += 1
+            own_approves += 1
         else:
             disapproves += 1
+            own_disapproves += 1
 
         if approves > disapproves:
             self.do_copy_review_to_translations(review_id)
@@ -743,7 +748,7 @@ class Gc(object):
         elif disapproves > approves + 1:
             self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
 
-        return AddReviewVoteResult(True, approves, disapproves, None)
+        return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, None)
 
     # Returns AddReviewVoteResult
     def add_review_vote(self, review_id, user_id, vote):
@@ -1133,6 +1138,10 @@ def post_add_review():
 def get_reviews():
     global gc_instance
 
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        user_id = 0
+
     src_lang = request.args.get("src")
     dst_lang = request.args.get("dst")
 
@@ -1146,9 +1155,9 @@ def get_reviews():
         if src_lang == dst_lang:
             logging.error("Invalid combination of src and dst lang")
             return jsonify({"message": "Invalid request"}), 400
-        reviews = gc_instance.get_reviews_by_dir(src_lang, dst_lang)
+        reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang)
     else:
-        reviews = gc_instance.get_reviews()
+        reviews = gc_instance.get_reviews(user_id)
 
     if reviews is None:
         logging.error("null reviews")
@@ -1182,8 +1191,20 @@ def post_add_review_vote():
     if not result.inserted:
         logging.error("failed to add review vote: %s", result.error_message)
         message = result.error_message if result.error_message == "duplicate" else "Internal error"
-        return jsonify({"message": message, "approves": result.approves, "disapproves": result.disapproves}), 500
-    return jsonify({"message": "ok", "approves": result.approves, "disapproves": result.disapproves}), 200
+        return jsonify({
+            "message": message,
+            "approves": result.approves,
+            "disapproves": result.disapproves,
+            "own_approves": result.own_approves,
+            "own_disapproves": result.own_disapproves,
+        }), 500
+    return jsonify({
+        "message": "ok",
+        "approves": result.approves,
+        "disapproves": result.disapproves,
+        "own_approves": result.own_approves,
+        "own_disapproves": result.own_disapproves,
+    }), 200
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
