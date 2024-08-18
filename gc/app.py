@@ -85,13 +85,24 @@ class InsertionResult(object):
 
 class AddReviewVoteResult(object):
 
-    def __init__(self, inserted, approves, disapproves, own_approves, own_disapproves, error_message):
+    def __init__(self, inserted, approves, disapproves, own_approves, own_disapproves, gone, error_message):
         self.inserted = inserted
         self.approves = approves
         self.disapproves = disapproves
         self.own_approves = own_approves
         self.own_disapproves = own_disapproves
+        self.gone = gone
         self.error_message = error_message
+
+    def make_response(self, message):
+        return {
+            "message": message,
+            "approves": self.approves,
+            "disapproves": self.disapproves,
+            "own_approves": self.own_approves,
+            "gone": self.gone,
+            "own_disapproves": self.own_disapproves,
+        }
 
 
 class GcCache(object):
@@ -726,7 +737,7 @@ class Gc(object):
 
         if own_approves + own_disapproves > 0:
             logging.error("do_add_review_vote: %d, %d existing vote(s)", own_approves, own_disapproves)
-            return AddReviewVoteResult(False, approves, disapproves, own_approves, own_disapproves, "duplicate")
+            return AddReviewVoteResult(False, approves, disapproves, own_approves, own_disapproves, False, "duplicate")
 
         query = """
         INSERT INTO review_votes (review_id, user_id, vote) VALUES (?, ?, ?);
@@ -742,19 +753,59 @@ class Gc(object):
             disapproves += 1
             own_disapproves += 1
 
+        gone = False
         if approves > disapproves:
             self.do_copy_review_to_translations(review_id)
             self.do_set_review_status(review_id, ReviewStatus.APPROVED)
+            gone = True
         elif disapproves > approves + 1:
             self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
 
-        return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, None)
+        return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, gone, None)
 
     # Returns AddReviewVoteResult
     def add_review_vote(self, review_id, user_id, vote):
         assert isinstance(vote, ReviewVote)
         with self.db_lock:
             return self.do_add_review_vote(review_id, user_id, vote)
+
+    # Returns AddReviewVoteResult
+    def do_retract_review_vote(self, review_id, user_id, vote):
+        approves, disapproves, own_approves, own_disapproves = self.count_review_votes_groupped(user_id, review_id)
+
+        if (vote == ReviewVote.APPROVE and own_approves <= 0) or (vote == ReviewVote.DISAPPROVE and own_disapproves <= 0):
+            logging.error("do_retract_review_vote: no vote %s to retract: %d vs %d", vote.name, own_approves, own_disapproves)
+            return AddReviewVoteResult(False, approves, disapproves, own_approves, own_disapproves, False, "not found")
+
+        query = """
+        DELETE FROM review_votes WHERE review_id = ? AND user_id = ? AND vote = ?;
+        """
+        cursor = self.db_conn.cursor()
+        cursor.execute(query, (review_id, user_id, vote.name))
+        self.db_conn.commit()
+
+        if vote == ReviewVote.APPROVE:
+            approves -= 1
+            own_approves -= 1
+        else:
+            disapproves -= 1
+            own_disapproves -= 1
+
+        gone = False
+        if approves > disapproves:
+            self.do_copy_review_to_translations(review_id)
+            self.do_set_review_status(review_id, ReviewStatus.APPROVED)
+            gone = True
+        elif disapproves > approves + 1:
+            self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
+
+        return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, gone, None)
+
+    # Returns AddReviewVoteResult
+    def retract_review_vote(self, review_id, user_id, vote):
+        assert isinstance(vote, ReviewVote)
+        with self.db_lock:
+            return self.do_retract_review_vote(review_id, user_id, vote)
 
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
@@ -1191,20 +1242,38 @@ def post_add_review_vote():
     if not result.inserted:
         logging.error("failed to add review vote: %s", result.error_message)
         message = result.error_message if result.error_message == "duplicate" else "Internal error"
-        return jsonify({
-            "message": message,
-            "approves": result.approves,
-            "disapproves": result.disapproves,
-            "own_approves": result.own_approves,
-            "own_disapproves": result.own_disapproves,
-        }), 500
-    return jsonify({
-        "message": "ok",
-        "approves": result.approves,
-        "disapproves": result.disapproves,
-        "own_approves": result.own_approves,
-        "own_disapproves": result.own_disapproves,
-    }), 200
+        return jsonify(result.make_response(message)), 500
+    return jsonify(result.make_response("ok")), 200
+
+
+@app.route("/gcapi/v1/retract_review_vote", methods=["POST"])
+def post_retract_review_vote():
+    global gc_instance
+
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    request_data = request.json
+    review_id = request_data.get("rid")
+    v = request_data.get("v")
+
+    if not isinstance(review_id, int):
+        logging.error("Invalid review_id: %s", str(review_id))
+        return jsonify({"message": "Invalid review"}), 400
+
+    try:
+        vote = ReviewVote[v]
+    except KeyError as e:
+        logging.error("Invalid vote: got KeyError %s", str(e))
+        return jsonify({"message": "Invalid vote"}), 400
+
+    result = gc_instance.retract_review_vote(review_id, user_id, vote)
+    if not result.inserted:
+        logging.error("failed to retract review vote: %s", result.error_message)
+        message = result.error_message if result.error_message == "not found" else "Internal error"
+        return jsonify(result.make_response(message)), 500
+    return jsonify(result.make_response("ok")), 200
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
