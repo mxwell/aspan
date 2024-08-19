@@ -506,6 +506,7 @@ class Gc(object):
         cursor.execute("""
             SELECT
                 r.review_id as review_id,
+                u.user_id AS user_id,
                 u.name AS name,
                 w1.word AS src_word,
                 w1.pos AS src_pos,
@@ -552,6 +553,7 @@ class Gc(object):
         reviews = [
             {
                 "review_id": row["review_id"],
+                "user_id": row["user_id"],
                 "name": row["name"],
                 "src_word": row["src_word"],
                 "src_pos": row["src_pos"],
@@ -586,6 +588,7 @@ class Gc(object):
         cursor.execute("""
             SELECT
                 r.review_id as review_id,
+                u.user_id AS user_id,
                 u.name AS name,
                 w1.word AS src_word,
                 w1.pos AS src_pos,
@@ -634,6 +637,7 @@ class Gc(object):
         reviews = [
             {
                 "review_id": row["review_id"],
+                "user_id": row["user_id"],
                 "name": row["name"],
                 "src_word": row["src_word"],
                 "src_pos": row["src_pos"],
@@ -726,9 +730,9 @@ class Gc(object):
         query = """
         UPDATE reviews
         SET status = ?
-        WHERE review_id = ?;
+        WHERE review_id = ? AND status != ?;
         """
-        cursor.execute(query, (status.name, review_id))
+        cursor.execute(query, (status.name, review_id, ReviewStatus.DISCARDED.name))
         self.db_conn.commit()
 
     # Returns AddReviewVoteResult
@@ -806,6 +810,26 @@ class Gc(object):
         assert isinstance(vote, ReviewVote)
         with self.db_lock:
             return self.do_retract_review_vote(review_id, user_id, vote)
+
+    # Returns InsertionResult
+    def do_discard_review(self, review_id, user_id):
+        review = self.do_get_review_by_id(review_id)
+        if review is None:
+            logging.info("do_discard_review: failed to get a unique review by id")
+            return InsertionResult(None, "no review")
+        if review["status"] == ReviewStatus.APPROVED.name or review["status"] == ReviewStatus.DISCARDED.name:
+            logging.info("do_discard_review: unexpected review status %s", review["status"])
+            return InsertionResult(None, "no review")
+        if review["user_id"] != user_id:
+            logging.info("do_discard_review: user_id does not match: %d vs %d", review["user_id"], user_id)
+            return InsertionResult(None, "no review")
+        self.do_set_review_status(review_id, ReviewStatus.DISCARDED)
+        return InsertionResult(review_id, None)
+
+    # Returns InsertionResult
+    def discard_review(self, review_id, user_id):
+        with self.db_lock:
+            return self.do_discard_review(review_id, user_id)
 
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
@@ -1274,6 +1298,35 @@ def post_retract_review_vote():
         message = result.error_message if result.error_message == "not found" else "Internal error"
         return jsonify(result.make_response(message)), 500
     return jsonify(result.make_response("ok")), 200
+
+
+@app.route("/gcapi/v1/discard_review", methods=["POST"])
+def post_discard_review():
+    global gc_instance
+
+    user_id = gc_instance.get_user_id_from_header(request.headers)
+    if not user_id:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    request_data = request.json
+    review_id = request_data.get("rid")
+
+    if not isinstance(review_id, int):
+        logging.error("Invalid review_id: %s", str(review_id))
+        return jsonify({"message": "Invalid review_id"}), 400
+
+    insertion_result = gc_instance.discard_review(
+        review_id,
+        user_id,
+    )
+    if insertion_result is None:
+        logging.error("post_discard_review: no insertion_result")
+        return jsonify({"message": "Internal error"}), 500
+    discarded_id = insertion_result.inserted_id
+    if discarded_id is None:
+        logging.error("post_discard_review: no inserted_id after discard: %s", insertion_result.error_message)
+        return jsonify({"message": insertion_result.error_message}), 500
+    return jsonify({"message": "ok", "review_id": discarded_id}), 201
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
