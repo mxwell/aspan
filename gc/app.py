@@ -13,6 +13,7 @@ import uuid
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
+from lib.feed import FeedItem, VoteInfo
 from lib.pos import parse_pos
 from lib.review import ReviewStatus, ReviewVote
 from lib.word_info import WordInfo
@@ -73,6 +74,45 @@ def read_words(fetched_results):
                 translated_word_ids
             )
         )
+    return result
+
+
+def parse_vote(vote):
+    if vote:
+        try:
+            return ReviewVote[vote].value
+        except KeyError as e:
+            logging.error("parse_vote: unknown vote [%s]", vote)
+    return None
+
+
+def read_feed_items(fetched_results):
+    result = []
+    prev_tr_id = None
+    for row in fetched_results:
+        translation_id = row["tr_id"]
+        assert translation_id
+
+        if translation_id != prev_tr_id:
+            result.append(
+                FeedItem(
+                    row["name"],
+                    row["src_word"],
+                    row["src_lang"],
+                    row["dst_word"],
+                    row["dst_lang"],
+                    translation_id,
+                    [], # votes
+                    int(row["created_at"]),
+                )
+            )
+            prev_tr_id = translation_id
+
+        vote = parse_vote(row["vote"])
+        voter = row["voter"]
+        if vote and voter:
+            result[-1].votes.append(VoteInfo(vote, voter))
+
     return result
 
 
@@ -317,7 +357,9 @@ class Gc(object):
             """, (word, lang))
 
         fetched_results = cursor.fetchall()
-        return read_words(fetched_results)
+        words = read_words(fetched_results)
+        cursor.close()
+        return words
 
     def get_words(self, word, lang, with_translations):
         with self.db_lock:
@@ -382,6 +424,7 @@ class Gc(object):
 
         fetched_results = cursor.fetchall()
         words = read_words(fetched_results)
+        cursor.close()
         if len(words) == 1:
             return words[0]
         logging.error("do_get_word_by_id: unexpected number of words for ID %d: %d", word_id, len(words))
@@ -835,11 +878,14 @@ class Gc(object):
         cursor = self.db_conn.cursor()
         cursor.execute("""
             SELECT
+                t.translation_id AS tr_id,
                 u.name AS name,
                 w1.word AS src_word,
                 w1.lang AS src_lang,
                 w2.word AS dst_word,
                 w2.lang AS dst_lang,
+                tv.vote AS vote,
+                u2.name AS voter,
                 strftime('%s', t.created_at) AS created_at
             FROM
                 translations t
@@ -849,27 +895,19 @@ class Gc(object):
                 words w1 ON t.word_id = w1.word_id
             JOIN
                 words w2 ON t.translated_word_id = w2.word_id
+            LEFT JOIN
+                translation_votes tv ON t.translation_id = tv.translation_id
+            LEFT JOIN
+                users u2 ON tv.user_id = u2.user_id
             WHERE t.created_at >= datetime('now', '-2 days')
             ORDER BY t.created_at DESC
             LIMIT 100;
         """)
 
-        results = cursor.fetchall()
-
-        translations = [
-            {
-                "name": row["name"],
-                "src_word": row["src_word"],
-                "src_lang": row["src_lang"],
-                "dst_word": row["dst_word"],
-                "dst_lang": row["dst_lang"],
-                "created_at": int(row["created_at"]),
-            }
-            for row in results
-        ]
+        fetched_results = cursor.fetchall()
+        feed_items = read_feed_items(fetched_results)
         cursor.close()
-
-        return translations
+        return feed_items
 
     def get_feed(self):
         with self.db_lock:

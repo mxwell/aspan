@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -11,5 +12,5 @@ class ReviewStatus(Enum):
 
 
 class ReviewVote(Enum):
-    DISAPPROVE = 0
+    DISAPPROVE = -1
     APPROVE = 1
