@@ -3,6 +3,7 @@ import logging
 from logging.config import dictConfig
 import os
 from os.path import join as pj
+import random
 import requests
 import sqlite3
 import sys
@@ -952,6 +953,43 @@ class Gc(object):
                 self.cache.update_stats(stats)
             return stats
 
+    def do_get_untranslated(self, dst_lang):
+        result = []
+
+        query = """
+            SELECT
+                w1.word AS source_word,
+                w2.lang AS translation_lang
+            FROM
+                words w1
+            LEFT JOIN
+                translations t ON w1.word_id = t.word_id
+            LEFT JOIN
+                words w2 ON t.translated_word_id = w2.word_id
+            WHERE
+                w1.lang = "kk"
+            LIMIT ?,50;
+        """
+
+        cursor = self.db_conn.cursor()
+        for iter in range(6):
+            offset = random.randint(0, 14200)
+            cursor.execute(query, (offset,))
+            fetched_results = cursor.fetchall()
+            for row in fetched_results:
+                translation_lang = row["translation_lang"]
+                if translation_lang != dst_lang:
+                    result.append(row["source_word"])
+                    break
+            if len(result) >= 3:
+                break
+
+        return result
+
+    def get_untranslated(self, dst_lang):
+        with self.db_lock:
+            return self.do_get_untranslated(dst_lang)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -1387,6 +1425,23 @@ def get_stats():
         logging.error("null stats")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "stats": stats}), 200
+
+
+@app.route("/gcapi/v1/get_untranslated", methods=["GET"])
+def get_untranslated():
+    global gc_instance
+
+    dst_lang = request.args.get("dst")
+
+    if not valid_lang(dst_lang):
+        logging.error("Invalid dst lang")
+        return jsonify({"message": "Invalid request"}), 400
+
+    words = gc_instance.get_untranslated(dst_lang)
+    if words is None:
+        logging.error("null untranslated")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "words": words}), 200
 
 
 def main():
