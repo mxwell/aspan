@@ -959,7 +959,7 @@ class Gc(object):
         query = """
             SELECT
                 w1.word AS source_word,
-                w2.lang AS translation_lang
+                GROUP_CONCAT(w2.lang) AS translation_langs
             FROM
                 words w1
             LEFT JOIN
@@ -968,6 +968,7 @@ class Gc(object):
                 words w2 ON t.translated_word_id = w2.word_id
             WHERE
                 w1.lang = "kk"
+            GROUP BY w1.word_id
             LIMIT ?,50;
         """
 
@@ -977,8 +978,8 @@ class Gc(object):
             cursor.execute(query, (offset,))
             fetched_results = cursor.fetchall()
             for row in fetched_results:
-                translation_lang = row["translation_lang"]
-                if translation_lang != dst_lang:
+                translation_langs = row["translation_langs"]
+                if translation_langs is None or dst_lang not in translation_langs.split(","):
                     result.append(row["source_word"])
                     break
             if len(result) >= 3:
