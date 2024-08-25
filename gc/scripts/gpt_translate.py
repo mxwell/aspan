@@ -7,7 +7,7 @@ Prerequisites:
 - pip install openai
 - create and export an API key: `export OPENAI_API_KEY="your_api_key_here"`
 
-Them the work is done in multiple batches, with the following steps per batch:
+Then the work is done in multiple batches, with the following steps per batch:
 
 1. Declare offset
 
@@ -34,7 +34,7 @@ Batch ID: batch_0A4g70JTMTOzbGSplJOB8NaW
 
 4. Wait for the batch to complete in https://platform.openai.com/batches
 
-5. If it has completed allright, dump the result and join with the input words.
+5. If it has completed all right, dump the result and join with the input words.
 
 NOTE:Don't forget to replace the placeholder with your actual batch ID.
 
