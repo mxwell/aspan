@@ -56,12 +56,16 @@ def read_words(fetched_results):
 
     result = []
     for word_id, group in grouped.items():
-        translated_word_ids = []
+        translated_word_ids = set()
+        review_word_ids = set()
         assert len(group) > 0
         for row in group:
             has_translation = "translated_word_id" in row.keys()
             if has_translation and row["translated_word_id"]:
-                translated_word_ids.append(row["translated_word_id"])
+                translated_word_ids.add(row["translated_word_id"])
+            has_review = "review_word_id" in row.keys()
+            if has_review and row["review_word_id"]:
+                review_word_ids.add(row["review_word_id"])
         row = group[0]
         result.append(
             WordInfo(
@@ -72,7 +76,8 @@ def read_words(fetched_results):
                 row["lang"],
                 row["comment"],
                 int(row["created_at_unix_epoch"]),
-                translated_word_ids
+                sorted(translated_word_ids),
+                sorted(review_word_ids),
             )
         )
     return result
@@ -329,14 +334,18 @@ class Gc(object):
                     w1.lang AS lang,
                     w1.comment AS comment,
                     strftime('%s', w1.created_at) as created_at_unix_epoch,
-                    t.translated_word_id AS translated_word_id
+                    t.translated_word_id AS translated_word_id,
+                    r.translated_word_id AS review_word_id
                 FROM
                     words w1
                 LEFT JOIN
                     translations t ON w1.word_id = t.word_id
+                LEFT JOIN
+                    reviews r ON w1.word_id = r.word_id
                 WHERE
                     w1.word = ?
                     AND w1.lang = ?
+                    AND (r.translated_word_id = NULL OR r.status = "NEW")
                 LIMIT 100;
             """, (word, lang))
         else:

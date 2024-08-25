@@ -11,3 +11,4 @@ class WordInfo:
     comment: str
     created_at: int
     translated_word_ids: List[int]
+    review_word_ids: List[int]
