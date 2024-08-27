@@ -1000,6 +1000,32 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_untranslated(dst_lang)
 
+    def do_get_gpt4omini_translations(self, word_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                translations
+            FROM
+                gpt4omini
+            WHERE
+                word_id = ?
+            LIMIT 1;
+        """, (word_id,))
+        fetched_results = cursor.fetchall()
+        result = []
+        for row in fetched_results:
+            result.extend(row["translations"].split("\n"))
+        cursor.close()
+        return result
+
+    def get_llm_translations(self, word_id, model):
+        if model == "gpt-4o-mini":
+            with self.db_lock:
+                return self.do_get_gpt4omini_translations(word_id)
+        else:
+            logging.error("Unknown model %s for translations", model)
+            return None
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -1085,6 +1111,14 @@ CREATE TABLE IF NOT EXISTS users (
     """.strip())
     conn.execute("""
 CREATE INDEX IF NOT EXISTS idx_users ON users(email);
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS gpt4omini (
+    word_id INTEGER PRIMARY KEY,
+    translations TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
     """.strip())
 
     logging.info("Database connection with %s established", db_path)
@@ -1452,6 +1486,27 @@ def get_untranslated():
         logging.error("null untranslated")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "words": words}), 200
+
+
+@app.route("/gcapi/v1/get_llm_translations", methods=["GET"])
+def get_llm_translations():
+    global gc_instance
+
+    word_id = request.args.get("wid")
+    model = request.args.get("model")
+
+    if not word_id.isdigit():
+        logging.error("Invalid word_id: %s", word_id)
+        return jsonify({"message": "Invalid word_id"}), 400
+    if not isinstance(model, str) or len(model) <= 0:
+        logging.error("Invalid model: %s", str(model))
+        return jsonify({"message": "Invalid model"}), 400
+
+    translations = gc_instance.get_llm_translations(int(word_id), model)
+    if translations is None:
+        logging.error("null translations")
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "translations": translations}), 200
 
 
 def main():
