@@ -46,6 +46,14 @@ Raw batch result is saved to gen/r200.jsonl
 Translations are saved to gen/t200.jsonl
 ```
 
+5. Insert translations into DB.
+
+```
+$ python3 scripts/gpt_translate.py insert-translations --words gen/w${OFFSET}.jsonl --raw gen/r${OFFSET}.jsonl
+...
+Inserted 92 rows total into DB
+```
+
 """
 
 import argparse
@@ -275,8 +283,60 @@ def get_batch_result(args):
                 continue
             d = word.as_dict()
             d["translations"] = translations
-            translations_file.write(f"{d}\n")
+            translations_file.write(f"{json.dumps(d)}\n")
     logging.info("Translations are saved to %s", args.translations)
+
+
+def insert_translations(args):
+    word_by_id = reload_words(args.words)
+
+    db_conn = init_db_conn(args.db_path)
+
+    db_conn.execute("""
+CREATE TABLE IF NOT EXISTS gpt4omini (
+    word_id INTEGER PRIMARY KEY,
+    translations TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    cursor = db_conn.cursor()
+    total = 0
+
+    def flush(batch):
+        nonlocal cursor, db_conn, total
+
+        if len(batch) > 0:
+            cursor.executemany("INSERT INTO gpt4omini (word_id, translations) VALUES (?, ?)", batch)
+            db_conn.commit()
+            logging.info("Inserted %d rows into DB", len(batch))
+            total += len(batch)
+
+    batch = []
+
+    def add_to_batch(word_id, translations):
+        nonlocal batch
+        batch.append((word_id, translations))
+        if len(batch) >= 100:
+            flush(batch)
+            batch = []
+
+    for line in open(args.raw):
+        j = json.loads(line)
+        custom_id, response = extract_response(j)
+        if response is None:
+            continue
+        if custom_id not in word_by_id:
+            logging.error("custom_id %s is not found in words", custom_id)
+            continue
+        word = word_by_id[custom_id]
+        translations = extract_translations(response)
+        if len(translations) == 0:
+            logging.error("no translations for custom_id %s, word %s", custom_id, word.word)
+            continue
+        add_to_batch(int(custom_id), "\n".join(translations))
+
+    flush(batch)
+    logging.info("Inserted %d rows total into DB", total)
 
 
 def main():
@@ -304,6 +364,12 @@ def main():
     get_batch_result_parser.add_argument("--raw", required=True)
     get_batch_result_parser.add_argument("--translations", required=True)
     get_batch_result_parser.set_defaults(func=get_batch_result)
+
+    insert_translations_parser = subparsers.add_parser("insert-translations")
+    insert_translations_parser.add_argument("--words", required=True)
+    insert_translations_parser.add_argument("--raw", required=True)
+    insert_translations_parser.add_argument("--db-path", default=DATABASE_PATH)
+    insert_translations_parser.set_defaults(func=insert_translations)
 
     args = parser.parse_args()
     args.func(args)
