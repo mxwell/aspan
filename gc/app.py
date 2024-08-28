@@ -65,7 +65,9 @@ def read_words(fetched_results):
                 translated_word_ids.add(row["translated_word_id"])
             has_review = "review_word_id" in row.keys()
             if has_review and row["review_word_id"]:
-                review_word_ids.add(row["review_word_id"])
+                review_status = row["review_status"]
+                if review_status == ReviewStatus.NEW.name:
+                    review_word_ids.add(row["review_word_id"])
         row = group[0]
         result.append(
             WordInfo(
@@ -335,7 +337,8 @@ class Gc(object):
                     w1.comment AS comment,
                     strftime('%s', w1.created_at) as created_at_unix_epoch,
                     t.translated_word_id AS translated_word_id,
-                    r.translated_word_id AS review_word_id
+                    r.translated_word_id AS review_word_id,
+                    r.status AS review_status
                 FROM
                     words w1
                 LEFT JOIN
@@ -345,7 +348,6 @@ class Gc(object):
                 WHERE
                     w1.word = ?
                     AND w1.lang = ?
-                    AND (r.translated_word_id = NULL OR r.status = "NEW")
                 LIMIT 100;
             """, (word, lang))
         else:
