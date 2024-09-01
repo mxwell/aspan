@@ -157,19 +157,60 @@ class GcCache(object):
 
     def __init__(self):
         self.stats = None
-        self.stats_time = None
+        self.expiration = None
 
     def update_stats(self, stats):
         self.stats = stats
-        self.stats_expiration = time.time() + CACHE_TTL_SECS
+        self.expiration = time.time() + CACHE_TTL_SECS
 
     def get_stats(self):
         if self.stats:
-            if self.stats_expiration < time.time():
+            if self.expiration < time.time():
                 self.stats = None
             else:
                 return self.stats
         return None
+
+
+class UntranslatedCache(object):
+
+    def __init__(self):
+        self.untranslated = None
+        self.expiration = None
+        self.dropped_word_ids = set()
+
+    def drop_item(self, word_id):
+        self.dropped_word_ids.add(word_id)
+        logging.info("Dropped word_id %d from untranslated cache", word_id)
+
+    def do_pick_random(self, count):
+        for it in range(3):
+            offset = random.randint(0, len(self.untranslated) - count)
+            result = []
+            for index in range(offset, offset + count):
+                word_id, word = self.untranslated[index]
+                if word_id in self.dropped_word_ids:
+                    continue
+                result.append(word)
+            if len(result) >= count:
+                break
+        return result
+
+    def pick_random(self, count):
+        if self.untranslated:
+            if self.expiration < time.time():
+                self.untranslated = None
+                return None
+            if len(self.untranslated) < count:
+                logging.error("pick_random: not enough items in untranslated cache")
+                return None
+            return self.do_pick_random(count)
+        return None
+
+    def reset(self, untranslated):
+        self.untranslated = untranslated
+        self.expiration = time.time() + CACHE_TTL_SECS
+        self.dropped_word_ids = set()
 
 
 class Gc(object):
@@ -179,6 +220,7 @@ class Gc(object):
         self.db_conn = db_conn
         self.auth = auth
         self.cache = GcCache()
+        self.untranslated_cache = UntranslatedCache()
 
     def check_user(self, request_data):
         return self.auth.check_user(request_data, self.db_lock, self.db_conn)
@@ -483,6 +525,7 @@ class Gc(object):
 
     # Returns InsertionResult
     def add_translation(self, src_id, dst_id, reference, user_id):
+        self.untranslated_cache.drop_item(src_id)
         with self.db_lock:
             return self.do_add_translation(src_id, dst_id, reference, user_id)
 
@@ -513,6 +556,7 @@ class Gc(object):
 
     # Returns InsertionResult
     def add_review(self, src_id, dst_id, reference, user_id):
+        self.untranslated_cache.drop_item(src_id)
         with self.db_lock:
             return self.do_add_review(src_id, dst_id, reference, user_id)
 
@@ -969,6 +1013,7 @@ class Gc(object):
 
         query = """
             SELECT
+                w1.word_id AS source_word_id,
                 w1.word AS source_word,
                 GROUP_CONCAT(w2.lang) AS translation_langs
             FROM
@@ -991,16 +1036,22 @@ class Gc(object):
             for row in fetched_results:
                 translation_langs = row["translation_langs"]
                 if translation_langs is None or dst_lang not in translation_langs.split(","):
-                    result.append(row["source_word"])
-                    break
-            if len(result) >= 3:
+                    result.append((row["source_word_id"], row["source_word"]))
+            if len(result) >= 100:
                 break
 
         return result
 
     def get_untranslated(self, dst_lang):
-        with self.db_lock:
-            return self.do_get_untranslated(dst_lang)
+        picked = self.untranslated_cache.pick_random(3)
+        if picked is None:
+            with self.db_lock:
+                new_untranslated = self.do_get_untranslated(dst_lang)
+                random.shuffle(new_untranslated)
+            logging.info("Populating untranslated cache with %d words", len(new_untranslated))
+            self.untranslated_cache.reset(new_untranslated)
+            picked = self.untranslated_cache.pick_random(3)
+        return picked
 
     def do_get_gpt4omini_translations(self, word_id):
         cursor = self.db_conn.cursor()
