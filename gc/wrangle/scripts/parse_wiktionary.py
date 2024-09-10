@@ -2,10 +2,19 @@ import argparse
 import logging
 from lxml import etree
 import re
+import sqlite3
 import sys
 
 KK_WORD_PATTERN = re.compile("^[А-Яа-я-'ЁӘІҢҒҮҰҚӨҺёәіңғүұқөһ/ ]+$")
 AS_RU_TAG = "as ru"
+DATABASE_PATH = "gc.db"
+
+
+def init_db_conn(db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    logging.info("Database connection with %s established", db_path)
+    return conn
 
 
 def validate_word(word):
@@ -94,7 +103,7 @@ def clean_ru_gloss(ctx, s):
     return s, "".join(comment)
 
 
-def parse_tei_to_file(tei, output):
+def parse_tei_generator(tei):
     tree = etree.parse(tei)
 
     namespaces = {'x': 'http://www.tei-c.org/ns/1.0'}
@@ -109,7 +118,6 @@ def parse_tei_to_file(tei, output):
             'x:sense/x:cit[@type="trans"]/x:quote',
             namespaces=namespaces
         )
-        translations = []
         for quote in quotes:
             translation_comment = clean_ru_gloss(word, quote.text)
             if translation_comment is None:
@@ -117,12 +125,58 @@ def parse_tei_to_file(tei, output):
             translation, comment = translation_comment
             assert validate_word(translation)
             assert validate_word(comment)
-            output.write(f"{word}\t{translation}\t{comment}\n")
+            yield word, translation, comment
+
+
+def parse_tei_to_file(tei, output):
+    for word, translation, comment in parse_tei_generator(tei):
+        output.write(f"{word}\t{translation}\t{comment}\n")
 
 
 def parse_tei(args):
     with open(args.tsv, "wt") as output:
         parse_tei_to_file(args.tei, output)
+
+
+def import_tei(args):
+    db_conn = init_db_conn(args.db_path)
+
+    db_conn.execute("""
+CREATE TABLE IF NOT EXISTS wikt_rukk (
+    translation_id INTEGER PRIMARY KEY,
+    kk_word TEXT NOT NULL,
+    ru_word TEXT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    cursor = db_conn.cursor()
+    total = 0
+
+    def flush(batch):
+        nonlocal cursor, db_conn, total
+
+        if len(batch) > 0:
+            cursor.executemany("INSERT INTO wikt_rukk (kk_word, ru_word, comment) VALUES (?, ?, ?)", batch)
+            db_conn.commit()
+            logging.info("Inserted %d rows into DB", len(batch))
+            total += len(batch)
+
+    batch = []
+
+    def add_to_batch(kk_word, ru_word, comment):
+        nonlocal batch
+        batch.append((kk_word, ru_word, comment))
+        if len(batch) >= 100:
+            flush(batch)
+            batch = []
+
+    for word, translation, comment in parse_tei_generator(args.tei):
+        add_to_batch(word, translation, comment)
+
+    flush(batch)
+    cursor.close()
+    logging.info("Inserted %d rows total into DB", total)
 
 
 def main():
@@ -135,6 +189,11 @@ def main():
     parse_tei_parser.add_argument("--tei", required=True, help="Path to an input *.tei file")
     parse_tei_parser.add_argument("--tsv", required=True, help="Path to an output *.tsv file")
     parse_tei_parser.set_defaults(func=parse_tei)
+
+    import_tei_parser = subparsers.add_parser("import-tei")
+    import_tei_parser.add_argument("--tei", required=True, help="Path to an input *.tei file")
+    import_tei_parser.add_argument("--db-path", default=DATABASE_PATH)
+    import_tei_parser.set_defaults(func=import_tei)
 
     args = parser.parse_args()
     args.func(args)
