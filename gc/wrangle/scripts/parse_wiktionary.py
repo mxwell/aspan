@@ -179,6 +179,82 @@ CREATE TABLE IF NOT EXISTS wikt_rukk (
     logging.info("Inserted %d rows total into DB", total)
 
 
+def count_matches(db_conn):
+    cursor = db_conn.cursor()
+    cursor.execute("""
+SELECT
+    COUNT(*)
+FROM
+    wikt_kk_words AS kk
+JOIN
+    wikt_ru_words AS ru
+ON kk.translation_id = ru.translation_id
+JOIN
+    words AS wkk
+ON kk.word_id = wkk.word_id
+JOIN
+    words AS wru
+ON ru.word_id = wru.word_id
+WHERE
+    wkk.pos = wru.pos
+    """)
+    count = cursor.fetchone()[0]
+    cursor.close()
+    return count
+
+
+def make_reviews(args):
+    db_conn = init_db_conn(args.db_path)
+
+    logging.info("Creating DB table: wikt_kk_words")
+    db_conn.execute("""
+CREATE TABLE wikt_kk_words (
+    translation_id INTEGER NOT NULL,
+    word_id INTEGER NOT NULL,
+    PRIMARY KEY (translation_id, word_id)
+);
+    """.strip())
+
+    logging.info("Populating DB table: wikt_kk_words")
+    db_conn.execute("""
+INSERT INTO wikt_kk_words
+SELECT
+    wi.translation_id AS translation_id,
+    w.word_id AS word_id
+FROM wikt_rukk wi
+JOIN
+    words w
+ON wi.kk_word = w.word
+WHERE w.lang = "kk";
+    """.strip())
+
+    logging.info("Creating DB table: wikt_ru_words")
+    db_conn.execute("""
+CREATE TABLE wikt_ru_words (
+    translation_id INTEGER NOT NULL,
+    word_id INTEGER NOT NULL,
+    PRIMARY KEY (translation_id, word_id)
+);
+    """.strip())
+
+    logging.info("Populating DB table: wikt_ru_words")
+    db_conn.execute("""
+INSERT INTO wikt_ru_words
+SELECT
+    wi.translation_id AS translation_id,
+    w.word_id AS word_id
+FROM wikt_rukk wi
+JOIN
+    words w
+ON wi.ru_word = w.word
+WHERE w.lang = "ru";
+    """.strip())
+
+    matches = count_matches(db_conn)
+    logging.info("Found %d matches", matches)
+    # TODO produce INSERT statements for all matches, filter them by existing translations
+
+
 def main():
     LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
@@ -194,6 +270,11 @@ def main():
     import_tei_parser.add_argument("--tei", required=True, help="Path to an input *.tei file")
     import_tei_parser.add_argument("--db-path", default=DATABASE_PATH)
     import_tei_parser.set_defaults(func=import_tei)
+
+    make_reviews_parser = subparsers.add_parser("make-reviews")
+    make_reviews_parser.add_argument("--db-path", default=DATABASE_PATH)
+    make_reviews_parser.add_argument("--sql", required=True, help="Path to an output *.sql file")
+    make_reviews_parser.set_defaults(func=make_reviews)
 
     args = parser.parse_args()
     args.func(args)
