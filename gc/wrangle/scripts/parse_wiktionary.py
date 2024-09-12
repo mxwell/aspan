@@ -179,6 +179,89 @@ CREATE TABLE IF NOT EXISTS wikt_rukk (
     logging.info("Inserted %d rows total into DB", total)
 
 
+# Returns list with word_ids:
+# [
+#    (
+#       [duplicate_to_keep, duplicate_to_keep, ...],
+#       [duplicate_to_drop, duplicate_to_drop, ...],
+#    ),
+#    ...
+# ]
+#
+def load_duplicated_ru_words(db_conn):
+    cursor = db_conn.cursor()
+    cursor.execute("""
+SELECT
+    GROUP_CONCAT(w.word_id) AS word_ids,
+    GROUP_CONCAT(COALESCE(t.translation_id, "")) AS translation_ids
+FROM words w
+LEFT JOIN translations t ON w.word_id = t.translated_word_id
+WHERE w.lang = "ru"
+GROUP BY w.word, w.pos, w.exc_verb, w.comment, w.lang
+HAVING MIN(w.word_id) < MAX(w.word_id);
+    """)
+    fetched = cursor.fetchall()
+    result = []
+    for row in fetched:
+        word_ids = row["word_ids"].split(",")
+        translation_ids = row["translation_ids"].split(",")
+        assert len(word_ids) == len(translation_ids)
+        to_keep = []
+        to_drop = []
+        for i in range(len(word_ids)):
+            if len(translation_ids[i]) > 0:
+                to_keep.append(word_ids[i])
+            else:
+                to_drop.append(word_ids[i])
+        if len(to_keep) == 0:
+            to_keep.append(to_drop[0])
+            to_drop = to_drop[1:]
+        assert len(to_keep) > 0
+        assert len(to_drop) > 0
+        result.append((to_keep, to_drop))
+    logging.info("Loaded %d groups of duplicated words", len(result))
+    return result
+
+
+def move_duplicated_ru_words(db_conn, dupgroups):
+    db_conn.execute("""
+CREATE TABLE IF NOT EXISTS duplicated_words (
+    word_id INTEGER PRIMARY KEY,
+    word TEXT NOT NULL,
+    pos TEXT NOT NULL,
+    exc_verb INT NOT NULL DEFAULT 0,
+    comment TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    lang TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    word_ids = []
+    for dupgroup in dupgroups:
+        word_ids.extend(dupgroup[1])
+    part_size = 50
+    copied = 0
+    for offset in range(0, len(word_ids), part_size):
+        group_str = word_ids[offset:min(len(word_ids), offset + part_size)]
+        group = [int(word_id) for word_id in group_str]
+        query = f"INSERT INTO duplicated_words SELECT word_id, word, pos, exc_verb, comment, user_id, lang, created_at FROM words WHERE word_id IN {tuple(group)};"
+        logging.debug("Q: %s", query)
+        db_conn.execute(query)
+        db_conn.commit()
+        copied += len(group)
+    logging.info("Copied %d words to duplicated_words", copied)
+    deleted = 0
+    for offset in range(0, len(word_ids), part_size):
+        group_str = word_ids[offset:min(len(word_ids), offset + part_size)]
+        group = [int(word_id) for word_id in group_str]
+        query = f"DELETE FROM words WHERE word_id IN {tuple(group)};"
+        logging.debug("Q: %s", query)
+        db_conn.execute(query)
+        db_conn.commit()
+        deleted += len(group)
+    logging.info("Deleted %d words", deleted)
+
+
 def count_matches(db_conn):
     cursor = db_conn.cursor()
     cursor.execute("""
@@ -203,18 +286,38 @@ WHERE
     return count
 
 
+# Returns a set of integer tuples: {(word_id, translated_word_id)}
+def load_existing_translations(db_conn):
+    cursor = db_conn.cursor()
+    cursor.execute("""
+SELECT
+    word_id,
+    translated_word_id
+FROM translations;
+    """)
+    fetched = cursor.fetchall()
+    result = set()
+    for row in fetched:
+        result.add((row["word_id"], row["translated_word_id"]))
+    logging.info("Loaded %d existing translations", len(result))
+    return result
+
+
 def make_reviews(args):
     db_conn = init_db_conn(args.db_path)
 
+    dupgroups = load_duplicated_ru_words(db_conn)
+    if len(dupgroups):
+        move_duplicated_ru_words(db_conn, dupgroups)
+
     logging.info("Creating DB table: wikt_kk_words")
     db_conn.execute("""
-CREATE TABLE wikt_kk_words (
+CREATE TABLE IF NOT EXISTS wikt_kk_words (
     translation_id INTEGER NOT NULL,
     word_id INTEGER NOT NULL,
     PRIMARY KEY (translation_id, word_id)
 );
     """.strip())
-
     logging.info("Populating DB table: wikt_kk_words")
     db_conn.execute("""
 INSERT INTO wikt_kk_words
@@ -227,16 +330,16 @@ JOIN
 ON wi.kk_word = w.word
 WHERE w.lang = "kk";
     """.strip())
+    db_conn.commit()
 
     logging.info("Creating DB table: wikt_ru_words")
     db_conn.execute("""
-CREATE TABLE wikt_ru_words (
+CREATE TABLE IF NOT EXISTS wikt_ru_words (
     translation_id INTEGER NOT NULL,
     word_id INTEGER NOT NULL,
     PRIMARY KEY (translation_id, word_id)
 );
     """.strip())
-
     logging.info("Populating DB table: wikt_ru_words")
     db_conn.execute("""
 INSERT INTO wikt_ru_words
@@ -249,9 +352,12 @@ JOIN
 ON wi.ru_word = w.word
 WHERE w.lang = "ru";
     """.strip())
+    db_conn.commit()
 
     matches = count_matches(db_conn)
     logging.info("Found %d matches", matches)
+
+    existing = load_existing_translations(db_conn)
     # TODO produce INSERT statements for all matches, filter them by existing translations
 
 
