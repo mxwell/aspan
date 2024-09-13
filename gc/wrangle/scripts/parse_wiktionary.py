@@ -286,6 +286,36 @@ WHERE
     return count
 
 
+# Returns a list of integer tuples: [(word_id, translated_word_id)]
+def load_matches(db_conn, offset, limit):
+    cursor = db_conn.cursor()
+    cursor.execute(f"""
+SELECT
+    kk.word_id AS word_id,
+    ru.word_id AS translated_word_id
+FROM
+    wikt_kk_words AS kk
+JOIN
+    wikt_ru_words AS ru
+ON kk.translation_id = ru.translation_id
+JOIN
+    words AS wkk
+ON kk.word_id = wkk.word_id
+JOIN
+    words AS wru
+ON ru.word_id = wru.word_id
+WHERE
+    wkk.pos = wru.pos
+LIMIT {offset},{limit};
+    """)
+    fetched = cursor.fetchall()
+    result = []
+    for row in fetched:
+        result.append((row["word_id"], row["translated_word_id"]))
+    cursor.close()
+    return result
+
+
 # Returns a set of integer tuples: {(word_id, translated_word_id)}
 def load_existing_translations(db_conn):
     cursor = db_conn.cursor()
@@ -299,8 +329,32 @@ FROM translations;
     result = set()
     for row in fetched:
         result.add((row["word_id"], row["translated_word_id"]))
+    cursor.close()
     logging.info("Loaded %d existing translations", len(result))
     return result
+
+
+def make_reviews_insert(matches):
+    prefix = "INSERT INTO reviews (word_id, translated_word_id, reference, user_id, status) VALUES\n"
+    rows = []
+    for word_id, translated_word_id in matches:
+        rows.append(f"  ({word_id}, {translated_word_id}, 'ru.wiktionary.org', 8, 'NEW')")
+    query = prefix + ",\n".join(rows) + ";"
+    return query
+
+
+def make_reviews_from_matches(db_conn, matches_count, existing_translations, output):
+    part_size = 50
+    for offset in range(0, matches_count, part_size):
+        matches = load_matches(db_conn, offset, part_size)
+        assert len(matches) > 0
+        filtered = [m for m in matches if m not in existing_translations]
+        filtered_out = len(matches) - len(filtered)
+        if filtered_out > 0:
+            logging.info("Filtered out %d matches out of %d due to existing translations", filtered_out, len(matches))
+        if len(filtered) > 0:
+            query = make_reviews_insert(filtered)
+            output.write(f"{query}\n\n")
 
 
 def make_reviews(args):
@@ -354,11 +408,12 @@ WHERE w.lang = "ru";
     """.strip())
     db_conn.commit()
 
-    matches = count_matches(db_conn)
-    logging.info("Found %d matches", matches)
+    matches_count = count_matches(db_conn)
+    logging.info("Found %d matches", matches_count)
 
-    existing = load_existing_translations(db_conn)
-    # TODO produce INSERT statements for all matches, filter them by existing translations
+    existing_translations = load_existing_translations(db_conn)
+    with open(args.sql, "wt") as output:
+        make_reviews_from_matches(db_conn, matches_count, existing_translations, output)
 
 
 def main():
