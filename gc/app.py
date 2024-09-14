@@ -37,6 +37,7 @@ dictConfig({
 })
 DATABASE_PATH = "gc.db"
 CACHE_TTL_SECS = 300
+REVIEW_PAGE_SIZE = 20
 app = Flask("gc_app")
 gc_instance = None
 
@@ -600,9 +601,9 @@ class Gc(object):
 
         return reviews[0]
 
-    def do_get_reviews(self, user_id):
+    def do_get_reviews(self, user_id, page):
         cursor = self.db_conn.cursor()
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT
                 r.review_id as review_id,
                 u.user_id AS user_id,
@@ -644,7 +645,7 @@ class Gc(object):
             ) rv ON r.review_id = rv.review_id
             WHERE r.status == "NEW"
             ORDER BY r.created_at DESC
-            LIMIT 1000;
+            LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
         """, (user_id, user_id))
 
         results = cursor.fetchall()
@@ -678,13 +679,13 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews(self, user_id):
+    def get_reviews(self, user_id, page):
         with self.db_lock:
-            return self.do_get_reviews(user_id)
+            return self.do_get_reviews(user_id, page)
 
-    def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang):
+    def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang, page):
         cursor = self.db_conn.cursor()
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT
                 r.review_id as review_id,
                 u.user_id AS user_id,
@@ -728,7 +729,7 @@ class Gc(object):
                 AND w1.lang = ?
                 AND w2.lang = ?
             ORDER BY r.created_at DESC
-            LIMIT 1000;
+            LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
         """, (user_id, user_id, src_lang, dst_lang))
 
         results = cursor.fetchall()
@@ -762,9 +763,9 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews_by_dir(self, user_id, src_lang, dst_lang):
+    def get_reviews_by_dir(self, user_id, src_lang, dst_lang, page):
         with self.db_lock:
-            return self.do_get_reviews_by_dir(user_id, src_lang, dst_lang)
+            return self.do_get_reviews_by_dir(user_id, src_lang, dst_lang, page)
 
     def count_review_votes_groupped(self, user_id, review_id):
         query = """
@@ -1392,6 +1393,8 @@ def get_reviews():
 
     src_lang = request.args.get("src")
     dst_lang = request.args.get("dst")
+    page_raw = request.args.get("p")
+    page = int(page_raw) if (isinstance(page_raw, str) and page_raw.isdigit()) else 0
 
     if not (src_lang is None and dst_lang is None):
         if not valid_lang(src_lang):
@@ -1403,9 +1406,9 @@ def get_reviews():
         if src_lang == dst_lang:
             logging.error("Invalid combination of src and dst lang")
             return jsonify({"message": "Invalid request"}), 400
-        reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang)
+        reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang, page)
     else:
-        reviews = gc_instance.get_reviews(user_id)
+        reviews = gc_instance.get_reviews(user_id, page)
 
     if reviews is None:
         logging.error("null reviews")
