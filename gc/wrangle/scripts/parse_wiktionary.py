@@ -334,17 +334,10 @@ FROM translations;
     return result
 
 
-def make_reviews_insert(matches):
-    prefix = "INSERT INTO reviews (word_id, translated_word_id, reference, user_id, status) VALUES\n"
-    rows = []
-    for word_id, translated_word_id in matches:
-        rows.append(f"  ({word_id}, {translated_word_id}, 'ru.wiktionary.org', 8, 'NEW')")
-    query = prefix + ",\n".join(rows) + ";"
-    return query
-
-
-def make_reviews_from_matches(db_conn, matches_count, existing_translations, output):
+def make_reviews_from_matches(db_conn, matches_count, existing_translations):
     part_size = 50
+    cursor = db_conn.cursor()
+    total = 0
     for offset in range(0, matches_count, part_size):
         matches = load_matches(db_conn, offset, part_size)
         assert len(matches) > 0
@@ -353,8 +346,13 @@ def make_reviews_from_matches(db_conn, matches_count, existing_translations, out
         if filtered_out > 0:
             logging.info("Filtered out %d matches out of %d due to existing translations", filtered_out, len(matches))
         if len(filtered) > 0:
-            query = make_reviews_insert(filtered)
-            output.write(f"{query}\n\n")
+            batch = [(word_id, translated_word_id, "ru.wiktionary.org", 8, "NEW") for word_id, translated_word_id in filtered]
+            cursor.executemany("INSERT INTO reviews (word_id, translated_word_id, reference, user_id, status) VALUES (?, ?, ?, ?, ?)", batch)
+            db_conn.commit()
+            logging.info("Inserted %d reviews into DB", len(batch))
+            total += len(batch)
+    cursor.close()
+    logging.info("Inserted total %d reviews into DB", total)
 
 
 def make_reviews(args):
@@ -412,8 +410,7 @@ WHERE w.lang = "ru";
     logging.info("Found %d matches", matches_count)
 
     existing_translations = load_existing_translations(db_conn)
-    with open(args.sql, "wt") as output:
-        make_reviews_from_matches(db_conn, matches_count, existing_translations, output)
+    make_reviews_from_matches(db_conn, matches_count, existing_translations)
 
 
 def main():
@@ -434,7 +431,6 @@ def main():
 
     make_reviews_parser = subparsers.add_parser("make-reviews")
     make_reviews_parser.add_argument("--db-path", default=DATABASE_PATH)
-    make_reviews_parser.add_argument("--sql", required=True, help="Path to an output *.sql file")
     make_reviews_parser.set_defaults(func=make_reviews)
 
     args = parser.parse_args()
