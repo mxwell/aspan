@@ -38,6 +38,8 @@ dictConfig({
 DATABASE_PATH = "gc.db"
 CACHE_TTL_SECS = 300
 REVIEW_PAGE_SIZE = 20
+APPROVE_THRESHOLD = 2
+DISAPPROVE_THRESHOLD = 2
 app = Flask("gc_app")
 gc_instance = None
 
@@ -858,12 +860,15 @@ class Gc(object):
             own_disapproves += 1
 
         gone = False
-        if approves > disapproves:
+        if approves > disapproves and approves >= APPROVE_THRESHOLD:
+            logging.info("approved: %d approves vs %d disapproves", approves, disapproves)
             self.do_copy_review_to_translations(review_id)
             self.do_set_review_status(review_id, ReviewStatus.APPROVED)
             gone = True
-        elif disapproves > approves + 1:
+        elif disapproves > approves + 1 and disapproves >= DISAPPROVE_THRESHOLD:
+            logging.info("disapproved: %d approves vs %d disapproves", approves, disapproves)
             self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
+            gone = True
 
         return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, gone, None)
 
