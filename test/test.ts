@@ -4247,6 +4247,27 @@ ALL_TESTS.push(["futureParticipleDeclensionTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["convertCyrillicToLatin20210128Tets", function() {
+    const relations = [
+        ["даңғыл", "dañğyl"],
+        ["Асүй", "Asüi"],
+        ["жұмыстағы", "jūmystağy"],
+        ["аялдама", "aialdama"],
+        ["субұрқақ", "subūrqaq"],
+        ["тыйым", "tyiym"],
+        ["Біз әуежайда отырмыз.", "Bız äuejaida otyrmyz."],
+        ["Сен саябақта жүрсің.", "Sen saiabaqta jürsıñ."],
+        ["Сіздер қай көшеде тұрсыздар?", "Sızder qai köşede tūrsyzdar?"],
+    ];
+
+    for (const [cyr, lat] of relations) {
+        const got = convertCyrillicToLatin20210128(cyr);
+        T_EQ_STR_ASSERT(
+            lat, got, "Latin 2021.01.28"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();
