@@ -91,6 +91,25 @@ class Phrasal {
         this.forbidden = forbidden;
         this.alternative = alternative;
     }
+
+    toLatin20210128(): Phrasal {
+        let parts: PhrasalPart[] = [];
+        for (let i = 0; i < this.parts.length; ++i) {
+            const orig = this.parts[i];
+            parts.push(orig.copy(convertCyrillicToLatin20210128(orig.content)));
+        }
+        const raw = convertCyrillicToLatin20210128(this.raw);
+        let alternative: MaybePhrasal = null;
+        if (this.alternative != null) {
+            alternative = this.alternative.toLatin20210128();
+        }
+        return new Phrasal(
+            parts,
+            raw,
+            this.forbidden,
+            alternative,
+        );
+    }
 }
 
 const NOT_SUPPORTED: string = "<not supported>";

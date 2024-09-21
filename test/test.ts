@@ -4247,7 +4247,7 @@ ALL_TESTS.push(["futureParticipleDeclensionTest", function() {
     }
 }]);
 
-ALL_TESTS.push(["convertCyrillicToLatin20210128Tets", function() {
+ALL_TESTS.push(["convertCyrillicToLatin20210128Test", function() {
     const relations = [
         ["даңғыл", "dañğyl"],
         ["Асүй", "Asüi"],
@@ -4258,6 +4258,8 @@ ALL_TESTS.push(["convertCyrillicToLatin20210128Tets", function() {
         ["Біз әуежайда отырмыз.", "Bız äuejaida otyrmyz."],
         ["Сен саябақта жүрсің.", "Sen saiabaqta jürsıñ."],
         ["Сіздер қай көшеде тұрсыздар?", "Sızder qai köşede tūrsyzdar?"],
+        ["АаӘәБбВвГгҒғДдЕеЁёЖжЗзИи_ЙйКкҚқЛлМмНнҢңОоӨөПпРрСсТтУуҰұҮүФфХхҺһЦцЧчШшЩщЪъЫыІіЬьЭэЮюЯя",
+         "AaÄäBbVvGgĞğDdEeÖöJjZzİi_İiKkQqLlMmNnÑñOoÖöPpRrSsTtUuŪūÜüFfHhHhSsChchŞşŞşYyIıEeİuiuİaia"]
     ];
 
     for (const [cyr, lat] of relations) {
@@ -4266,6 +4268,59 @@ ALL_TESTS.push(["convertCyrillicToLatin20210128Tets", function() {
             lat, got, "Latin 2021.01.28"
         );
     }
+}]);
+
+ALL_TESTS.push(["pastTenseLatinTest", function() {
+    T_EQ_ASSERT(
+        "jazdym",
+        new VerbBuilder("жазу")
+            .pastForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement)
+            .toLatin20210128(),
+        "Past tense form of 1st person, singular, statement"
+    );
+    T_EQ_ASSERT(
+        "biledık",
+        new VerbBuilder("билеу")
+            .pastForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Statement)
+            .toLatin20210128(),
+        "Past tense form of 1st person, plural, statement"
+    );
+    T_EQ_ASSERT(
+        "otyrdyñ",
+        new VerbBuilder("отыру")
+            .pastForm(GrammarPerson.Second, GrammarNumber.Singular, SentenceType.Statement)
+            .toLatin20210128(),
+        "Past tense form of 2nd person, singular, statement"
+    );
+
+    T_EQ_ASSERT(
+        "pısırdı me?",
+        new VerbBuilder("пісіру")
+            .pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Question)
+            .toLatin20210128(),
+        "Past tense form of 3rd person, singular, question"
+    );
+    T_EQ_ASSERT(
+        "boldyñdar ma?",
+        new VerbBuilder("болу")
+            .pastForm(GrammarPerson.Second, GrammarNumber.Plural, SentenceType.Question)
+            .toLatin20210128(),
+        "Past tense form of 2nd person, plural, question"
+    );
+    T_EQ_ASSERT(
+        "tyñdamady",
+        new VerbBuilder("тыңдау")
+            .pastForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Negative)
+            .toLatin20210128(),
+        "Past tense form of 3rd person, singular, negative"
+    );
+    T_EQ_ASSERT(
+        "ışpedık",
+        new VerbBuilder("ішу")
+            .pastForm(GrammarPerson.First, GrammarNumber.Plural, SentenceType.Negative)
+            .toLatin20210128(),
+        "Past tense form of 1st person, plural, negative"
+    );
 }]);
 
 /* End of tests */
