@@ -6,6 +6,8 @@ export {
     PRONOUN_BY_PERSON_NUMBER,
     POSSESSIVE_BY_PERSON_NUMBER,
     SEPTIKS,
+    convertCyrillicToLatin20210128,
+    convertLatin20210128ToCyrillic,
     validateVerb,
     getDeclAltInfo,
     getOptExceptVerbMeanings,
