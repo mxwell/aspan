@@ -4270,6 +4270,29 @@ ALL_TESTS.push(["convertCyrillicToLatin20210128Test", function() {
     }
 }]);
 
+ALL_TESTS.push(["convertLatin20210128ToCyrillicTest", function() {
+    const relations = [
+        ["dañğyl", "даңғыл"],
+        ["Asüi", "Асүи"],
+        ["jūmystağy", "жұмыстағы"],
+        ["aialdama", "аялдама"],
+        ["subūrqaq", "субұрқақ"],
+        ["tyiym", "тыиым"],
+        ["Bız äuejaida otyrmyz.", "Біз әуежаида отырмыз."],
+        ["Sen saiabaqta jürsıñ.", "Сен саябақта жүрсің."],
+        ["Sızder qai köşede tūrsyzdar?", "Сіздер қаи көшеде тұрсыздар?"],
+        ["AaÄäBbVvGgĞğDdEeJjZzİiKkQqLlMmNnÑñOoÖöPpRrSsTtUuŪūÜüFfHhChchŞşYyIıİuiuİaia",
+         "АаӘәБбВвГгҒғДдЕеЖжЗзИиКкҚқЛлМмНнҢңОоӨөПпРрСсТтУуҰұҮүФфХхЧчШшЫыІіЮюЯя"]
+    ];
+
+    for (const [lat, cyr] of relations) {
+        const got = convertLatin20210128ToCyrillic(lat);
+        T_EQ_STR_ASSERT(
+            cyr, got, "Inversed Latin 2021.01.28"
+        );
+    }
+}]);
+
 ALL_TESTS.push(["pastTenseLatinTest", function() {
     T_EQ_ASSERT(
         "jazdym",
