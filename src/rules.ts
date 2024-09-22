@@ -339,6 +339,25 @@ const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, Stri
     }
 };
 
+const LAT2021_PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
+    First: {
+        Singular: "men",
+        Plural: "bız"
+    },
+    Second: {
+        Singular: "sen",
+        Plural: "sender"
+    },
+    SecondPolite: {
+        Singular: "Sız",
+        Plural: "Sızder"
+    },
+    Third: {
+        Singular: "ol",
+        Plural: "olar"
+    }
+};
+
 const POSSESSIVE_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {
         Singular: "менің",
@@ -355,6 +374,25 @@ const POSSESSIVE_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, S
     Third: {
         Singular: "оның",
         Plural: "олардың"
+    }
+};
+
+const LAT2021_POSSESSIVE_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
+    First: {
+        Singular: "menıñ",
+        Plural: "bızdıñ"
+    },
+    Second: {
+        Singular: "senıñ",
+        Plural: "senderdıñ"
+    },
+    SecondPolite: {
+        Singular: "Sızdıñ",
+        Plural: "Sızderdıñ"
+    },
+    Third: {
+        Singular: "onyñ",
+        Plural: "olardyñ"
     }
 };
 
