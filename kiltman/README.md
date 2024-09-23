@@ -44,3 +44,15 @@ cmake --build .
   ./kiltman load trie.txt
   ```
 - wait for the message `HTTP Server started on port 8080.` and go to `http://localhost:8080/detect?q=абайлар`.
+
+## Deploy
+
+```
+remote> mkdir kiltman-bundle
+local> make upload_trie
+local> make upload_files
+remote> cd kiltman-bundle
+remote> make run_kiltman
+```
+
+The next step is to configure Nginx.
