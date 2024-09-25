@@ -1,11 +1,15 @@
-.mode json
+.mode tabs
 SELECT
-    wru_word, wru_exc_verb, wru_translations, wen_translations
+    "v2",
+    wru.word AS word,
+    wru.translations AS kvd_ru,
+    wru_fe.translations AS kvd_ru_fe,
+    wen.translations AS kvd_en,
+    wen_fe.translations AS kvd_en_fe
 FROM (
     SELECT
-        w1.word AS wru_word,
-        w1.exc_verb AS wru_exc_verb,
-        GROUP_CONCAT(w2.word) AS wru_translations
+        w1.word AS word,
+        GROUP_CONCAT(w2.word) AS translations
     FROM
         words w1
     JOIN
@@ -14,15 +18,15 @@ FROM (
         words w2 ON t.translated_word_id = w2.word_id
     WHERE
         w1.pos = "VERB" AND
+        w1.exc_verb = 0 AND
         w2.lang = "ru"
     GROUP BY
-        w1.word_id
+        w1.word
 ) wru
 LEFT JOIN (
     SELECT
-        w1.word AS wen_word,
-        w1.exc_verb AS wen_exc_verb,
-        GROUP_CONCAT(w2.word) AS wen_translations
+        w1.word AS word,
+        GROUP_CONCAT(w2.word) AS translations
     FROM
         words w1
     JOIN
@@ -31,9 +35,47 @@ LEFT JOIN (
         words w2 ON t.translated_word_id = w2.word_id
     WHERE
         w1.pos = "VERB" AND
+        w1.exc_verb = 1 AND
+        w2.lang = "ru"
+    GROUP BY
+        w1.word
+) wru_fe
+ON wru.word = wru_fe.word
+LEFT JOIN (
+    SELECT
+        w1.word AS word,
+        GROUP_CONCAT(w2.word) AS translations
+    FROM
+        words w1
+    JOIN
+        translations t ON w1.word_id = t.word_id
+    JOIN
+        words w2 ON t.translated_word_id = w2.word_id
+    WHERE
+        w1.pos = "VERB" AND
+        w1.exc_verb = 0 AND
         w2.lang = "en"
     GROUP BY
-        w1.word_id
+        w1.word
 ) wen
-ON wru.wru_word = wen.wen_word
+ON wru.word = wen.word
+LEFT JOIN (
+    SELECT
+        w1.word AS word,
+        GROUP_CONCAT(w2.word) AS translations
+    FROM
+        words w1
+    JOIN
+        translations t ON w1.word_id = t.word_id
+    JOIN
+        words w2 ON t.translated_word_id = w2.word_id
+    WHERE
+        w1.pos = "VERB" AND
+        w1.exc_verb = 1 AND
+        w2.lang = "en"
+    GROUP BY
+        w1.word
+) wen_fe
+ON wru.word = wen_fe.word
+ORDER BY wru.word
 ;
