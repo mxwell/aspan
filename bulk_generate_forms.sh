@@ -6,7 +6,7 @@ export COMPILED="BUILD/compiled.js"
 export ASPAN_JS="BUILD/aspan.js"
 export GENERATOR="scripts/bulk_generate.js"
 
-export INPUT_VERBS="data/verbs_with_ru_en.wkt.csv"
+export INPUT_VERBS="data/verbs_with_ru_en_v2.csv"
 
 export OUTPUT_DETECTOR_FORMS="data/detector_forms.csv"
 export OUTPUT_DETECT_SUGGEST_FORMS="data/detect_suggest_forms.jsonl"

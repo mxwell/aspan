@@ -304,17 +304,25 @@ function printWeight(weight) {
     return s;
 }
 
-function writeSuggestLine(base, form, weight, ruGlosses, enGlosses, translationLang, outputStream) {
+function writeSuggestLine(base, form, weight, inputItem, translationLang, outputStream) {
     let dataObject = { base };
-    if (ruGlosses.length > 0) {
-        dataObject.ruwkt = ruGlosses;
-    }
-    if (enGlosses.length > 0) {
-        dataObject.enwkt = enGlosses;
+    if (inputItem != null) {
+        if (inputItem.ruGlosses.length > 0) {
+            dataObject.kvdru = inputItem.ruGlosses;
+        }
+        if (inputItem.ruGlossesFe.length > 0) {
+            dataObject.kvdrufe = inputItem.ruGlossesFe;
+        }
+        if (inputItem.enGlosses.length > 0) {
+            dataObject.kvden = inputItem.enGlosses;
+        }
+        if (inputItem.enGlossesFe.length > 0) {
+            dataObject.kvdenfe = inputItem.enGlossesFe;
+        }
     }
     let isTranslation = translationLang.length > 0;
-    if (isTranslation && (ruGlosses.length > 0 || enGlosses.length > 0)) {
-        console.log(`unexpected glosses for translation suggest form`);
+    if (isTranslation && inputItem != null) {
+        console.log(`unexpected non-null inputItem for translation suggest form`);
         process.exit(1);
     }
     let resultWeight = isTranslation ? weight : (weight + KAZAKH_WEIGHT);
@@ -418,17 +426,38 @@ function estimateVerbPartCount(verb) {
     return separators + 1;
 }
 
+function parseTranslations(s) {
+    if (s == null || s.length == 0) {
+        return [];
+    }
+    return s.split(",");
+}
+
 class InputItem {
     constructor(line) {
         let parts = line.split("\t");
         this.valid = true;
         if (parts.length <= 0) {
             this.valid = false;
+        } else if (parts[0] == "v2") {
+            if (parts.length != 6) {
+                console.log(`invalid number of parts in input line: ${line}`);
+                this.valid = false;
+                return;
+            }
+            this.verb = parts[1];
+            this.freq = 0;
+            this.ruGlosses = parseTranslations(parts[2]);
+            this.ruGlossesFe = parseTranslations(parts[3]);
+            this.enGlosses = parseTranslations(parts[4]);
+            this.enGlossesFe = parseTranslations(parts[5]);
         } else {
             this.verb = parts[0];
             this.freq = parseInt(parts[1]);
             this.ruGlosses = [];
+            this.ruGlossesFe = [];  // not supported in the input format
             this.enGlosses = [];
+            this.enGlossesFe = [];  // not supported in the input format
             for (let i = 2; i < parts.length; ++i) {
                 let part = parts[i];
                 if (part.startsWith("ruwkt:")) {
@@ -553,11 +582,11 @@ async function processLineByLine(args) {
         let baseWeight = partCountWeight + freqWeight;
         let ruGlosses = inputItem.ruGlosses.slice(0, 2);
         let enGlosses = inputItem.enGlosses.slice(0, 2);
-        writeSuggestLine(inputVerb, inputVerb, baseWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+        writeSuggestLine(inputVerb, inputVerb, baseWeight + EXACT_MATCH_WEIGHT + INFINITIVE_WEIGHT, inputItem, "", outputStream);
         ++outputCounter;
         let simpleBaseForms = simplify(inputVerb);
         for (var j = 0; j < simpleBaseForms.length; ++j) {
-            writeSuggestLine(inputVerb, simpleBaseForms[j], baseWeight + INFINITIVE_WEIGHT, ruGlosses, enGlosses, "", outputStream);
+            writeSuggestLine(inputVerb, simpleBaseForms[j], baseWeight + INFINITIVE_WEIGHT, inputItem, "", outputStream);
             ++outputCounter;
         }
         if (args.command == kSuggestInfinitiveTranslationCommand) {
@@ -565,7 +594,7 @@ async function processLineByLine(args) {
                 let translation = ruGlosses[j];
                 let translationSuppression = estimateVerbPartCount(translation);
                 let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "ru", outputStream);
+                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, null, "ru", outputStream);
             }
             for (var j = 0; j < enGlosses.length; ++j) {
                 let translation = enGlosses[j];
@@ -574,7 +603,7 @@ async function processLineByLine(args) {
                     translationSuppression -= 1;
                 }
                 let weight = (translationSuppression < 2) ? SHORT_VERB_WEIGHT : 0.0;
-                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, [], [], "en", outputStream);
+                writeSuggestLine(inputVerb, translation, weight + INFINITIVE_WEIGHT, null, "en", outputStream);
             }
         }
     } else if (args.command == kPresentContinuousFormsCommand) {
