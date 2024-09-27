@@ -11,4 +11,6 @@ module.exports = {
     VerbBuilder,
     GrammarPerson,
     GrammarNumber,
+    NounBuilder,
+    SEPTIKS,
 };
