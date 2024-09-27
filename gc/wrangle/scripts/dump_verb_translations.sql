@@ -1,20 +1,30 @@
 .mode tabs
 SELECT
     "v2",
-    wru.word AS word,
+    wkk.word AS word,
     wru.translations AS kvd_ru,
     wru_fe.translations AS kvd_ru_fe,
     wen.translations AS kvd_en,
     wen_fe.translations AS kvd_en_fe
 FROM (
     SELECT
+        word
+    FROM
+        words
+    WHERE
+        pos = "VERB" AND
+        lang = "kk"
+    GROUP BY word
+) wkk
+LEFT JOIN (
+    SELECT
         w1.word AS word,
         GROUP_CONCAT(w2.word) AS translations
     FROM
         words w1
-    JOIN
+    LEFT JOIN
         translations t ON w1.word_id = t.word_id
-    JOIN
+    LEFT JOIN
         words w2 ON t.translated_word_id = w2.word_id
     WHERE
         w1.pos = "VERB" AND
@@ -23,6 +33,7 @@ FROM (
     GROUP BY
         w1.word
 ) wru
+ON wkk.word = wru.word
 LEFT JOIN (
     SELECT
         w1.word AS word,
@@ -40,7 +51,7 @@ LEFT JOIN (
     GROUP BY
         w1.word
 ) wru_fe
-ON wru.word = wru_fe.word
+ON wkk.word = wru_fe.word
 LEFT JOIN (
     SELECT
         w1.word AS word,
@@ -58,7 +69,7 @@ LEFT JOIN (
     GROUP BY
         w1.word
 ) wen
-ON wru.word = wen.word
+ON wkk.word = wen.word
 LEFT JOIN (
     SELECT
         w1.word AS word,
@@ -76,6 +87,6 @@ LEFT JOIN (
     GROUP BY
         w1.word
 ) wen_fe
-ON wru.word = wen_fe.word
-ORDER BY wru.word
+ON wkk.word = wen_fe.word
+ORDER BY wkk.word
 ;
