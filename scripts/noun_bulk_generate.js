@@ -16,22 +16,27 @@ class NounForm {
 function createMainNounForms(noun) {
     let nb = new aspan.NounBuilder(noun);
 
+    const kSingularIndex = 0;
+    const kPluralIndex = 1;
+
     let forms = [];
     /* TODO calculate weight */
-    for (const septik of aspan.SEPTIKS) {
+    for (let septikIndex = 0; septikIndex < aspan.SEPTIKS.length; ++septikIndex) {
+        const septik = aspan.SEPTIKS[septikIndex];
         forms.push(new NounForm(
             nb.septikForm(septik).raw,
             0.5,
-            aspan.GrammarNumber.Singular,
-            septik
+            kSingularIndex,
+            septikIndex
         ));
     }
-    for (const septik of aspan.SEPTIKS) {
+    for (let septikIndex = 0; septikIndex < aspan.SEPTIKS.length; ++septikIndex) {
+        const septik = aspan.SEPTIKS[septikIndex];
         forms.push(new NounForm(
             nb.pluralSeptikForm(septik).raw,
             0.5,
-            aspan.GrammarNumber.Plural,
-            septik
+            kPluralIndex,
+            septikIndex
         ));
     }
     return forms;
@@ -98,7 +103,7 @@ async function processLineByLine(args) {
              * }
              */
             let nounForms = createMainNounForms(inputNoun);
-            writeDetectSuggestFormsLine(inputNoun, false, nounForms, outputStream);
+            writeDetectSuggestFormsLine(inputNoun, 2, nounForms, outputStream);
         }
     }
 }

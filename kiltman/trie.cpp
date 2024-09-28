@@ -342,15 +342,24 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
     return std::move(builder);
 }
 
+std::string ExtractOptionalString(const Poco::JSON::Object::Ptr& formObject, const std::string& key) {
+    if (formObject->isNull(key)) {
+        return {};
+    }
+    return formObject->getValue<std::string>(key);
+}
+
 std::string ExtractTransition(const Poco::JSON::Object::Ptr& formObject) {
     std::string result;
-    result.append(formObject->getValue<std::string>("sent"));
+    result.append(ExtractOptionalString(formObject, "sent"));
     result.push_back(':');
-    result.append(formObject->getValue<std::string>("tense"));
+    result.append(ExtractOptionalString(formObject, "tense"));
     result.push_back(':');
-    result.append(formObject->getValue<std::string>("person"));
+    result.append(ExtractOptionalString(formObject, "person"));
     result.push_back(':');
-    result.append(formObject->getValue<std::string>("number"));
+    result.append(ExtractOptionalString(formObject, "number"));
+    result.push_back(':');
+    result.append(ExtractOptionalString(formObject, "septik"));
     return result;
 }
 
@@ -376,19 +385,23 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
         std::string key = root->getValue<std::string>("base");
         JSON::Object metadataRoot;
         int keyException = root->getValue<int>("exceptional");
-        if (!(0 <= keyException && keyException <= 1)) {
+        if (!(0 <= keyException && keyException <= 2)) {
             throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
         }
         if (keyException) {
-            metadataRoot.set("exceptional", true);
+            metadataRoot.set("exceptional", keyException);
         }
-        JSON::Array::Ptr ruwkt = root->getArray("ruwkt");
-        if (ruwkt->size() > 0) {
-            metadataRoot.set("ruwkt", ruwkt);
+        if (!root->isNull("ruwkt")) {
+            JSON::Array::Ptr ruwkt = root->getArray("ruwkt");
+            if (ruwkt->size() > 0) {
+                metadataRoot.set("ruwkt", ruwkt);
+            }
         }
-        JSON::Array::Ptr enwkt = root->getArray("enwkt");
-        if (enwkt->size() > 0) {
-            metadataRoot.set("enwkt", enwkt);
+        if (!root->isNull("enwkt")) {
+            JSON::Array::Ptr enwkt = root->getArray("enwkt");
+            if (enwkt->size() > 0) {
+                metadataRoot.set("enwkt", enwkt);
+            }
         }
         uint16_t keyIndex = builder.AddKeyData(key, keyException, std::move(metadataRoot));
 
