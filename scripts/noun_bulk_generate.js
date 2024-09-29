@@ -5,11 +5,14 @@ const aspan = require('../BUILD/aspan.js');
 const kDetectSuggestFormsCommand = "detect_suggest_forms";
 
 class NounForm {
-    constructor(form, weight, number, septik) {
+    constructor(form, weight, number, septik, person) {
         this.form = form;
         this.weight = weight;
         this.number = number;
         this.septik = septik;
+        if (person != null) {
+            this.person = person;
+        }
     }
 }
 
@@ -27,17 +30,33 @@ function createMainNounForms(noun) {
             nb.septikForm(septik).raw,
             0.5,
             kSingularIndex,
-            septikIndex
+            septikIndex,
+            null,
         ));
-    }
-    for (let septikIndex = 0; septikIndex < aspan.SEPTIKS.length; ++septikIndex) {
-        const septik = aspan.SEPTIKS[septikIndex];
         forms.push(new NounForm(
             nb.pluralSeptikForm(septik).raw,
             0.5,
             kPluralIndex,
-            septikIndex
+            septikIndex,
+            null,
         ));
+        for (let personIndex = 0; personIndex < aspan.GRAMMAR_PERSONS.length; ++personIndex) {
+            const person = aspan.GRAMMAR_PERSONS[personIndex];
+            forms.push(new NounForm(
+                nb.possessiveSeptikForm(person, aspan.GrammarNumber.Singular, septik).raw,
+                0.5,
+                kSingularIndex,
+                septikIndex,
+                personIndex,
+            ));
+            forms.push(new NounForm(
+                nb.possessiveSeptikForm(person, aspan.GrammarNumber.Plural, septik).raw,
+                0.5,
+                kPluralIndex,
+                septikIndex,
+                personIndex,
+            ));
+        }
     }
     return forms;
 }
@@ -96,7 +115,8 @@ async function processLineByLine(args) {
              *       "form": <FORM>,
              *       "weight": <FORM_WEIGHT>,
              *       "number": "<NUMBER>",
-             *       "septik": "<SEPTIK>"
+             *       "septik": "<SEPTIK>",
+             *       "person": "<PERSON>"
              *     },
              *     ...
              *   ]
