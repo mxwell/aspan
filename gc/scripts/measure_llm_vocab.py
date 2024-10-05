@@ -2,10 +2,12 @@ import argparse
 from dataclasses import dataclass
 import json
 import logging
+import os
 import sys
 from typing import List
 
 from anthropic import Anthropic
+import google.generativeai as genai
 from openai import OpenAI
 
 MAX_TOKENS = 1000
@@ -233,6 +235,41 @@ def claude_measure(args):
     return 0
 
 
+def validate_google_model(model):
+    assert model in ["gemini-1.5-pro", "gemini-1.5-flash"]
+
+
+def gemini_translate(args):
+    word_set = load_word_set(args.input_words)
+    assert len(word_set) >= 10
+    validate_google_model(args.model)
+
+    genai.configure(api_key=os.environ["GOOGLE_AI_API_KEY"])
+
+    model = genai.GenerativeModel(args.model)
+    with open(args.batch_output, "wt") as outfile:
+        for index, input_word in enumerate(word_set):
+            response = model.generate_content(
+                build_prompt(input_word),
+                generation_config=genai.GenerationConfig(
+                    max_output_tokens=MAX_TOKENS,
+                )
+            )
+            try:
+                content = response.text
+            except Exception as e:
+                logging.error("got exception for word %s: %s", input_word.word, str(e))
+                content = "Нет перевода"
+            logging.info("Content for word %s: %s", input_word.word, content)
+            obj = {
+                "word_id": index,
+                "word": input_word.word,
+                "content": content,
+            }
+            outfile.write(f"{json.dumps(obj)}\n")
+    return 0
+
+
 def main():
     LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
@@ -263,6 +300,12 @@ def main():
     claude_measure_parser.add_argument("--input-words", required=True)
     claude_measure_parser.add_argument("--batch-output", required=True)
     claude_measure_parser.set_defaults(func=claude_measure)
+
+    gemini_translate_parser = subparsers.add_parser("gemini-translate")
+    gemini_translate_parser.add_argument("--input-words", required=True)
+    gemini_translate_parser.add_argument("--batch-output", required=True)
+    gemini_translate_parser.add_argument("--model", required=True)
+    gemini_translate_parser.set_defaults(func=gemini_translate)
 
     args = parser.parse_args()
     return args.func(args)
