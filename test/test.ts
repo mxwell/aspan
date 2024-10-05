@@ -4346,6 +4346,98 @@ ALL_TESTS.push(["pastTenseLatinTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["PerfectGerundTest", function() {
+    const relations = [
+        ["санау", "санап", "санамап", "санап па?"],
+        ["қарау", "қарап", "қарамап", "қарап па?"],
+        ["бітіру", "бітіріп", "бітірмеп", "бітіріп пе?"],
+        ["оқу", "оқып", "оқымап", "оқып па?"],
+        ["келу", "келіп", "келмеп", "келіп пе?"],
+        ["жабу", "жауып", "жаппап", "жауып па?"],
+    ];
+    for (const [verb, statement, negative, question] of relations) {
+        let vb = new VerbBuilder(verb);
+        T_EQ_ASSERT(
+            statement,
+            vb.perfectGerund(SentenceType.Statement),
+            "Perfect gerund, statement"
+        );
+        T_EQ_ASSERT(
+            negative,
+            vb.perfectGerund(SentenceType.Negative),
+            "Perfect gerund, negative"
+        );
+        T_EQ_ASSERT(
+            question,
+            vb.perfectGerund(SentenceType.Question),
+            "Perfect gerund, question"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["ContinuousGerundTest", function() {
+    const relations = [
+        ["санау", "санай", "санамай", "санай ма?"],
+        ["қарау", "қарай", "қарамай", "қарай ма?"],
+        ["бітіру", "бітіре", "бітірмей", "бітіре ме?"],
+        ["оқу", "оқи", "оқымай", "оқи ма?"],
+        ["келу", "келе", "келмей", "келе ме?"],
+        ["жабу", "жаба", "жаппай", "жаба ма?"],
+    ];
+    for (const [verb, statement, negative, question] of relations) {
+        let vb = new VerbBuilder(verb);
+        T_EQ_ASSERT(
+            statement,
+            vb.continuousGerund(SentenceType.Statement),
+            "Continuous gerund, statement"
+        );
+        T_EQ_ASSERT(
+            negative,
+            vb.continuousGerund(SentenceType.Negative),
+            "Continuous gerund, negative"
+        );
+        T_EQ_ASSERT(
+            question,
+            vb.continuousGerund(SentenceType.Question),
+            "Continuous gerund, question"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["IntentionGerundTest", function() {
+    const relations = [
+        ["сөйлесу", "сөйлескелі", "сөйлеспегелі", "сөйлескелі ме?"],
+        ["беру", "бергелі", "бермегелі", "бергелі ме?"],
+        ["демалу", "демалғалы", "демалмағалы", "демалғалы ма?"],
+        ["айту", "айтқалы", "айтпағалы", "айтқалы ма?"],
+
+        ["санау", "санағалы", "санамағалы", "санағалы ма?"],
+        ["қарау", "қарағалы", "қарамағалы", "қарағалы ма?"],
+        ["бітіру", "бітіргелі", "бітірмегелі", "бітіргелі ме?"],
+        ["оқу", "оқығалы", "оқымағалы", "оқығалы ма?"],
+        ["келу", "келгелі", "келмегелі", "келгелі ме?"],
+        ["жабу", "жапқалы", "жаппағалы", "жапқалы ма?"],
+    ];
+    for (const [verb, statement, negative, question] of relations) {
+        let vb = new VerbBuilder(verb);
+        T_EQ_ASSERT(
+            statement,
+            vb.intentionGerund(SentenceType.Statement),
+            "Intention gerund, statement"
+        );
+        T_EQ_ASSERT(
+            negative,
+            vb.intentionGerund(SentenceType.Negative),
+            "Intention gerund, negative"
+        );
+        T_EQ_ASSERT(
+            question,
+            vb.intentionGerund(SentenceType.Question),
+            "Intention gerund, question"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();

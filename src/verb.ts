@@ -975,4 +975,77 @@ class VerbBuilder {
     futureParticiple(sentenceType: SentenceType): Phrasal {
         return finalizeMaybePhrasalBuilder(this.futureParticipleBuilder(sentenceType));
     }
+    perfectGerundBuilder(): PhrasalBuilder {
+        const verbBase = this.getPresentContinuousBase();
+        const affix = getYpip(this.baseLast, this.softOffset)
+        return new PhrasalBuilder()
+            .verbBase(verbBase)
+            .tenseAffix(affix);
+    }
+    perfectGerund(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.perfectGerundBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            const particle = getQuestionParticle(verbBase.last, this.softOffset);
+            const affix = "п";
+            return new PhrasalBuilder()
+                .verbBase(verbBase.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                this.perfectGerundBuilder()
+            ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    continuousGerund(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.presentTransitiveCommonBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            const particle = getQuestionParticle(verbBase.last, this.softOffset);
+            const affix = "й";
+            return new PhrasalBuilder()
+                .verbBase(verbBase.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                this.presentTransitiveCommonBuilder()
+            ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
+    intentionGerundBuilder(): PhrasalBuilder {
+        let specialBase = this.fixUpSpecialBaseForConsonant();
+        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let affix = getGalygeliKalykeli(baseAndLast.last, this.softOffset);
+        return new PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix);
+    }
+    intentionGerund(sentenceType: SentenceType): Phrasal {
+        if (sentenceType == SentenceType.Statement) {
+            return this.intentionGerundBuilder().build();
+        } else if (sentenceType == SentenceType.Negative) {
+            const verbBase = this.genericBaseModifier(/* nc */ true, /* yp */ false);
+            const particle = getQuestionParticle(verbBase.last, this.softOffset);
+            const particleLast = getLastItem(particle);
+            const affix = getGalygeliKalykeli(particleLast, this.softOffset);
+            return new PhrasalBuilder()
+                .verbBase(verbBase.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .build();
+        } else if (sentenceType == SentenceType.Question) {
+            return this.buildQuestionForm(
+                this.intentionGerundBuilder()
+            ).build();
+        }
+        return NOT_SUPPORTED_PHRASAL;
+    }
 }

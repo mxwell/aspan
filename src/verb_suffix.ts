@@ -10,6 +10,13 @@ function getGangenKanken(c: string, softOffset: number): string {
     return KANKEN[softOffset];
 }
 
+function getGalygeliKalykeli(c: string, softOffset: number): string {
+    if (gangenCompatible(c)) {
+        return GALYGELI[softOffset];
+    }
+    return KALYKELI[softOffset];
+}
+
 function kykiCompatible(c: string): boolean {
     return checkCharPresence(c, CONS_GROUP4) || checkCharPresence(c, CONS_GROUP5);
 }

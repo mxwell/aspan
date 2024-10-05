@@ -308,6 +308,9 @@ const PAKPEK = ["пақ", "пек"];
 const GANGEN = ["ған", "ген"];
 const KANKEN = ["қан", "кен"];
 
+const GALYGELI = ["ғалы", "гелі"];
+const KALYKELI = ["қалы", "келі"];
+
 const GYGI = ["ғы", "гі"];
 const KYKI = ["қы", "кі"];
 
