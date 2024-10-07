@@ -190,6 +190,12 @@ class FormBuilder {
         forms.push(new WeightedForm(presentParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "presentParticiple", "", ""));
         const futureParticiple = verbBuilder.futureParticiple(sentenceType).raw;
         forms.push(new WeightedForm(futureParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "futureParticiple", "", ""));
+        const perfectGerund = verbBuilder.perfectGerund(sentenceType).raw;
+        forms.push(new WeightedForm(perfectGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "perfectGerund", "", ""));
+        const continuousGerund = verbBuilder.continuousGerund(sentenceType).raw;
+        forms.push(new WeightedForm(continuousGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "continuousGerund", "", ""));
+        const intentionGerund = verbBuilder.intentionGerund(sentenceType).raw;
+        forms.push(new WeightedForm(intentionGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "intentionGerund", "", ""));
         return forms;
     }
     createPresentContinuousForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
