@@ -31,3 +31,6 @@ run_image: logs sockets .secrets
 
 stop_image:
 	docker stop gc_server
+
+exported_translations.jsonl: gc.db
+	python3 scripts/export.py export-translations --db-path $< --jsonl $@
