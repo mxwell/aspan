@@ -1,10 +1,16 @@
 import argparse
+from datetime import datetime
 import json
 import logging
+import os
 import sqlite3
 import sys
 
+import boto3
+
 DATABASE_PATH = "gc.db"
+BUCKET_NAME="kazakhverbdict"
+BUCKET_URL = f"https://storage.yandexcloud.net/{BUCKET_NAME}/"
 
 
 def init_db_conn(db_path):
@@ -87,6 +93,46 @@ def export_translations(args):
         export_direction(db_conn, "kk", "en", jsonl_file)
 
 
+def insert_download(db_conn, datestamp, url):
+    download_id = int(datestamp)
+
+    db_conn.execute("""
+    CREATE TABLE IF NOT EXISTS downloads (
+        id INTEGER PRIMARY KEY,
+        url TEXT NOT NULL
+    );""")
+
+    insert_query = """INSERT INTO downloads (id, url) VALUES (?, ?)"""
+
+    cursor = db_conn.cursor()
+    cursor.execute(insert_query, (download_id, url))
+    db_conn.commit()
+    logging.info("Inserted a new download %d into DB", download_id)
+
+
+def upload_export(args):
+    assert os.path.exists(args.jsonl), f"path {args.jsonl} doesn't exist"
+
+    db_conn = init_db_conn(args.db_path)
+
+    today = datetime.now()
+    datestamp = today.strftime("%Y%m%d")
+    upload_name = f"kvd_translations_{datestamp}.jsonl"
+    upload_url = f"{BUCKET_URL}{upload_name}"
+
+    boto_session = boto3.session.Session()
+    s3 = boto_session.client(
+        service_name="s3",
+        endpoint_url="https://storage.yandexcloud.net"
+    )
+
+    s3.upload_file(args.jsonl, BUCKET_NAME, upload_name)
+    logging.info("Uploaded export %s to S3", upload_name)
+    logging.info("URL: %s", upload_url)
+
+    insert_download(db_conn, datestamp, upload_url)
+
+
 def main():
     LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
@@ -98,6 +144,11 @@ def main():
     export_translations_parser.add_argument("--db-path", default=DATABASE_PATH)
     export_translations_parser.add_argument("--jsonl", required=True)
     export_translations_parser.set_defaults(func=export_translations)
+
+    upload_export_parser = subparsers.add_parser("upload-export")
+    upload_export_parser.add_argument("--jsonl", required=True)
+    upload_export_parser.add_argument("--db-path", default=DATABASE_PATH)
+    upload_export_parser.set_defaults(func=upload_export)
 
     args = parser.parse_args()
     args.func(args)

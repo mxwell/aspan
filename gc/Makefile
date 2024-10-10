@@ -1,6 +1,6 @@
 IMAGE_TAG="un"
 
-.PHONY: install_deps populate_db debug_server upload_files deploy_local bash_in_image stop_image
+.PHONY: install_deps populate_db debug_server upload_files deploy_local bash_in_image stop_image upload_export
 
 install_deps: requirements.txt
 	pip3 install --user -r requirements.txt
@@ -34,3 +34,6 @@ stop_image:
 
 exported_translations.jsonl: gc.db
 	python3 scripts/export.py export-translations --db-path $< --jsonl $@
+
+upload_export: exported_translations.jsonl
+	python3 scripts/export.py upload-export --jsonl $< --db-path gc.db
