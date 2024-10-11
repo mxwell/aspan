@@ -93,25 +93,46 @@ def export_translations(args):
         export_direction(db_conn, "kk", "en", jsonl_file)
 
 
-def insert_download(db_conn, datestamp, url):
+def calculate_stats(jsonl_path):
+    kkru = set()
+    kken = set()
+    for line in open(jsonl_path):
+        j = json.loads(line)
+        if j["source_lang"] != "kk":
+            continue
+        word_id = j["source_word_id"]
+        translation_lang = j["translation_lang"]
+        if translation_lang == "ru":
+            kkru.add(word_id)
+        elif translation_lang == "en":
+            kken.add(word_id)
+    return len(kkru), len(kken)
+
+
+def insert_download(db_conn, datestamp, url, kkru, kken):
     download_id = int(datestamp)
 
     db_conn.execute("""
     CREATE TABLE IF NOT EXISTS downloads (
         id INTEGER PRIMARY KEY,
-        url TEXT NOT NULL
+        url TEXT NOT NULL,
+        kkru INTEGER NOT NULL,
+        kken INTEGER NOT NULL
     );""")
 
-    insert_query = """INSERT INTO downloads (id, url) VALUES (?, ?)"""
+    insert_query = """INSERT INTO downloads (id, url, kkru, kken) VALUES (?, ?, ?, ?)"""
 
     cursor = db_conn.cursor()
-    cursor.execute(insert_query, (download_id, url))
+    cursor.execute(insert_query, (download_id, url, kkru, kken))
     db_conn.commit()
     logging.info("Inserted a new download %d into DB", download_id)
 
 
 def upload_export(args):
     assert os.path.exists(args.jsonl), f"path {args.jsonl} doesn't exist"
+
+    kkru, kken = calculate_stats(args.jsonl)
+    assert kkru + kken > 0
 
     db_conn = init_db_conn(args.db_path)
 
@@ -130,7 +151,7 @@ def upload_export(args):
     logging.info("Uploaded export %s to S3", upload_name)
     logging.info("URL: %s", upload_url)
 
-    insert_download(db_conn, datestamp, upload_url)
+    insert_download(db_conn, datestamp, upload_url, kkru, kken)
 
 
 def main():
