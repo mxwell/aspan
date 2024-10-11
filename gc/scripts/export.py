@@ -117,7 +117,8 @@ def insert_download(db_conn, datestamp, url, kkru, kken):
         id INTEGER PRIMARY KEY,
         url TEXT NOT NULL,
         kkru INTEGER NOT NULL,
-        kken INTEGER NOT NULL
+        kken INTEGER NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     );""")
 
     insert_query = """INSERT INTO downloads (id, url, kkru, kken) VALUES (?, ?, ?, ?)"""

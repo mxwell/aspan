@@ -1022,6 +1022,39 @@ class Gc(object):
                 self.cache.update_stats(stats)
             return stats
 
+    def do_get_downloads(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                id,
+                url,
+                kkru,
+                kken
+            FROM
+                downloads
+            ORDER BY id DESC
+            LIMIT 0, 10;
+        """)
+
+        results = cursor.fetchall()
+
+        downloads = [
+            {
+                "id": row["id"],
+                "url": row["url"],
+                "kkru": row["kkru"],
+                "kken": row["kken"],
+            }
+            for row in results
+        ]
+        cursor.close()
+        return downloads
+
+    def get_downloads(self):
+        with self.db_lock:
+            downloads = self.do_get_downloads()
+            return downloads
+
     def do_get_untranslated(self, dst_lang):
         result = []
 
@@ -1187,6 +1220,16 @@ CREATE TABLE IF NOT EXISTS gpt4omini (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
     """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS downloads (
+    id INTEGER PRIMARY KEY,
+    url TEXT NOT NULL,
+    kkru INTEGER NOT NULL,
+    kken INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip());
 
     logging.info("Database connection with %s established", db_path)
     return conn
@@ -1538,6 +1581,14 @@ def get_stats():
         logging.error("null stats")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "stats": stats}), 200
+
+
+@app.route("/gcapi/v1/get_downloads", methods=["GET"])
+def get_downloads():
+    global gc_instance
+
+    downloads = gc_instance.get_downloads()
+    return jsonify({"message": "ok", "downloads": downloads}), 200
 
 
 @app.route("/gcapi/v1/get_untranslated", methods=["GET"])
