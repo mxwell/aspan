@@ -979,13 +979,21 @@ class Gc(object):
         cursor = self.db_conn.cursor()
         cursor.execute("""
             SELECT
-                COUNT(CASE WHEN w2.lang = "en" THEN 1 END) AS en_count,
-                COUNT(CASE WHEN w2.lang = "ru" THEN 1 END) AS ru_count
-            FROM
-                translations t
-            JOIN
-                words w2 ON t.translated_word_id = w2.word_id
-            ;
+                COUNT(CASE WHEN en_count > 0 THEN 1 END) AS en_count,
+                COUNT(CASE WHEN ru_count > 0 THEN 1 END) AS ru_count
+            FROM (
+                SELECT
+                    t.word_id AS word_id,
+                    COUNT(CASE WHEN w2.lang = "en" THEN 1 END) AS en_count,
+                    COUNT(CASE WHEN w2.lang = "ru" THEN 1 END) AS ru_count
+                FROM
+                    translations t
+                JOIN
+                    words w2
+                ON t.translated_word_id = w2.word_id
+                GROUP BY
+                    t.word_id
+            );
         """)
 
         results = cursor.fetchall()
