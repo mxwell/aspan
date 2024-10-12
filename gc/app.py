@@ -603,7 +603,7 @@ class Gc(object):
 
         return reviews[0]
 
-    def do_get_reviews(self, user_id, page):
+    def do_get_reviews(self, user_id, approves_min, page):
         cursor = self.db_conn.cursor()
         cursor.execute(f"""
             SELECT
@@ -645,10 +645,12 @@ class Gc(object):
                 FROM review_votes
                 GROUP BY review_id
             ) rv ON r.review_id = rv.review_id
-            WHERE r.status == "NEW"
+            WHERE
+                r.status == "NEW" AND
+                rv.approves >= ?
             ORDER BY r.created_at DESC
             LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
-        """, (user_id, user_id))
+        """, (user_id, user_id, approves_min))
 
         results = cursor.fetchall()
 
@@ -681,9 +683,9 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews(self, user_id, page):
+    def get_reviews(self, user_id, approves_min, page):
         with self.db_lock:
-            return self.do_get_reviews(user_id, page)
+            return self.do_get_reviews(user_id, approves_min, page)
 
     def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang, page):
         cursor = self.db_conn.cursor()
@@ -1449,6 +1451,7 @@ def get_reviews():
 
     src_lang = request.args.get("src")
     dst_lang = request.args.get("dst")
+    approves_min = request.args.get("am")
     page_raw = request.args.get("p")
     page = int(page_raw) if (isinstance(page_raw, str) and page_raw.isdigit()) else 0
 
@@ -1459,12 +1462,23 @@ def get_reviews():
         if not valid_lang(dst_lang):
             logging.error("Invalid dst lang")
             return jsonify({"message": "Invalid request"}), 400
+        if not (approves_min is None):
+            logging.error("Incompatible arguments: am and src/dst")
+            return jsonify({"message": "Invalid request"}), 400
         if src_lang == dst_lang:
             logging.error("Invalid combination of src and dst lang")
             return jsonify({"message": "Invalid request"}), 400
         reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang, page)
     else:
-        reviews = gc_instance.get_reviews(user_id, page)
+        if approves_min is None:
+            approves_min_arg = 0
+        elif approves_min.isdigit():
+            approves_min_arg = int(approves_min)
+        else:
+            logging.error("Invalid value for am: %s", str(approves_min))
+            return jsonify({"message": "Invalid request"}), 400
+        assert isinstance(approves_min_arg, int), f"bad type: {type(approves_min_arg)}"
+        reviews = gc_instance.get_reviews(user_id, approves_min_arg, page)
 
     if reviews is None:
         logging.error("null reviews")
