@@ -1686,8 +1686,8 @@ def get_verb_form_examples():
     global gc_instance
 
     verb = request.args.get("v")
-    fe = request.args.get("fe", False) == True
-    neg = request.args.get("neg", False) == True
+    fe = request.args.get("fe") == "1"
+    neg = request.args.get("neg") == "1"
 
     if not isinstance(verb, str) or len(verb) < 2:
         logging.error("Invalid verb argument: %s", str(verb))
