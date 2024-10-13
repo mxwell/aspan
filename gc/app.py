@@ -1128,6 +1128,32 @@ class Gc(object):
             logging.error("Unknown model %s for translations", model)
             return None
 
+    def do_get_verb_form_examples(self, verb, fe, neg):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                form, example
+            FROM
+                verb_form_examples
+            WHERE
+                verb = ? AND
+                fe = ? AND
+                neg = ?
+            LIMIT 1000;
+        """, (verb, fe, neg))
+        fetched_results = cursor.fetchall()
+
+        verb_form_examples = {
+            row["form"]: row["example"]
+            for row in fetched_results
+        }
+        cursor.close()
+        return verb_form_examples
+
+    def get_verb_form_examples(self, verb, fe, neg):
+        with self.db_lock:
+            return self.do_get_verb_form_examples(verb, fe, neg)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -1232,6 +1258,18 @@ CREATE TABLE IF NOT EXISTS downloads (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
     """.strip());
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS verb_form_examples (
+    verb TEXT NOT NULL,
+    fe BOOLEAN NOT NULL,
+    neg BOOLEAN NOT NULL,
+    form TEXT NOT NULL,
+    example TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (verb, fe, neg, form)
+);
+    """.strip())
 
     logging.info("Database connection with %s established", db_path)
     return conn
@@ -1641,6 +1679,22 @@ def get_llm_translations():
         logging.error("null translations")
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "translations": translations}), 200
+
+
+@app.route("/gcapi/v1/get_verb_form_examples", methods=["GET"])
+def get_verb_form_examples():
+    global gc_instance
+
+    verb = request.args.get("v")
+    fe = request.args.get("fe", False) == True
+    neg = request.args.get("neg", False) == True
+
+    if not isinstance(verb, str) or len(verb) < 2:
+        logging.error("Invalid verb argument: %s", str(verb))
+        return jsonify({"message": "Invalid request"}), 400
+
+    verb_form_examples = gc_instance.get_verb_form_examples(verb, fe, neg)
+    return jsonify({"message": "ok", "verb_form_examples": verb_form_examples}), 200
 
 
 def main():
