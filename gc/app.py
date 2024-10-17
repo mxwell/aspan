@@ -647,7 +647,7 @@ class Gc(object):
             ) rv ON r.review_id = rv.review_id
             WHERE
                 r.status == "NEW" AND
-                rv.approves >= ?
+                COALESCE(rv.approves, 0) >= ?
             ORDER BY r.created_at DESC
             LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
         """, (user_id, user_id, approves_min))
