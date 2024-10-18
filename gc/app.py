@@ -369,6 +369,59 @@ class Gc(object):
             else:
                 return self.do_get_inversed_translations(src_lang, dst_lang, both_dirs, word)
 
+    def do_get_translation_info(self, translation_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                t.translation_id AS translation_id,
+                t.reference AS reference,
+                t.user_id AS user_id,
+                u.name AS user_name,
+                w1.word AS source_word,
+                w1.pos AS source_pos,
+                w1.exc_verb AS source_exc_verb,
+                w1.comment AS source_comment,
+                w2.word AS translation_word,
+                w2.pos AS translation_pos,
+                w2.comment AS translation_comment
+            FROM
+                translations t
+            JOIN
+                words w1 ON t.word_id = w1.word_id
+            JOIN
+                words w2 ON t.translated_word_id = w2.word_id
+            JOIN
+                users u ON t.user_id = u.user_id
+            WHERE
+                t.translation_id = ?
+            ;
+        """, (translation_id,))
+
+        results = cursor.fetchall()
+
+        translations = [
+            {
+                "translation_id": row["translation_id"],
+                "reference": row["reference"],
+                "user_id": row["user_id"],
+                "user_name": row["user_name"],
+                "word": row["source_word"],
+                "pos": row["source_pos"],
+                "exc_verb": row["source_exc_verb"],
+                "comment": row["source_comment"],
+                "translation_word": row["translation_word"],
+                "translation_pos": row["translation_pos"],
+                "translation_comment": row["translation_comment"]
+            }
+            for row in results
+        ]
+
+        return translations
+
+    def get_translation_info(self, translation_id):
+        with self.db_lock:
+            return self.do_get_translation_info(translation_id)
+
     def do_get_words(self, word, lang, with_translations):
         cursor = self.db_conn.cursor()
         if with_translations:
@@ -1342,6 +1395,25 @@ def get_translation():
 
     translations = gc_instance.get_translation(src_lang, dst_lang, both_dirs, word)
     return jsonify({"translations": translations}), 200
+
+
+@app.route("/gcapi/v1/get_translation_info", methods=["GET"])
+def get_translation_info():
+    global gc_instance
+
+    translation_id_str = request.args.get("tid")
+
+    logging.info("Request /get_translation_info %s", translation_id_str)
+
+    if not translation_id_str or not translation_id_str.isdigit():
+        logging.error("Invalid translation_id")
+        return jsonify({"message": "Invalid request"}), 400
+
+    translation_id = int(translation_id_str)
+
+    translation_info = gc_instance.get_translation_info(translation_id)
+    return jsonify({"translation_info": translation_info}), 200
+
 
 
 @app.route("/gcapi/v1/get_words", methods=["GET"])
