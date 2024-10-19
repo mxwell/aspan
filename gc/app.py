@@ -239,6 +239,7 @@ class Gc(object):
         if both_dirs:
             cursor.execute("""
                 SELECT
+                    t.translation_id AS translation_id,
                     w1.word AS source_word,
                     w1.pos AS source_pos,
                     w1.exc_verb AS source_exc_verb,
@@ -261,6 +262,7 @@ class Gc(object):
         else:
             cursor.execute("""
                 SELECT
+                    t.translation_id AS translation_id,
                     w1.word AS source_word,
                     w1.pos AS source_pos,
                     w1.exc_verb AS source_exc_verb,
@@ -285,6 +287,7 @@ class Gc(object):
 
         translations = [
             {
+                "translation_id": row["translation_id"],
                 "word": row["source_word"],
                 "pos": row["source_pos"],
                 "exc_verb": row["source_exc_verb"],
@@ -303,6 +306,7 @@ class Gc(object):
         if both_dirs:
             cursor.execute("""
                 SELECT
+                    t.translation_id AS translation_id,
                     w1.word AS source_word,
                     w1.pos AS source_pos,
                     w1.exc_verb AS source_exc_verb,
@@ -325,6 +329,7 @@ class Gc(object):
         else:
             cursor.execute("""
                 SELECT
+                    t.translation_id AS translation_id,
                     w1.word AS source_word,
                     w1.pos AS source_pos,
                     w1.exc_verb AS source_exc_verb,
@@ -349,6 +354,7 @@ class Gc(object):
 
         translations = [
             {
+                "translation_id": row["translation_id"],
                 "word": row["source_word"],
                 "pos": row["source_pos"],
                 "exc_verb": row["source_exc_verb"],
@@ -362,7 +368,7 @@ class Gc(object):
 
         return translations
 
-    def get_translation(self, src_lang, dst_lang, both_dirs, word):
+    def get_translations(self, src_lang, dst_lang, both_dirs, word):
         with self.db_lock:
             if src_lang == "kk":
                 return self.do_get_translations(src_lang, dst_lang, both_dirs, word)
@@ -1393,7 +1399,7 @@ def get_translation():
         logging.error("Invalid word")
         return jsonify({"message": "Invalid request"}), 400
 
-    translations = gc_instance.get_translation(src_lang, dst_lang, both_dirs, word)
+    translations = gc_instance.get_translations(src_lang, dst_lang, both_dirs, word)
     return jsonify({"translations": translations}), 200
 
 
