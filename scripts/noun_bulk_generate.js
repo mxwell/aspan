@@ -122,7 +122,7 @@ async function processLineByLine(args) {
              *   ]
              * }
              */
-            let nounForms = createMainNounForms(inputNoun);
+            let nounForms = createMainNounForms(inputNoun.toLowerCase());
             writeDetectSuggestFormsLine(inputNoun, nounForms, outputStream);
         }
     }

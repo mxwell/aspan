@@ -7,13 +7,16 @@ namespace NKiltMan {
 
 #define COMBO_RUNE(combo) (combo >> 24)
 #define COMBO_NODE(combo) (combo & 0x00FFFFFF)
-#define COMBO_SUGGESTIONS_COUNT(combo) (combo >> 24)
-#define COMBO_SUGGESTIONS_START(combo) (combo & 0x00FFFFFF)
 #define MAKE_COMBO(rune, node) ((rune << 24) | node)
+
+#define COMBO_SUGGESTIONS_COUNT(combo) (combo >> 25)
+#define COMBO_SUGGESTIONS_START(combo) (combo & 0x01FFFFFF)
+#define MAKE_SUGG_COMBO(cnt, start) ((cnt << 25) | start)
 
 struct FlatNode {
     using TKey = uint16_t;
     using TTransitionId = uint8_t;
+    using TTerminalId = uint32_t;
     using TRuneId = uint8_t;
     using TNodeId = uint32_t;
     using TRuneNodeCombo = uint32_t;
@@ -26,10 +29,10 @@ struct FlatNode {
 
     static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
     static constexpr TTransitionId kNoTransitionId = std::numeric_limits<TTransitionId>::max();
+    static constexpr TTerminalId kNoTerminalId = std::numeric_limits<TTerminalId>::max();
     static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
 
-    TKey keyIndex;
-    TTransitionId transitionId;
+    TTerminalId terminalId;
     TChildrenSize childrenCount;
     TChildrenStart childrenStart;
     TSuggestionsComboPtr suggestionsPtr;
@@ -67,7 +70,7 @@ struct FlatNode {
     }
 
     bool IsTerminal() const {
-        return keyIndex != kNoKey;
+        return terminalId != kNoTerminalId;
     }
 
     uint32_t GetSpace() const {

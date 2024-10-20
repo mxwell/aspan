@@ -37,18 +37,26 @@ JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, con
     NKiltMan::StringToRunes(queryText, runes);
     auto node = trie.Traverse(runes);
     if (node != nullptr) {
-        if (node->IsTerminal()) {
-            JSON::Object word;
-            std::string wordStr;
-            auto keyItem = trie.keys[node->keyIndex];
-            NKiltMan::RunesToString(keyItem.runes, wordStr);
-            word.set("initial", wordStr);
-            word.set("meta", keyItem.metadata);
-            if (node->transitionId != NKiltMan::FlatNode::kNoTransitionId) {
-                auto transition = trie.transitions[node->transitionId];
-                word.set("transition", transition);
+        const auto terminalId = node->terminalId;
+        if (terminalId != NKiltMan::FlatNode::kNoTerminalId) {
+            auto terminal = trie.terminals[terminalId];
+            for (const auto& terminalItem : terminal) {
+                auto keyIndex = terminalItem.keyIndex;
+                auto transitionId = terminalItem.transitionId;
+                auto keyItem = trie.keys[keyIndex];
+
+                JSON::Object word;
+                std::string wordStr;
+                NKiltMan::RunesToString(keyItem.runes, wordStr);
+                word.set("initial", wordStr);
+                word.set("meta", keyItem.metadata);
+                if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+                    auto transition = trie.transitions[transitionId];
+                    word.set("transition", transition);
+                }
+
+                array.add(word);
             }
-            array.add(word);
         }
         if (suggest) {
             auto suggestions = trie.GetSuggestions(node);
@@ -205,15 +213,26 @@ class WebServerApp: public ServerApplication
             );
             auto runesSpace = trie.GetRunesSpace();
             auto transitionsSpace = trie.GetTransitionsSpace();
+            auto terminalsSpace = trie.GetTerminalsSpace();
             auto keysSpace = trie.GetKeysSpace();
             auto valuesSpace = trie.GetValuesSpace();
             auto childDataSpace = trie.GetChildDataSpace();
             auto nodesSpace = trie.GetNodesSpace();
             auto suggestionsSpace = trie.GetSuggestionsSpace();
-            auto totalSpace = runesSpace + transitionsSpace + keysSpace + valuesSpace + childDataSpace + nodesSpace + suggestionsSpace;
+            auto totalSpace = (
+                runesSpace +
+                transitionsSpace +
+                terminalsSpace +
+                keysSpace +
+                valuesSpace +
+                childDataSpace +
+                nodesSpace +
+                suggestionsSpace
+            );
             logger().information("RAM usage estimation: %z bytes total", totalSpace);
             logger().information("  runes:       %z\t%z bytes", trie.runes.size(), runesSpace);
             logger().information("  transitions: %z\t%z bytes", trie.transitions.size(), transitionsSpace);
+            logger().information("  terminals:   %z\t%z bytes", trie.terminals.size(), terminalsSpace);
             logger().information("  keys:        %z\t%z bytes", trie.keys.size(), keysSpace);
             logger().information("  values:      %z\t%z bytes", trie.values.size(), valuesSpace);
             logger().information("  childData:   %z\t%z bytes", trie.childData.size(), childDataSpace);

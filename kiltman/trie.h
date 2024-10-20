@@ -21,27 +21,29 @@ using TRuneId = uint8_t;
 constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
 constexpr size_t kMaxSuggestions = 10;
 
+using TTransitionId = uint8_t;
+using TKey = uint16_t;
+using TTerminalId = uint32_t;
+
+static constexpr TTransitionId kNoTransition = std::numeric_limits<TTransitionId>::max();
+static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
+static constexpr TTerminalId kNoTerminal = std::numeric_limits<TTerminalId>::max();
+
 struct TNode {
-    using TTransitionId = uint8_t;
-    using TKey = uint16_t;
     using TValue = uint32_t;
     using TNodeId = uint32_t;
     using TWeight = float;
 
-    static constexpr TTransitionId kNoTransition = std::numeric_limits<TTransitionId>::max();
-    static constexpr TKey kNoKey = std::numeric_limits<TKey>::max();
     static constexpr TValue kNoValue = std::numeric_limits<TValue>::max();
     static constexpr TNodeId kNoChild = std::numeric_limits<TNodeId>::max();
     static constexpr TWeight kNoWeight = 0.0;
 
     TNode():
-        transitionId(kNoTransition),
-        keyIndex(kNoKey),
+        terminalId(kNoTerminal),
         valueIndex(kNoValue)
     {}
 
-    TTransitionId transitionId;
-    TKey keyIndex;
+    TTerminalId terminalId;
     TValue valueIndex;
     std::map<TRuneId, TNodeId> children;
     std::set<std::pair<TWeight, TValue>> suggestions;
@@ -69,20 +71,29 @@ struct TNode {
         suggestions.erase(std::make_pair(weight, value));
     }
 
-    void SetTransitionAndKeyValue(TTransitionId transition, TKey key, TValue value) {
-        transitionId = transition;
-        keyIndex = key;
+    void SetTerminalId(TTerminalId terminalId) {
+        this->terminalId = terminalId;
+    }
+
+    void SetValue(TValue value) {
         valueIndex = value;
     }
 
     bool IsTerminal() const {
-        return keyIndex != kNoKey;
+        return terminalId != kNoTerminal;
     }
 
     uint64_t GetSpace() const {
-        return sizeof(TKey) + children.size() * (sizeof(TRuneId) + sizeof(TNodeId)) + 1;
+        return sizeof(TTerminalId) + children.size() * (sizeof(TRuneId) + sizeof(TNodeId)) + 1;
     }
 };
+
+struct TTerminalEntry {
+    TKey keyIndex;
+    TTransitionId transitionId;
+};
+
+using TTerminalEntries = std::vector<TTerminalEntry>;
 
 class TrieBuilder {
 public:
@@ -93,10 +104,12 @@ public:
         nodeCount_(1)
     {}
 
-    void AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex);
+    void AddPath(const TRunes& path, TNode::TWeight weight, TTransitionId transitionId, TKey keyIndex);
     uint16_t GetTransitionId(const std::string& transition);
-    TNode::TKey AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata);
-    TNode::TValue AddValueData(const TRunes& value, TNode::TWeight weight, TNode::TKey keyIndex);
+    TKey AddKeyData(const std::string& key, char partOfSpeech, Poco::JSON::Object&& metadata);
+    TNode::TValue AddValueData(const TRunes& value, TNode::TWeight weight, TKey keyIndex);
+    TTerminalId GetTerminalId();
+    void AddTerminalEntry(TTerminalId terminalId, TTransitionId transitionId, TKey keyIndex);
     const TNode* Traverse(const TRunes& path) const;
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
@@ -113,6 +126,7 @@ private:
 
     void PrintRunes(std::ofstream& out) const;
     void PrintTransitions(std::ofstream& out) const;
+    void PrintTerminals(std::ofstream& out) const;
     void PrintKeys(std::ofstream& out) const;
     void PrintValues(std::ofstream& out) const;
     void PrintNodes(std::ofstream& out) const;
@@ -123,12 +137,13 @@ private:
     std::map<TRuneValue, TRuneId> runeIds_;
     std::vector<std::string> transitions_;
     std::map<std::string, uint16_t> transitionIds_;
+    std::vector<TTerminalEntries> terminals_;
     std::vector<Poco::JSON::Object> keyMeta_;
     std::vector<TRunes> keyRunesVec_;
-    std::unordered_map<std::string, TNode::TKey> keyIndices_;
+    std::unordered_map<std::string, TKey> keyIndices_;
     std::vector<TRunes> valueRunesVec_;
     std::vector<TNode::TWeight> valueWeights_;
-    std::vector<TNode::TKey> valueKeyIndices_;
+    std::vector<TKey> valueKeyIndices_;
     std::vector<TNode*> nodes_;
     uint32_t pathCount_;
     uint32_t textLength_;

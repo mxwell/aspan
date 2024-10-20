@@ -24,7 +24,7 @@ void SplitBy(const std::string& s, char sep, TWords& words) {
     }
 }
 
-void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTransitionId transitionId, TNode::TKey keyIndex) {
+void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TTransitionId transitionId, TKey keyIndex) {
     TNode* node = nodes_[0];
     for (TRuneValue runeValue : path) {
         TRuneId ch = GetRuneId(runeValue);
@@ -39,26 +39,37 @@ void TrieBuilder::AddPath(const TRunes& path, TNode::TWeight weight, TNode::TTra
     ++pathCount_;
     textLength_ += path.size();
     auto valueIndex = AddValueData(path, weight, keyIndex);
-    node->SetTransitionAndKeyValue(transitionId, keyIndex, valueIndex);
+
+    auto terminalId = node->terminalId;
+    if (terminalId == kNoTerminal) {
+        terminalId = GetTerminalId();
+        node->SetTerminalId(terminalId);
+    }
+    AddTerminalEntry(terminalId, transitionId, keyIndex);
+    node->SetValue(valueIndex);
 }
 
-TNode::TKey TrieBuilder::AddKeyData(const std::string& key, uint8_t keyException, Poco::JSON::Object&& metadata) {
+TKey TrieBuilder::AddKeyData(const std::string& key, char partOfSpeech, Poco::JSON::Object&& metadata) {
     std::string mapKey = key;
-    mapKey.push_back(keyException);
+    mapKey.push_back(partOfSpeech);
     auto it = keyIndices_.find(mapKey);
     assert (it == keyIndices_.end());
 
     TRunes runes;
     StringToRunes(key, runes);
+    // explicitly populate the rune mapping as key charset might be different from path charset
+    for (const auto& rune : runes) {
+        GetRuneId(rune);
+    }
 
-    auto index = static_cast<TNode::TKey>(keyRunesVec_.size());
+    auto index = static_cast<TKey>(keyRunesVec_.size());
     keyMeta_.emplace_back(std::move(metadata));
     keyRunesVec_.push_back(runes);
     keyIndices_[mapKey] = index;
     return index;
 }
 
-TNode::TValue TrieBuilder::AddValueData(const TRunes& value, TNode::TWeight weight, TNode::TKey keyIndex) {
+TNode::TValue TrieBuilder::AddValueData(const TRunes& value, TNode::TWeight weight, TKey keyIndex) {
     auto index = static_cast<TNode::TValue>(valueRunesVec_.size());
     valueRunesVec_.push_back(value);
     valueWeights_.push_back(weight);
@@ -102,6 +113,7 @@ void TrieBuilder::PrintStats(Poco::Logger& logger) const {
     logger.information("Transition count: %z", transitions_.size());
     logger.information("Key count: %z", keyRunesVec_.size());
     logger.information("Path count: %u", pathCount_);
+    logger.information("Terminals count: %z", terminals_.size());
     logger.information("Text length: %u", textLength_);
     logger.information("Node count: %u", nodeCount_);
 
@@ -132,6 +144,7 @@ void TrieBuilder::PrintTrie(const std::string& filename) const {
     std::ofstream out(filename);
     PrintRunes(out);
     PrintTransitions(out);
+    PrintTerminals(out);
     PrintKeys(out);
     PrintValues(out);
     PrintNodes(out);
@@ -166,6 +179,21 @@ uint16_t TrieBuilder::GetTransitionId(const std::string& transition) {
     transitions_.push_back(transition);
     transitionIds_[transition] = id;
     return id;
+}
+
+TTerminalId TrieBuilder::GetTerminalId() {
+    auto newId = terminals_.size();
+    assert (newId < kNoTerminal);
+    auto id = (TTerminalId) newId;
+    terminals_.push_back(TTerminalEntries{});
+    return id;
+}
+
+void TrieBuilder::AddTerminalEntry(TTerminalId terminalId, TTransitionId transitionId, TKey keyIndex) {
+    terminals_[terminalId].push_back(TTerminalEntry{
+        .keyIndex = keyIndex,
+        .transitionId = transitionId,
+    });
 }
 
 TNode::TNodeId TrieBuilder::CreateNode() {
@@ -226,11 +254,21 @@ void TrieBuilder::PrintValues(std::ofstream& out) const {
     }
 }
 
+void TrieBuilder::PrintTerminals(std::ofstream& out) const {
+    out << terminals_.size() << '\n';
+    for (const auto& terminal : terminals_) {
+        out << terminal.size();
+        for (const auto& [key, transition] : terminal) {
+            out << ' ' << key << ' ' << static_cast<int>(transition);
+        }
+        out << '\n';
+    }
+}
+
 void TrieBuilder::PrintNodes(std::ofstream& out) const {
     out << nodes_.size() << '\n';
     for (const auto& node : nodes_) {
-        out << static_cast<int>(node->transitionId) << ' ';
-        out << static_cast<int>(node->keyIndex) << ' ';
+        out << node->terminalId << ' ';
         out << node->children.size();
         for (const auto& [runeId, childId] : node->children) {
             out << ' ' << static_cast<uint32_t>(runeId) << ' ' << childId;
@@ -288,6 +326,10 @@ std::string JoinTransition(const TWords& formParts) {
     return result;
 }
 
+constexpr char kNoun                = 'n';
+constexpr char kVerbRegular         = 'v';
+constexpr char kVerbExceptional     = 'w';
+
 TrieBuilder BuildTrie(Poco::Logger* logger) {
     const std::string filepath = "forms.csv";
 
@@ -321,7 +363,8 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
         if (keyException) {
             metadataRoot.set("exceptional", true);
         }
-        uint16_t keyIndex = builder.AddKeyData(keyMetaParts[0], keyException, std::move(metadataRoot));
+        const char partOfSpeech = keyException ? kVerbExceptional : kVerbRegular;
+        uint16_t keyIndex = builder.AddKeyData(keyMetaParts[0], partOfSpeech, std::move(metadataRoot));
         for (size_t i = 1; i < lineParts.size(); ++i) {
             SplitBy(lineParts[i], ':', metaParts);
             if (metaParts.size() != 5) {
@@ -329,7 +372,7 @@ TrieBuilder BuildTrie(Poco::Logger* logger) {
             }
             StringToRunes(metaParts[0], runes);
             auto transitionId = builder.GetTransitionId(JoinTransition(metaParts));
-            if (transitionId >= TNode::kNoTransition) {
+            if (transitionId >= kNoTransition) {
                 throw std::runtime_error("Too many transitions");
             }
             builder.AddPath(runes, TNode::kNoWeight, transitionId, keyIndex);
@@ -363,6 +406,24 @@ std::string ExtractTransition(const Poco::JSON::Object::Ptr& formObject) {
     return result;
 }
 
+static char ExtractPartOfSpeech(const Poco::JSON::Object::Ptr& root) {
+    const auto partOfSpeech = root->getValue<std::string>("pos");
+    if (partOfSpeech == "verb") {
+        int keyException = root->getValue<int>("exceptional");
+        if (keyException == 0) {
+            return kVerbRegular;
+        } else if (keyException == 1) {
+            return kVerbExceptional;
+        } else {
+            throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
+        }
+    } else if (partOfSpeech == "noun") {
+        return kNoun;
+    } else { // add more parts of speech above
+        throw std::runtime_error("Unsupported part of speech: " + partOfSpeech);
+    }
+}
+
 TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* logger) {
     using namespace Poco;
 
@@ -384,13 +445,8 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
         JSON::Object::Ptr root = result.extract<JSON::Object::Ptr>();
         std::string key = root->getValue<std::string>("base");
         JSON::Object metadataRoot;
-        int keyException = root->getValue<int>("exceptional");
-        if (!(0 <= keyException && keyException <= 2)) {
-            throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
-        }
-        if (keyException) {
-            metadataRoot.set("exceptional", keyException);
-        }
+        const auto partOfSpeech = ExtractPartOfSpeech(root);
+        metadataRoot.set("pos", partOfSpeech);
         if (!root->isNull("ruwkt")) {
             JSON::Array::Ptr ruwkt = root->getArray("ruwkt");
             if (ruwkt->size() > 0) {
@@ -403,7 +459,7 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
                 metadataRoot.set("enwkt", enwkt);
             }
         }
-        uint16_t keyIndex = builder.AddKeyData(key, keyException, std::move(metadataRoot));
+        uint16_t keyIndex = builder.AddKeyData(key, partOfSpeech, std::move(metadataRoot));
 
         JSON::Array::Ptr forms = root->getArray("forms");
         for (size_t i = 0; i < forms->size(); ++i) {
@@ -415,7 +471,7 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
             auto weight = formObject->getValue<TNode::TWeight>("weight");
             auto transitionStr = ExtractTransition(formObject);
             auto transitionId = builder.GetTransitionId(transitionStr);
-            if (transitionId >= TNode::kNoTransition) {
+            if (transitionId >= kNoTransition) {
                 throw std::runtime_error("Too many transitions");
             }
 

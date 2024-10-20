@@ -70,6 +70,31 @@ FlatNodeTrie::TTransitions LoadTransitions(std::istream& input) {
     return transitions;
 }
 
+FlatNodeTrie::TTerminals LoadTerminals(std::istream& input) {
+    size_t terminalsCount;
+    input >> terminalsCount;
+    FlatNodeTrie::TTerminals terminals;
+    terminals.reserve(terminalsCount);
+    size_t entriesCount;
+    size_t keyIndex;
+    size_t transitionId;
+    for (size_t i = 0; i < terminalsCount; ++i) {
+        input >> entriesCount;
+        FlatNodeTrie::TTerminal terminal(entriesCount);
+        for (size_t j = 0; j < entriesCount; ++j) {
+            input >> keyIndex >> transitionId;
+            assert(keyIndex < FlatNode::kNoKey);
+            assert(transitionId < FlatNode::kNoTransitionId);
+            terminal[j] = TTerminalItem{
+                .keyIndex = static_cast<FlatNode::TKey>(keyIndex),
+                .transitionId = static_cast<FlatNode::TTransitionId>(transitionId),
+            };
+        }
+        terminals.emplace_back(std::move(terminal));
+    }
+    return terminals;
+}
+
 FlatNodeTrie::TKeys LoadKeys(std::istream& input, const TRunes& runes) {
     using namespace Poco;
 
@@ -141,14 +166,13 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
     childData.reserve(nodesCount);
     suggestions.reserve(nodesCount * 3);
 
-    FlatNode::TKey keyIndex;
-    uint32_t transitionId;
+    uint32_t terminalId;
     size_t childrenCount;
     constexpr uint32_t kMaxRuneId = 0xFF;
     constexpr uint32_t kMaxNodeId = 0x00FFFFFF;
+    constexpr uint32_t kMaxSuggestions = 0x01FFFFFF;
     for (size_t i = 0; i < nodesCount; ++i) {
-        input >> transitionId >> keyIndex >> childrenCount;
-        assert(transitionId < 256);
+        input >> terminalId >> childrenCount;
         assert(childrenCount <= 45);
         FlatNode::TChildrenStart childrenStart = childData.size();
         size_t runeId;
@@ -164,7 +188,7 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
         assert(suggestionsCount > 0);
         assert(suggestionsCount <= 10);
         FlatNode::TSuggestionsOffset suggestionsStart = suggestions.size();
-        assert(suggestionsStart <= kMaxNodeId);
+        assert(suggestionsStart <= kMaxSuggestions);
         FlatNode::TValueId value;
         for (size_t j = 0; j < suggestionsCount; ++j) {
             input >> value;
@@ -172,11 +196,10 @@ void LoadNodes(std::istream& input, std::vector<FlatNode>& nodes, std::vector<Fl
         }
         nodes.emplace_back(
             FlatNode{
-                .keyIndex = keyIndex,
-                .transitionId = static_cast<FlatNode::TTransitionId>(transitionId),
+                .terminalId = terminalId,
                 .childrenCount = static_cast<FlatNode::TChildrenSize>(childrenCount),
                 .childrenStart = childrenStart,
-                .suggestionsPtr = MAKE_COMBO(uint32_t(suggestionsCount), suggestionsStart),
+                .suggestionsPtr = MAKE_SUGG_COMBO(uint32_t(suggestionsCount), suggestionsStart),
             }
         );
     }
@@ -200,6 +223,11 @@ FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
     for (size_t i = 0; i < runes.size(); ++i) {
         runeMap[runes[i]] = i;
     }
+
+    if (logger) {
+        logger->information("Loading terminals");
+    }
+    auto terminals = LoadTerminals(input);
 
     if (logger) {
         logger->information("Loading keys");
@@ -226,6 +254,7 @@ FlatNodeTrie LoadTrie(const std::string& path, Poco::Logger* logger) {
         .runes = std::move(runes),
         .runeMap = std::move(runeMap),
         .transitions = std::move(transitions),
+        .terminals = std::move(terminals),
         .keys = std::move(keys),
         .values = std::move(values),
         .childData = std::move(childData),

@@ -13,6 +13,11 @@
 
 namespace NKiltMan {
 
+struct TTerminalItem {
+    FlatNode::TKey keyIndex;
+    FlatNode::TTransitionId transitionId;
+};
+
 struct TKeyItem {
     TRunes runes;
     Poco::JSON::Object metadata;
@@ -42,6 +47,8 @@ struct FlatNodeTrie {
     using TRuneId = FlatNode::TRuneId;
     using TRuneMap = std::map<TRuneValue, TRuneId>;
     using TTransitions = std::vector<std::string>;
+    using TTerminal = std::vector<TTerminalItem>;
+    using TTerminals = std::vector<TTerminal>;
     using TKeys = std::vector<TKeyItem>;
     using TValues = std::vector<TValueItem>;
 
@@ -50,6 +57,7 @@ struct FlatNodeTrie {
 
     TTransitions transitions;
 
+    TTerminals terminals;
     TKeys keys;
     TValues values;
     std::vector<FlatNode::TRuneNodeCombo> childData;
@@ -68,6 +76,14 @@ struct FlatNodeTrie {
         size_t result = sizeof(transitions) + sizeof(transitions[0]) * transitions.capacity();
         for (const auto& transition : transitions) {
             result += transition.size();
+        }
+        return result;
+    }
+
+    size_t GetTerminalsSpace() const {
+        size_t result = sizeof(terminals) + sizeof(terminals[0]) * terminals.capacity();
+        for (const auto& terminal : terminals) {
+            result += terminal.capacity() * sizeof(terminal[0]);
         }
         return result;
     }
