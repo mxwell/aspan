@@ -61,10 +61,10 @@ function createMainNounForms(noun) {
     return forms;
 }
 
-function writeDetectSuggestFormsLine(base, exceptional, forms, outputStream) {
+function writeDetectSuggestFormsLine(base, forms, outputStream) {
     let dataObject = {
+        pos: "noun",
         base: base,
-        exceptional: exceptional,
         forms: forms,
     };
     let dataString = JSON.stringify(dataObject);
@@ -123,7 +123,7 @@ async function processLineByLine(args) {
              * }
              */
             let nounForms = createMainNounForms(inputNoun);
-            writeDetectSuggestFormsLine(inputNoun, 2, nounForms, outputStream);
+            writeDetectSuggestFormsLine(inputNoun, nounForms, outputStream);
         }
     }
 }

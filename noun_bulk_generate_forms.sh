@@ -6,7 +6,7 @@ export COMPILED="BUILD/compiled.js"
 export ASPAN_JS="BUILD/aspan.js"
 export GENERATOR="scripts/noun_bulk_generate.js"
 
-export INPUT_NOUNS="data/nouns_kk.csv"
+export INPUT_NOUNS="data/nouns_kk.v1.csv"
 
 export OUTPUT_DETECT_SUGGEST_FORMS="data/noun.detect_suggest_forms.jsonl"
 

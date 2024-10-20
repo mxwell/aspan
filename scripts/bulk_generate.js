@@ -341,6 +341,7 @@ function writeSuggestLine(base, form, weight, inputItem, translationLang, output
 
 function writeDetectSuggestLine(base, exceptional, ruGlosses, enGlosses, forms, outputStream) {
     let dataObject = {
+        pos: "verb",
         base: base,
         exceptional: exceptional,
         ruwkt: ruGlosses,
