@@ -326,9 +326,21 @@ std::string JoinTransition(const TWords& formParts) {
     return result;
 }
 
+// order: more common first
 constexpr char kNoun                = 'n';
 constexpr char kVerbRegular         = 'v';
 constexpr char kVerbExceptional     = 'w';
+constexpr char kAdjective           = 'j';
+constexpr char kAdverb              = 'b';
+constexpr char kPronoun             = 'p';
+constexpr char kInterjection        = 'i';
+constexpr char kOnomatopoeia        = 'o';
+constexpr char kNumeral             = 'l';
+constexpr char kConjunction         = 'c';
+constexpr char kPreposition         = 'e';
+constexpr char kParticle            = 't';
+constexpr char kPostposition        = 's';
+
 
 TrieBuilder BuildTrie(Poco::Logger* logger) {
     const std::string filepath = "forms.csv";
@@ -408,7 +420,9 @@ std::string ExtractTransition(const Poco::JSON::Object::Ptr& formObject) {
 
 static char ExtractPartOfSpeech(const Poco::JSON::Object::Ptr& root) {
     const auto partOfSpeech = root->getValue<std::string>("pos");
-    if (partOfSpeech == "verb") {
+    if (partOfSpeech == "noun") {
+        return kNoun;
+    } else if (partOfSpeech == "verb") {
         int keyException = root->getValue<int>("exceptional");
         if (keyException == 0) {
             return kVerbRegular;
@@ -417,9 +431,27 @@ static char ExtractPartOfSpeech(const Poco::JSON::Object::Ptr& root) {
         } else {
             throw std::runtime_error("Invalid value of exceptional: " + std::to_string(keyException));
         }
-    } else if (partOfSpeech == "noun") {
-        return kNoun;
-    } else { // add more parts of speech above
+    } else if (partOfSpeech == "adjective") {
+        return kAdjective;
+    } else if (partOfSpeech == "adverb") {
+        return kAdverb;
+    } else if (partOfSpeech == "pronoun") {
+        return kPronoun;
+    } else if (partOfSpeech == "interjection") {
+        return kInterjection;
+    } else if (partOfSpeech == "onomatopoeia") {
+        return kOnomatopoeia;
+    } else if (partOfSpeech == "numeral") {
+        return kNumeral;
+    } else if (partOfSpeech == "conjunction") {
+        return kConjunction;
+    } else if (partOfSpeech == "preposition") {
+        return kPreposition;
+    } else if (partOfSpeech == "particle") {
+        return kParticle;
+    } else if (partOfSpeech == "postposition") {
+        return kPostposition;
+    } else { // add more parts of speech above, if needed
         throw std::runtime_error("Unsupported part of speech: " + partOfSpeech);
     }
 }
