@@ -662,7 +662,7 @@ class Gc(object):
 
         return reviews[0]
 
-    def do_get_reviews(self, user_id, approves_min, page):
+    def do_get_reviews(self, user_id, approves_min, offset, count):
         cursor = self.db_conn.cursor()
         cursor.execute(f"""
             SELECT
@@ -708,7 +708,7 @@ class Gc(object):
                 r.status == "NEW" AND
                 COALESCE(rv.approves, 0) >= ?
             ORDER BY r.created_at DESC
-            LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
+            LIMIT {offset},{count};
         """, (user_id, user_id, approves_min))
 
         results = cursor.fetchall()
@@ -742,11 +742,11 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews(self, user_id, approves_min, page):
+    def get_reviews(self, user_id, approves_min, offset, count):
         with self.db_lock:
-            return self.do_get_reviews(user_id, approves_min, page)
+            return self.do_get_reviews(user_id, approves_min, offset, count)
 
-    def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang, page):
+    def do_get_reviews_by_dir(self, user_id, src_lang, dst_lang, offset, count):
         cursor = self.db_conn.cursor()
         cursor.execute(f"""
             SELECT
@@ -792,7 +792,7 @@ class Gc(object):
                 AND w1.lang = ?
                 AND w2.lang = ?
             ORDER BY r.created_at DESC
-            LIMIT {page * REVIEW_PAGE_SIZE},{REVIEW_PAGE_SIZE};
+            LIMIT {offset},{count};
         """, (user_id, user_id, src_lang, dst_lang))
 
         results = cursor.fetchall()
@@ -826,9 +826,9 @@ class Gc(object):
 
         return reviews
 
-    def get_reviews_by_dir(self, user_id, src_lang, dst_lang, page):
+    def get_reviews_by_dir(self, user_id, src_lang, dst_lang, offset, count):
         with self.db_lock:
-            return self.do_get_reviews_by_dir(user_id, src_lang, dst_lang, page)
+            return self.do_get_reviews_by_dir(user_id, src_lang, dst_lang, offset, count)
 
     def count_review_votes_groupped(self, user_id, review_id):
         query = """
@@ -1557,7 +1557,7 @@ def post_add_review():
     return jsonify({"message": "ok", "review_id": inserted_id}), 201
 
 
-@app.route("/gcapi/v1/get_reviews", methods=["GET"])
+@app.route("/gcapi/v2/get_reviews", methods=["GET"])
 def get_reviews():
     global gc_instance
 
@@ -1568,8 +1568,14 @@ def get_reviews():
     src_lang = request.args.get("src")
     dst_lang = request.args.get("dst")
     approves_min = request.args.get("am")
-    page_raw = request.args.get("p")
-    page = int(page_raw) if (isinstance(page_raw, str) and page_raw.isdigit()) else 0
+    offset_raw = request.args.get("o")
+    offset = int(offset_raw) if (isinstance(offset_raw, str) and offset_raw.isdigit()) else 0
+    count_raw = request.args.get("c")
+    count = int(count_raw) if (isinstance(count_raw, str) and count_raw.isdigit()) else REVIEW_PAGE_SIZE
+
+    if count <= 0:
+        logging.error("Invalid count: %s", str(count_raw))
+        return jsonify({"message": "Invalid request"}), 400
 
     if not (src_lang is None and dst_lang is None):
         if not valid_lang(src_lang):
@@ -1584,7 +1590,7 @@ def get_reviews():
         if src_lang == dst_lang:
             logging.error("Invalid combination of src and dst lang")
             return jsonify({"message": "Invalid request"}), 400
-        reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang, page)
+        reviews = gc_instance.get_reviews_by_dir(user_id, src_lang, dst_lang, offset, count)
     else:
         if approves_min is None:
             approves_min_arg = 0
@@ -1594,7 +1600,7 @@ def get_reviews():
             logging.error("Invalid value for am: %s", str(approves_min))
             return jsonify({"message": "Invalid request"}), 400
         assert isinstance(approves_min_arg, int), f"bad type: {type(approves_min_arg)}"
-        reviews = gc_instance.get_reviews(user_id, approves_min_arg, page)
+        reviews = gc_instance.get_reviews(user_id, approves_min_arg, offset, count)
 
     if reviews is None:
         logging.error("null reviews")
