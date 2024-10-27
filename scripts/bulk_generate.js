@@ -580,7 +580,7 @@ async function processLineByLine(args) {
 
         writeDetectSuggestLine(inputVerb, 0, inputItem.ruGlosses, inputItem.enGlosses, regularForms, outputStream);
         if (exceptionalForms.length > 0) {
-            writeDetectSuggestLine(inputVerb, 1, inputItem.ruGlosses, inputItem.enGlosses, exceptionalForms, outputStream);
+            writeDetectSuggestLine(inputVerb, 1, inputItem.ruGlossesFe, inputItem.enGlossesFe, exceptionalForms, outputStream);
         }
 
     } else if (args.command == kSuggestInfinitiveCommand || args.command == kSuggestInfinitiveTranslationCommand) {
