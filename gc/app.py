@@ -898,6 +898,18 @@ class Gc(object):
         cursor.execute(query, (status.name, review_id, ReviewStatus.DISCARDED.name))
         self.db_conn.commit()
 
+    def check_and_update_review_status(self, review_id, approves, disapproves):
+        if approves > disapproves and approves >= APPROVE_THRESHOLD:
+            logging.info("approved: %d approves vs %d disapproves", approves, disapproves)
+            self.do_copy_review_to_translations(review_id)
+            self.do_set_review_status(review_id, ReviewStatus.APPROVED)
+            return True
+        if disapproves > approves and disapproves >= DISAPPROVE_THRESHOLD:
+            logging.info("disapproved: %d approves vs %d disapproves", approves, disapproves)
+            self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
+            return True
+        return False
+
     # Returns AddReviewVoteResult
     def do_add_review_vote(self, review_id, user_id, vote):
         approves, disapproves, own_approves, own_disapproves = self.count_review_votes_groupped(user_id, review_id)
@@ -920,16 +932,7 @@ class Gc(object):
             disapproves += 1
             own_disapproves += 1
 
-        gone = False
-        if approves > disapproves and approves >= APPROVE_THRESHOLD:
-            logging.info("approved: %d approves vs %d disapproves", approves, disapproves)
-            self.do_copy_review_to_translations(review_id)
-            self.do_set_review_status(review_id, ReviewStatus.APPROVED)
-            gone = True
-        elif disapproves > approves + 1 and disapproves >= DISAPPROVE_THRESHOLD:
-            logging.info("disapproved: %d approves vs %d disapproves", approves, disapproves)
-            self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
-            gone = True
+        gone = self.check_and_update_review_status(review_id, approves, disapproves)
 
         return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, gone, None)
 
@@ -961,13 +964,7 @@ class Gc(object):
             disapproves -= 1
             own_disapproves -= 1
 
-        gone = False
-        if approves > disapproves:
-            self.do_copy_review_to_translations(review_id)
-            self.do_set_review_status(review_id, ReviewStatus.APPROVED)
-            gone = True
-        elif disapproves > approves + 1:
-            self.do_set_review_status(review_id, ReviewStatus.DISAPPROVED)
+        gone = self.check_and_update_review_status(review_id, approves, disapproves)
 
         return AddReviewVoteResult(True, approves, disapproves, own_approves, own_disapproves, gone, None)
 
