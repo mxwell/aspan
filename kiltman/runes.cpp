@@ -4,7 +4,7 @@
 
 namespace NKiltMan {
 
-void StringToRunes(const std::string& s, TRunes& result) {
+ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
     result.clear();
     for (size_t i = 0; i < s.size(); ) {
         uint8_t ch0 = s.at(i);
@@ -12,16 +12,29 @@ void StringToRunes(const std::string& s, TRunes& result) {
             result.push_back(ch0);
             ++i;
         } else {
-            if (i + 1 > s.size()) {
-                throw std::runtime_error("Invalid UTF-8");
+            if (i + 1 >= s.size()) {
+                return ConversionResult::INVALID_UTF8;
             }
             uint8_t ch1 = s.at(i + 1);
             if (ch1 == 0) {
-                throw std::runtime_error("Invalid zero byte");
+                return ConversionResult::UNEXPECTED_ZERO_BYTE;
             }
             result.push_back((ch1 << 8) | ch0);
             i += 2;
         }
+    }
+    return ConversionResult::SUCCESS;
+}
+
+void StringToRunes(const std::string& s, TRunes& result) {
+    auto conversionResult = StringToRunesNoExcept(s, result);
+    switch (conversionResult) {
+    case ConversionResult::SUCCESS:
+        return;
+    case ConversionResult::INVALID_UTF8:
+        throw std::runtime_error("Invalid UTF-8");
+    case ConversionResult::UNEXPECTED_ZERO_BYTE:
+        throw std::runtime_error("Invalid zero byte");
     }
 }
 

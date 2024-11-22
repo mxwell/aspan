@@ -176,6 +176,62 @@ private:
     NKiltMan::FlatNodeTrie trie_;
 };
 
+std::string DoDetect(const NKiltMan::FlatNodeTrie& trie, Poco::Logger& logger, const std::string& inputLine) {
+    NKiltMan::TRunes runes;
+    // TODO lowercase input
+    auto conversionResult = NKiltMan::StringToRunesNoExcept(inputLine, runes);
+    if (conversionResult != NKiltMan::ConversionResult::SUCCESS) {
+        logger.information("Failed to convert input line: code %d, line %s", int(conversionResult), inputLine);
+        return {};
+    }
+    auto inputRunesCount = runes.size();
+
+    auto node = trie.Traverse(runes);
+    if (node == nullptr) {
+        return {};
+    }
+
+    const auto terminalId = node->terminalId;
+    if (terminalId == NKiltMan::FlatNode::kNoTerminalId) {
+        return {};
+    }
+
+    std::string result;
+    std::size_t resultSize = 0;
+    auto terminal = trie.terminals[terminalId];
+    for (const auto& terminalItem : terminal) {
+        auto keyIndex = terminalItem.keyIndex;
+        auto transitionId = terminalItem.transitionId;
+        auto keyItem = trie.keys[keyIndex];
+
+        auto runesCount = keyItem.runes.size();
+        if (runesCount == inputRunesCount) {
+            NKiltMan::RunesToString(keyItem.runes, result);
+            resultSize = runesCount;
+            break;
+        } else if (runesCount > resultSize) {
+            NKiltMan::RunesToString(keyItem.runes, result);
+            resultSize = runesCount;
+        }
+    }
+    return result;
+}
+
+void BatchDetect(const NKiltMan::FlatNodeTrie& trie, Poco::Logger& logger) {
+    std::string inputLine;
+    std::size_t inputCounter = 0;
+    std::size_t outputCounter = 0;
+    while (std::getline(std::cin, inputLine)) {
+        auto detected = DoDetect(trie, logger, inputLine);
+        std::cout << inputLine << '\t' << detected << '\n';
+        ++inputCounter;
+        if (detected.size()) {
+            ++outputCounter;
+        }
+    }
+    logger.information("Detected %z forms out of %z", outputCounter, inputCounter);
+}
+
 class WebServerApp: public ServerApplication
 {
     void initialize(Application& self)
@@ -257,6 +313,16 @@ class WebServerApp: public ServerApplication
             waitForTerminationRequest();
             logger().information("Stopping HTTP Server...");
             srv.stop();
+            return Application::EXIT_OK;
+        } else if (args.size() == 2 && args[0] == "batch_detect") { // kiltman batch_detect trie.txt
+            // stdin accepts word forms, stdout prints detected base forms
+
+            logger().information("Loading trie from %s", args[1]);
+            Clock clock{};
+            auto trie = NKiltMan::LoadTrie(args[1], &logger());
+            logger().information("Loading time: %.3f seconds", clock.elapsed() / 1e6);
+
+            BatchDetect(trie, logger());
             return Application::EXIT_OK;
         } else {
             logger().error("Invalid arguments");
