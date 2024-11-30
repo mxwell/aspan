@@ -14,6 +14,7 @@ import uuid
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 
 from lib.auth import Auth
+from lib.contrib import ContribAction, ContribEntry
 from lib.feed import FeedItem, VoteInfo
 from lib.pos import parse_pos
 from lib.review import ReviewStatus, ReviewVote
@@ -95,6 +96,55 @@ def parse_vote(vote):
         except KeyError as e:
             logging.error("parse_vote: unknown vote [%s]", vote)
     return None
+
+
+def read_translation_vote_range(fetched_results):
+    result = []
+    prev_tr_id = None
+    for row in fetched_results:
+        translation_id = row["tr_id"]
+        assert translation_id
+        assert isinstance(translation_id, int)
+        author = row["author"]
+        assert author
+        assert isinstance(author, int)
+        tr_ts = int(row["tr_ts"])
+        assert tr_ts > 0
+
+        if translation_id != prev_tr_id:
+            prev_tr_id = translation_id
+            result.append(ContribEntry(
+                ContribAction.ADD_TRANSLATION,
+                author,
+                tr_ts,
+            ))
+
+        try:
+            vote = ReviewVote[row["vote"]]
+        except KeyError as e:
+            logging.error("read_translation_vote_range: bad vote %s", row["vote"])
+            continue
+
+        if vote == ReviewVote.APPROVE:
+            action = ContribAction.APPROVE_CONFIRMED
+        elif vote == ReviewVote.DISAPPROVE:
+            action = ContribAction.DISAPPROVE_CONFIRMED
+        else:
+            logging.error("read_translation_vote_range: unsupported vote %s", vote.name)
+            continue
+
+        voter = row["voter"]
+        assert voter
+        assert isinstance(voter, int)
+        vote_ts = int(row["vote_ts"])
+        assert vote_ts > 0
+
+        result.append(ContribEntry(
+            action,
+            voter,
+            vote_ts,
+        ))
+    return result
 
 
 def read_feed_items(fetched_results):
@@ -994,6 +1044,68 @@ class Gc(object):
         with self.db_lock:
             return self.do_discard_review(review_id, user_id)
 
+    def get_latest_contrib_translation_id(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                translation_id
+            FROM
+                contribs
+            ORDER BY contrib_id DESC
+            LIMIT 1;
+        """)
+        fetched = cursor.fetchone()
+        if fetched is None:
+            logging.error("get_latest_contrib_translation_id: fetched None")
+            return 0
+        translation_id = fetched[0]
+        cursor.close()
+        return translation_id
+
+    def load_translation_vote_range(self, prev_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                t10.translation_id AS tr_id,
+                t10.user_id AS author,
+                strftime('%s', t10.created_at) AS tr_ts,
+                tv.vote AS vote,
+                tv.user_id AS voter,
+                strftime('%s', tv.created_at) AS vote_ts
+            FROM (
+                SELECT
+                    t.translation_id AS translation_id,
+                    t.user_id AS user_id,
+                    t.created_at AS created_at
+                FROM translations t
+                WHERE t.translation_id > ?
+                ORDER BY t.translation_id
+                LIMIT 10
+            ) t10 LEFT JOIN
+                translation_votes tv
+            ON t10.translation_id = tv.translation_id
+            ORDER BY t10.translation_id;
+        """, (prev_id,))
+        fetched = cursor.fetchall()
+        entries = read_translation_vote_range(fetched)
+        logging.info("load_translation_vote_range: found %d contrib entries", len(entries))
+        return entries
+
+    def insert_contrib_entries(self, entries):
+        # TODO
+        pass
+
+    def do_collect_contribs(self):
+        prev_translation_id = self.get_latest_contrib_translation_id()
+        logging.info("do_collect_contribs: prev translation id %d", prev_translation_id)
+        entries = self.load_translation_vote_range(prev_translation_id)
+        # TODO
+        return len(entries)
+
+    def collect_contribs(self):
+        with self.db_lock:
+            return self.do_collect_contribs()
+
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
         cursor.execute("""
@@ -1279,6 +1391,16 @@ CREATE TABLE IF NOT EXISTS review_votes (
     vote TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (review_id, user_id)
+)
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS contribs (
+    contrib_id INTEGER PRIMARY_KEY,
+    translation_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
     """.strip())
 
@@ -1692,6 +1814,14 @@ def post_discard_review():
         logging.error("post_discard_review: no inserted_id after discard: %s", insertion_result.error_message)
         return jsonify({"message": insertion_result.error_message}), 500
     return jsonify({"message": "ok", "review_id": discarded_id}), 201
+
+
+@app.route("/gcapi/v1/collect_contribs", methods=["GET"])
+def collect_contribs():
+    global gc_instance
+
+    collected = gc_instance.collect_contribs()
+    return jsonify({"message": "ok", "collected": collected})
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
