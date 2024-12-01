@@ -114,8 +114,9 @@ def read_translation_vote_range(fetched_results):
         if translation_id != prev_tr_id:
             prev_tr_id = translation_id
             result.append(ContribEntry(
-                ContribAction.ADD_TRANSLATION,
+                translation_id,
                 author,
+                ContribAction.ADD_TRANSLATION,
                 tr_ts,
             ))
 
@@ -140,8 +141,9 @@ def read_translation_vote_range(fetched_results):
         assert vote_ts > 0
 
         result.append(ContribEntry(
-            action,
+            translation_id,
             voter,
+            action,
             vote_ts,
         ))
     return result
@@ -1092,14 +1094,27 @@ class Gc(object):
         return entries
 
     def insert_contrib_entries(self, entries):
-        # TODO
-        pass
+        cursor = self.db_conn.cursor()
+        query = """
+            INSERT INTO contribs
+              (translation_id, user_id, action, created_at)
+            VALUES
+              (?, ?, ?, ?);
+        """.strip()
+        data = [
+            (e.translation_id, e.user_id, e.action.name, e.created_at)
+            for e in entries
+        ]
+
+        cursor.executemany(query, data)
+        self.db_conn.commit()
+        cursor.close()
 
     def do_collect_contribs(self):
         prev_translation_id = self.get_latest_contrib_translation_id()
         logging.info("do_collect_contribs: prev translation id %d", prev_translation_id)
         entries = self.load_translation_vote_range(prev_translation_id)
-        # TODO
+        self.insert_contrib_entries(entries)
         return len(entries)
 
     def collect_contribs(self):
@@ -1396,7 +1411,7 @@ CREATE TABLE IF NOT EXISTS review_votes (
 
     conn.execute("""
 CREATE TABLE IF NOT EXISTS contribs (
-    contrib_id INTEGER PRIMARY_KEY,
+    contrib_id INTEGER PRIMARY KEY,
     translation_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL,
