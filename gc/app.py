@@ -115,6 +115,7 @@ def read_translation_vote_range(fetched_results):
             prev_tr_id = translation_id
             result.append(ContribEntry(
                 translation_id,
+                0,
                 author,
                 ContribAction.ADD_TRANSLATION,
                 tr_ts,
@@ -129,7 +130,8 @@ def read_translation_vote_range(fetched_results):
         if vote == ReviewVote.APPROVE:
             action = ContribAction.APPROVE_CONFIRMED
         elif vote == ReviewVote.DISAPPROVE:
-            action = ContribAction.DISAPPROVE_CONFIRMED
+            logging.info("read_translation_vote_range: ignoring disapprove vote")
+            continue
         else:
             logging.error("read_translation_vote_range: unsupported vote %s", vote.name)
             continue
@@ -142,6 +144,41 @@ def read_translation_vote_range(fetched_results):
 
         result.append(ContribEntry(
             translation_id,
+            0,
+            voter,
+            action,
+            vote_ts,
+        ))
+    return result
+
+
+def read_review_disapprove_range(fetched_results):
+    result = []
+    for row in fetched_results:
+        review_id = row["r_id"]
+        assert review_id
+        assert isinstance(review_id, int)
+        try:
+            vote = ReviewVote[row["vote"]]
+        except KeyError as e:
+            logging.error("read_review_disapprove_range: bad vote %s", row["vote"])
+            continue
+
+        if vote == ReviewVote.DISAPPROVE:
+            action = ContribAction.DISAPPROVE_CONFIRMED
+        else:
+            logging.error("read_review_disapprove_range: unsupported vote %s", vote.name)
+            continue
+
+        voter = row["voter"]
+        assert voter
+        assert isinstance(voter, int)
+        vote_ts = int(row["vote_ts"])
+        assert vote_ts > 0
+
+        result.append(ContribEntry(
+            0,
+            review_id,
             voter,
             action,
             vote_ts,
@@ -1053,12 +1090,32 @@ class Gc(object):
                 translation_id
             FROM
                 contribs
+            WHERE translation_id > 0
             ORDER BY contrib_id DESC
             LIMIT 1;
         """)
         fetched = cursor.fetchone()
         if fetched is None:
             logging.error("get_latest_contrib_translation_id: fetched None")
+            return 0
+        translation_id = fetched[0]
+        cursor.close()
+        return translation_id
+
+    def get_latest_contrib_review_id(self):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                review_id
+            FROM
+                contribs
+            WHERE review_id > 0
+            ORDER BY contrib_id DESC
+            LIMIT 1;
+        """)
+        fetched = cursor.fetchone()
+        if fetched is None:
+            logging.error("get_latest_contrib_review_id: fetched None")
             return 0
         translation_id = fetched[0]
         cursor.close()
@@ -1093,16 +1150,59 @@ class Gc(object):
         logging.info("load_translation_vote_range: found %d contrib entries", len(entries))
         return entries
 
+    def load_review_disapprove_range(self, prev_id):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+                r10.review_id AS r_id,
+                rv.vote AS vote,
+                rv.user_id AS voter,
+                strftime('%s', rv.created_at) AS vote_ts
+            FROM (
+                SELECT
+                    r.review_id AS review_id
+                FROM reviews r
+                WHERE r.review_id > ? AND r.status = "DISAPPROVED"
+                ORDER BY r.review_id
+                LIMIT 10
+            ) r10 LEFT JOIN
+                review_votes rv
+            ON r10.review_id = rv.review_id
+            WHERE rv.vote = "DISAPPROVE"
+            ORDER BY r10.review_id;
+        """, (prev_id,))
+        fetched = cursor.fetchall()
+        entries = read_review_disapprove_range(fetched)
+        logging.info("load_review_disapprove_range: found %d contrib entries", len(entries))
+        return entries
+
     def insert_contrib_entries(self, entries):
         cursor = self.db_conn.cursor()
         query = """
             INSERT INTO contribs
               (translation_id, user_id, action, created_at)
             VALUES
-              (?, ?, ?, ?);
+              (?, ?, ?, DATETIME(?, 'unixepoch'));
         """.strip()
         data = [
             (e.translation_id, e.user_id, e.action.name, e.created_at)
+            for e in entries
+        ]
+
+        cursor.executemany(query, data)
+        self.db_conn.commit()
+        cursor.close()
+
+    def insert_disapprove_contrib_entries(self, entries):
+        cursor = self.db_conn.cursor()
+        query = """
+            INSERT INTO contribs
+              (review_id, user_id, action, created_at)
+            VALUES
+              (?, ?, ?, DATETIME(?, 'unixepoch'));
+        """.strip()
+        data = [
+            (e.review_id, e.user_id, e.action.name, e.created_at)
             for e in entries
         ]
 
@@ -1117,9 +1217,20 @@ class Gc(object):
         self.insert_contrib_entries(entries)
         return len(entries)
 
+    def do_collect_disapprove_contribs(self):
+        prev_review_id = self.get_latest_contrib_review_id()
+        logging.info("do_collect_disapprove_contribs: prev review id %d", prev_review_id)
+        entries = self.load_review_disapprove_range(prev_review_id)
+        self.insert_disapprove_contrib_entries(entries)
+        return len(entries)
+
     def collect_contribs(self):
         with self.db_lock:
             return self.do_collect_contribs()
+
+    def collect_disapprove_contribs(self):
+        with self.db_lock:
+            return self.do_collect_disapprove_contribs()
 
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
@@ -1412,7 +1523,8 @@ CREATE TABLE IF NOT EXISTS review_votes (
     conn.execute("""
 CREATE TABLE IF NOT EXISTS contribs (
     contrib_id INTEGER PRIMARY KEY,
-    translation_id INTEGER NOT NULL,
+    translation_id INTEGER DEFAULT 0,
+    review_id INTEGER DEFAULT 0,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -1836,6 +1948,14 @@ def collect_contribs():
     global gc_instance
 
     collected = gc_instance.collect_contribs()
+    return jsonify({"message": "ok", "collected": collected})
+
+
+@app.route("/gcapi/v1/collect_disapprove_contribs", methods=["GET"])
+def collect_disapprove_contribs():
+    global gc_instance
+
+    collected = gc_instance.collect_disapprove_contribs()
     return jsonify({"message": "ok", "collected": collected})
 
 

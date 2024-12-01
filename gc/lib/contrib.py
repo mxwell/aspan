@@ -11,6 +11,7 @@ class ContribAction(Enum):
 @dataclass
 class ContribEntry:
     translation_id: int
+    review_id: int
     user_id: int
     action: ContribAction
     created_at: int # seconds since unix epoch
