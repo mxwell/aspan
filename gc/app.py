@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 from logging.config import dictConfig
 import os
@@ -41,6 +42,7 @@ CACHE_TTL_SECS = 300
 REVIEW_PAGE_SIZE = 20
 APPROVE_THRESHOLD = 2
 DISAPPROVE_THRESHOLD = 2
+WEEK_SECONDS = 7 * 24 * 60 * 60
 app = Flask("gc_app")
 gc_instance = None
 
@@ -183,6 +185,21 @@ def read_review_disapprove_range(fetched_results):
             action,
             vote_ts,
         ))
+    return result
+
+
+def read_ranking_items(fetched_results):
+    result = []
+    for row in fetched_results:
+        item = {
+            "user_id": row["user_id"],
+            "name": row["name"],
+            "contribs": row["contribs"],
+            "translations": row["translations"],
+            "approves": row["approves"],
+            "disapproves": row["disapproves"],
+        }
+        result.append(item)
     return result
 
 
@@ -723,6 +740,9 @@ class Gc(object):
         token = auth_header[7:]
         return self.auth.extract_user_id_from_token(token)
 
+    def verify_cron_token(self, body_json):
+        return self.auth.verify_cron_token(body_json)
+
     def do_get_review_by_id(self, review_id):
         cursor = self.db_conn.cursor()
         cursor.execute("""
@@ -1232,6 +1252,75 @@ class Gc(object):
         with self.db_lock:
             return self.do_collect_disapprove_contribs()
 
+    def get_table_size(self, table_name):
+        cursor = self.db_conn.cursor()
+        query = f"""
+            SELECT COUNT(*)
+            FROM {table_name};
+        """
+        cursor.execute(query)
+        count = cursor.fetchone()[0]
+        cursor.close()
+        return count
+
+    def do_calculate_rankings(self, dst_table, start_time):
+        assert isinstance(dst_table, str)
+        assert isinstance(start_time, int)
+
+        cursor = self.db_conn.cursor()
+        cursor.execute(f"DELETE FROM {dst_table};");
+
+        query = f"""
+            INSERT INTO {dst_table} (user_id, name, contribs, translations, approves, disapproves)
+            SELECT
+                c.user_id,
+                u.name,
+                COUNT(*) AS contribs,
+                COUNT(CASE WHEN c.action = "ADD_TRANSLATION" THEN 1 END) AS translations,
+                COUNT(CASE WHEN c.action = "APPROVE_CONFIRMED" THEN 1 END) AS approves,
+                COUNT(CASE WHEN c.action = "DISAPPROVE_CONFIRMED" THEN 1 END) AS disapproves
+            FROM
+                contribs c
+            JOIN
+                users u
+            ON c.user_id = u.user_id
+            WHERE c.created_at > DATETIME(?, 'unixepoch')
+            GROUP BY c.user_id
+            ORDER BY contribs DESC, translations DESC, disapproves DESC
+            LIMIT 20;
+        """.strip()
+        cursor.execute(query, (start_time,))
+        self.db_conn.commit()
+        size = self.get_table_size(dst_table)
+        logging.info("do_calculate_rankings: repopulated %s, start time %d, size %d",
+            dst_table, start_time, size)
+        return size
+
+    def calculate_rankings(self):
+        with self.db_lock:
+            now = int(datetime.datetime.now().timestamp())
+            alltime = self.do_calculate_rankings("ranking_alltime", 1701613211)
+            week = self.do_calculate_rankings("ranking_week", now - WEEK_SECONDS)
+            return (alltime, week)
+
+    def do_get_ranking(self, src_table):
+        cursor = self.db_conn.cursor()
+        cursor.execute(f"""
+            SELECT *
+            FROM {src_table}
+            LIMIT 100;
+        """.strip())
+        fetched = cursor.fetchall()
+        items = read_ranking_items(fetched)
+        logging.info("do_get_ranking: loaded %d items from %s", len(items), src_table)
+        return items
+
+    def get_rankings(self):
+        with self.db_lock:
+            alltime = self.do_get_ranking("ranking_alltime")
+            week = self.do_get_ranking("ranking_week")
+            return alltime, week
+
     def do_extract_feed(self):
         cursor = self.db_conn.cursor()
         cursor.execute("""
@@ -1527,6 +1616,30 @@ CREATE TABLE IF NOT EXISTS contribs (
     review_id INTEGER DEFAULT 0,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS ranking_alltime (
+    user_id INTEGER,
+    name TEXT NOT NULL,
+    contribs INTEGER NOT NULL,
+    translations INTEGER NOT NULL,
+    approves INTEGER NOT NULL,
+    disapproves INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS ranking_week (
+    user_id INTEGER,
+    name TEXT NOT NULL,
+    contribs INTEGER NOT NULL,
+    translations INTEGER NOT NULL,
+    approves INTEGER NOT NULL,
+    disapproves INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
     """.strip())
@@ -1943,20 +2056,45 @@ def post_discard_review():
     return jsonify({"message": "ok", "review_id": discarded_id}), 201
 
 
-@app.route("/gcapi/v1/collect_contribs", methods=["GET"])
+@app.route("/gcapi/v1/collect_contribs", methods=["POST"])
 def collect_contribs():
     global gc_instance
+
+    if not gc_instance.verify_cron_token(request.json):
+        return jsonify({"message": "Unauthorized"}), 401
 
     collected = gc_instance.collect_contribs()
     return jsonify({"message": "ok", "collected": collected})
 
 
-@app.route("/gcapi/v1/collect_disapprove_contribs", methods=["GET"])
+@app.route("/gcapi/v1/collect_disapprove_contribs", methods=["POST"])
 def collect_disapprove_contribs():
     global gc_instance
 
+    if not gc_instance.verify_cron_token(request.json):
+        return jsonify({"message": "Unauthorized"}), 401
+
     collected = gc_instance.collect_disapprove_contribs()
     return jsonify({"message": "ok", "collected": collected})
+
+
+@app.route("/gcapi/v1/calculate_rankings", methods=["POST"])
+def calculate_rankings():
+    global gc_instance
+
+    if not gc_instance.verify_cron_token(request.json):
+        return jsonify({"message": "Unauthorized"}), 401
+
+    alltime, week = gc_instance.calculate_rankings()
+    return jsonify({"message": "ok", "alltime": alltime, "week": week})
+
+
+@app.route("/gcapi/v1/get_rankings", methods=["GET"])
+def get_rankings():
+    global gc_instance
+
+    alltime, week = gc_instance.get_rankings()
+    return jsonify({"message": "ok", "alltime": alltime, "week": week})
 
 
 @app.route("/gcapi/v1/get_feed", methods=["GET"])
