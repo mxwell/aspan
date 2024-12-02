@@ -111,7 +111,7 @@ class FormBuilder {
     createTenseForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
         let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
         let forms = [];
-        if (sentenceTypeIndex == 0 && !forceExceptional) {
+        if (sentenceTypeIndex == 0) {
             forms.push(new WeightedForm(this.verb, INFINITIVE_WEIGHT, "", "infinitive", "", ""));
         }
         const sentenceType = SENTENCE_TYPES[sentenceTypeIndex];

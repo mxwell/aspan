@@ -61,10 +61,19 @@ function createMainNounForms(noun) {
     return forms;
 }
 
-function writeDetectSuggestFormsLine(base, forms, outputStream) {
+function parseTranslations(s) {
+    if (s == null || s.length == 0) {
+        return [];
+    }
+    return s.split(",");
+}
+
+function writeDetectSuggestFormsLine(base, ruGlosses, enGlosses, forms, outputStream) {
     let dataObject = {
         pos: "noun",
         base: base,
+        ruwkt: ruGlosses,
+        enwkt: enGlosses,
         forms: forms,
     };
     let dataString = JSON.stringify(dataObject);
@@ -79,6 +88,23 @@ class InputItem {
             this.valid = false;
         } else if (parts[0] == "v1") {
             this.noun = parts[1];
+            this.freq = 0;
+            this.ruGlosses = [];
+            this.ruGlossesFe = [];
+            this.enGlosses = [];
+            this.enGlossesFe = [];
+        } else if (parts[0] == "v2") {
+            if (parts.length != 6) {
+                console.log(`invalid number of parts in input line: ${line}`);
+                this.valid = false;
+                return;
+            }
+            this.noun = parts[1];
+            this.freq = 0;
+            this.ruGlosses = parseTranslations(parts[2]);
+            this.ruGlossesFe = parseTranslations(parts[3]);
+            this.enGlosses = parseTranslations(parts[4]);
+            this.enGlossesFe = parseTranslations(parts[5]);
         } else {
             console.log(`failed to parse input line: ${line}`);
             this.valid = false;
@@ -123,7 +149,7 @@ async function processLineByLine(args) {
              * }
              */
             let nounForms = createMainNounForms(inputNoun.toLowerCase());
-            writeDetectSuggestFormsLine(inputNoun, nounForms, outputStream);
+            writeDetectSuggestFormsLine(inputNoun, inputItem.ruGlosses, inputItem.enGlosses, nounForms, outputStream);
         }
     }
 }
