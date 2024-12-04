@@ -1,0 +1,37 @@
+#! /bin/bash
+
+set -xe
+
+STDERRFILE=/gc-bundle/cron.err
+GC_ENDPOINT="https://kazakhverb.khairulin.com"
+CRON_TOKEN="cron_token"
+
+curl --verbose \
+    --stderr $STDERRFILE \
+    -X POST --location "${GC_ENDPOINT}/gcapi/v1/collect_contribs" \
+    -H "Content-Type: application/json" \
+    -d "{\"CRON_TOKEN\": \"${CRON_TOKEN}\"}"
+
+curl --verbose \
+    --stderr $STDERRFILE \
+    -X POST --location "${GC_ENDPOINT}/gcapi/v1/collect_contribs" \
+    -H "Content-Type: application/json" \
+    -d "{\"CRON_TOKEN\": \"${CRON_TOKEN}\"}"
+
+curl --verbose \
+    --stderr $STDERRFILE \
+    -X POST --location "${GC_ENDPOINT}/gcapi/v1/collect_contribs" \
+    -H "Content-Type: application/json" \
+    -d "{\"CRON_TOKEN\": \"${CRON_TOKEN}\"}"
+
+curl --verbose \
+    --stderr $STDERRFILE \
+    -X POST --location "${GC_ENDPOINT}/gcapi/v1/collect_disapprove_contribs" \
+    -H "Content-Type: application/json" \
+    -d "{\"CRON_TOKEN\": \"${CRON_TOKEN}\"}"
+
+curl --verbose \
+    --stderr $STDERRFILE \
+    -X POST --location "${GC_ENDPOINT}/gcapi/v1/calculate_rankings" \
+    -H "Content-Type: application/json" \
+    -d "{\"CRON_TOKEN\": \"${CRON_TOKEN}\"}"
