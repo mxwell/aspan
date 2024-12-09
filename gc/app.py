@@ -203,6 +203,13 @@ def read_ranking_items(fetched_results):
     return result
 
 
+def extract_string_group(row, key, separator):
+    s = row[key]
+    if s and len(s):
+        return s.split(separator)
+    return []
+
+
 def read_feed_items(fetched_results):
     result = []
     prev_tr_id = None
@@ -794,6 +801,9 @@ class Gc(object):
                 rv.disapproves AS disapproves,
                 rv.own_approves AS own_approves,
                 rv.own_disapproves AS own_disapproves,
+                tw.tr_words AS tr_words,
+                tw.tr_pos AS tr_pos,
+                tw.tr_comment AS tr_comment,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -813,6 +823,23 @@ class Gc(object):
                 FROM review_votes
                 GROUP BY review_id
             ) rv ON r.review_id = rv.review_id
+            LEFT JOIN (
+                SELECT
+                    w3.word AS word,
+                    w3.comment AS comment,
+                    w3.pos AS pos,
+                    GROUP_CONCAT(w4.word, "|") AS tr_words,
+                    GROUP_CONCAT(w4.pos, "|") AS tr_pos,
+                    GROUP_CONCAT(w4.comment, "|") AS tr_comment,
+                    w4.lang AS translation_lang
+                FROM
+                    words w3
+                JOIN
+                    translations t ON w3.word_id = t.word_id
+                JOIN
+                    words w4 ON t.translated_word_id = w4.word_id
+                GROUP BY w3.word_id, w4.lang
+            ) tw ON w1.word = tw.word AND w2.lang = tw.translation_lang
             WHERE
                 r.status == "NEW" AND
                 COALESCE(rv.approves, 0) >= ?
@@ -843,6 +870,9 @@ class Gc(object):
                 "disapproves": row["disapproves"] or 0,
                 "own_approves": row["own_approves"] or 0,
                 "own_disapproves": row["own_disapproves"] or 0,
+                "tr_words": extract_string_group(row, "tr_words", "|"),
+                "tr_pos": extract_string_group(row, "tr_pos", "|"),
+                "tr_comment": extract_string_group(row, "tr_comment", "|"),
                 "created_at": int(row["created_at"]),
             }
             for row in results
@@ -878,6 +908,9 @@ class Gc(object):
                 rv.disapproves AS disapproves,
                 rv.own_approves AS own_approves,
                 rv.own_disapproves AS own_disapproves,
+                tw.tr_words AS tr_words,
+                tw.tr_pos AS tr_pos,
+                tw.tr_comment AS tr_comment,
                 strftime('%s', r.created_at) AS created_at
             FROM
                 reviews r
@@ -897,6 +930,23 @@ class Gc(object):
                 FROM review_votes
                 GROUP BY review_id
             ) rv ON r.review_id = rv.review_id
+            LEFT JOIN (
+                SELECT
+                    w3.word AS word,
+                    w3.comment AS comment,
+                    w3.pos AS pos,
+                    GROUP_CONCAT(w4.word, "|") AS tr_words,
+                    GROUP_CONCAT(w4.pos, "|") AS tr_pos,
+                    GROUP_CONCAT(w4.comment, "|") AS tr_comment,
+                    w4.lang AS translation_lang
+                FROM
+                    words w3
+                JOIN
+                    translations t ON w3.word_id = t.word_id
+                JOIN
+                    words w4 ON t.translated_word_id = w4.word_id
+                GROUP BY w3.word_id, w4.lang
+            ) tw ON w1.word = tw.word AND w2.lang = tw.translation_lang
             WHERE r.status = "NEW"
                 AND w1.lang = ?
                 AND w2.lang = ?
@@ -927,6 +977,9 @@ class Gc(object):
                 "disapproves": row["disapproves"] or 0,
                 "own_approves": row["own_approves"] or 0,
                 "own_disapproves": row["own_disapproves"] or 0,
+                "tr_words": extract_string_group(row, "tr_words", "|"),
+                "tr_pos": extract_string_group(row, "tr_pos", "|"),
+                "tr_comment": extract_string_group(row, "tr_comment", "|"),
                 "created_at": int(row["created_at"]),
             }
             for row in results
