@@ -12,20 +12,18 @@ function validateVerb(verbDictForm: string): boolean {
     return last == "у" || last == "ю";
 }
 
-function isVerbException(verbDictForm: string): boolean {
-    const lastWord = getLastWord(verbDictForm);
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(lastWord);
+function isVerbException(verbLastWord: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS1_SET.has(verbLastWord);
 }
 
 type MaybeMeanings = string[][] | null;
 
-function getOptExceptVerbMeanings(verbDictForm: string): MaybeMeanings {
-    const lastWord = getLastWord(verbDictForm);
-    return OPT_EXCEPT_VERB_MEANINGS.get(lastWord);
+function getOptExceptVerbMeanings(verbLastWord: string): MaybeMeanings {
+    return OPT_EXCEPT_VERB_MEANINGS.get(verbLastWord);
 }
 
-function isVerbException2(verbDictForm: string): boolean {
-    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verbDictForm);
+function isVerbException2(verbLastWord: string): boolean {
+    return VERB_PRESENT_TRANSITIVE_EXCEPTIONS2_SET.has(verbLastWord);
 }
 
 class PresentContinuousContext {
@@ -102,29 +100,27 @@ class VerbBuilder {
         if (!validateVerb(verbDictForm)) {
             throw new Error("verb dictionary form must end with -у/-ю");
         }
+        const verbLastWord = getLastWord(verbDictForm);
+
         this.verbDictForm = verbDictForm;
         this.verbBase = chopLast(verbDictForm, 1);
         this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseStripU;
         this.forceExceptional = forceExceptional;
         this.regularVerbBase = this.verbBase;
         this.needsYaSuffix = false;
-        this.soft = wordIsSoft(this.verbDictForm);
+        this.soft = wordIsSoft(verbLastWord);
         this.softOffset = this.soft ? SOFT_OFFSET : HARD_OFFSET;
 
         /* exceptions */
-        if (isVerbException(verbDictForm) || (getOptExceptVerbMeanings(verbDictForm) != null && forceExceptional)) {
+        if (isVerbException(verbLastWord) || (getOptExceptVerbMeanings(verbLastWord) != null && forceExceptional)) {
             this.verbBase = this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
             this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedY;
-        } else if (isVerbException2(verbDictForm)) {
+        } else if (isVerbException2(verbLastWord)) {
             this.verbBase = this.verbBase + "й" + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
             this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedIShortY;
         } else if (verbDictForm.endsWith("ю")) {
             if (verbDictForm.endsWith("ию")) {
-                if (!this.soft) {
-                    this.needsYaSuffix = true;
-                } else {
-                    // nothing special here
-                }
+                this.needsYaSuffix = !this.soft
             } else {
                 this.verbBase = this.verbBase + "й";
                 this.baseExplanation = PART_EXPLANATION_TYPE.VerbBaseGainedIShort;

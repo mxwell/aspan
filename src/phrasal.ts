@@ -144,25 +144,22 @@ class PhrasalBuilder {
         }
         return this;
     }
-    unclassified(s: string): PhrasalBuilder {
+    addPartOfType(partType: PHRASAL_PART_TYPE, content: string): PhrasalBuilder {
         return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.Unclassified, s)
+            new PhrasalPart(partType, content)
         );
+    }
+    unclassified(s: string): PhrasalBuilder {
+        return this.addPartOfType(PHRASAL_PART_TYPE.Unclassified, s);
     }
     space(): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.Space, " ")
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.Space, " ");
     }
     punctuation(mark: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.Punctuation, mark)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.Punctuation, mark);
     }
     verbBase(verbBase: string) {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.VerbBase, verbBase)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.VerbBase, verbBase);
     }
     verbBaseWithExplanation(verbBase: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
@@ -170,9 +167,7 @@ class PhrasalBuilder {
         );
     }
     tenseAffix(affix: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.VerbTenseAffix, affix)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.VerbTenseAffix, affix);
     }
     tenseAffixWithExplanation(affix: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
@@ -180,9 +175,7 @@ class PhrasalBuilder {
         );
     }
     personalAffix(affix: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.VerbPersonalAffix, affix)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.VerbPersonalAffix, affix);
     }
     personalAffixWithExplanation(affix: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
@@ -191,9 +184,7 @@ class PhrasalBuilder {
         );
     }
     negation(particle: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.VerbNegation, particle)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.VerbNegation, particle);
     }
     negationWithExplanation(particle: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
@@ -201,9 +192,7 @@ class PhrasalBuilder {
         );
     }
     questionParticle(particle: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.QuestionParticle, particle)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.QuestionParticle, particle);
     }
     questionParticleWithExplanation(particle: string, explanation: PartExplanation): PhrasalBuilder {
         return this.addPart(
@@ -225,22 +214,16 @@ class PhrasalBuilder {
         );
     }
     pluralAffix(affix: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.PluralAffix, affix)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.PluralAffix, affix);
     }
     possessiveAffix(affix: string): PhrasalBuilder {
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.PossessiveAffix, affix)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.PossessiveAffix, affix);
     }
     septikAffix(affix: string): PhrasalBuilder {
         if (this.alternative != null) {
             this.alternative.septikAffix(affix);
         }
-        return this.addPart(
-            new PhrasalPart(PHRASAL_PART_TYPE.SeptikAffix, affix)
-        );
+        return this.addPartOfType(PHRASAL_PART_TYPE.SeptikAffix, affix);
     }
     setForbidden(forbidden: boolean): PhrasalBuilder {
         this.forbidden = forbidden;
