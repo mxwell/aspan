@@ -8,6 +8,7 @@ const kSuggestInfinitiveCommand = "suggest_infinitive";
 const kSuggestInfinitiveTranslationCommand = "suggest_infinitive_translation";
 const kPresentContinuousFormsCommand = "present_continuous_forms";
 const kVerbsWithMetaCommand = "verbs_with_meta";
+const kTestsetCommand = "testset";
 
 const KAZAKH_WEIGHT = 0.5;
 const SHORT_VERB_WEIGHT = KAZAKH_WEIGHT / 2;
@@ -279,6 +280,82 @@ function createVerbsWithMeta(verb) {
     if (optExceptMeaning != null) {
         const feBuilder = new aspan.VerbBuilder(verb, true);
         rows.push(new VerbWithMeta(verb, true, feBuilder.softOffset));
+    }
+    return rows;
+}
+
+function serializePhrasal(phrasal) {
+    let parts = [];
+    for (const part of phrasal.parts) {
+        if (part.content.length > 0) {
+            parts.push(part.content)
+        }
+    }
+    return parts.join("+");
+}
+
+function createForSentenceTypes(genFn) {
+    const sentenceTypes = ["Statement", "Negative", "Question"];
+    let result = {};
+    for (const sentenceType of sentenceTypes) {
+        let forms = [];
+        for (const grammarPerson of aspan.GRAMMAR_PERSONS) {
+            for (const grammarNumber of aspan.GRAMMAR_NUMBERS) {
+                const phrasal = genFn(sentenceType, grammarPerson, grammarNumber);
+                const s = serializePhrasal(phrasal);
+                forms.push(s);
+            }
+        }
+        result[sentenceType] = forms;
+    }
+    return result;
+}
+
+function createTestsetRow(verb, auxBuilders, forceExceptional) {
+    const builder = new aspan.VerbBuilder(verb, forceExceptional);
+    let tenses = [];
+    tenses.push(createForSentenceTypes(
+        (sentenceType, grammarPerson, grammarNumber) => builder.presentTransitiveForm(grammarPerson, grammarNumber, sentenceType)
+    ));
+    for (const negateAux of [false, true]) {
+        for (const auxBuilder of auxBuilders) {
+            tenses.push(createForSentenceTypes(
+                (sentenceType, grammarPerson, grammarNumber) => builder.presentContinuousForm(grammarPerson, grammarNumber, sentenceType, auxBuilder, negateAux)
+            ));
+        }
+    }
+    tenses.push(createForSentenceTypes(
+        (sentenceType, grammarPerson, grammarNumber) => builder.pastForm(grammarPerson, grammarNumber, sentenceType)
+    ));
+    for (const negateAux of [false, true]) {
+        tenses.push(createForSentenceTypes(
+            (sentenceType, grammarPerson, grammarNumber) => builder.remotePastTense(grammarPerson, grammarNumber, sentenceType, negateAux)
+        ));
+    }
+    tenses.push(createForSentenceTypes(
+        (sentenceType, grammarPerson, grammarNumber) => builder.conditionalMood(grammarPerson, grammarNumber, sentenceType)
+    ));
+    tenses.push(createForSentenceTypes(
+        (sentenceType, grammarPerson, grammarNumber) => builder.imperativeMood(grammarPerson, grammarNumber, sentenceType)
+    ));
+    const verbShak = "PresentTransitive";
+    tenses.push(createForSentenceTypes(
+        (sentenceType, grammarPerson, grammarNumber) => builder.wantClause(grammarPerson, grammarNumber, sentenceType, verbShak)
+    ));
+    const row = {
+        "verb": verb,
+        "forceExceptional": forceExceptional,
+        "tenses": tenses
+    };
+    return JSON.stringify(row);
+}
+
+function createTestsetRows(verb, auxBuilders) {
+    let rows = [];
+    rows.push(createTestsetRow(verb, auxBuilders, false));
+    const optExceptMeaning = aspan.getOptExceptVerbMeanings(verb);
+    if (optExceptMeaning != null) {
+        rows.push(createTestsetRow(verb, auxBuilders, true));
     }
     return rows;
 }
@@ -638,6 +715,13 @@ async function processLineByLine(args) {
             outputStream.write(`${row.verb}\t${fe}\t${row.softOffset}\n`);
             outputCounter += 1;
         }
+    } else if (args.command == kTestsetCommand) {
+        const rows = createTestsetRows(inputVerb, auxBuilders);
+        for (let i = 0; i < rows.length; ++i) {
+            const row = rows[i];
+            outputStream.write(`${row}\n`);
+            outputCounter += 1;
+        }
     }
     lineCounter += 1;
     if (lineCounter % 1000 == 0 && lineCounter > 0) {
@@ -676,6 +760,8 @@ function parseArgs() {
     } else if (command == kPresentContinuousFormsCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else if (command == kVerbsWithMetaCommand) {
+        return acceptCommandWithInputAndOutput(args, command);
+    } else if (command == kTestsetCommand) {
         return acceptCommandWithInputAndOutput(args, command);
     } else {
         throw new Error(`Unsupported command: ${command}`);
