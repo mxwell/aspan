@@ -595,8 +595,7 @@ class VerbBuilder {
             .build();
     }
     pastCommonBuilder(): PhrasalBuilder {
-        let pastBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getDydiTyti(baseAndLast.last, this.softOffset);
         return new PhrasalBuilder()
             .verbBase(baseAndLast.base)
@@ -610,8 +609,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let pastBase = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = DYDI[this.softOffset];
             return new PhrasalBuilder()
@@ -708,8 +706,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     remotePastCommonBuilder(): PhrasalBuilder {
-        let specialBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getGangenKanken(baseAndLast.last, this.softOffset);
         return new PhrasalBuilder()
             .verbBase(baseAndLast.base)
@@ -837,8 +834,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     conditionalMoodCommonBuilder(): PhrasalBuilder {
-        let pastBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(pastBase, getLastItem(pastBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getSase(this.softOffset);
         return new PhrasalBuilder()
             .verbBase(baseAndLast.base)
@@ -852,8 +848,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = getSase(this.softOffset);
             return new PhrasalBuilder()
