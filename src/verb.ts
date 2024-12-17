@@ -284,26 +284,6 @@ class VerbBuilder {
         return new BaseAndExplanationType(this.verbBase, this.baseLast, this.baseExplanation);
     }
     // TODO replace with genericBaseModifier()
-    fixUpSpecialBaseForConsonant(): string {
-        let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
-        if (specialBase != null) {
-            return specialBase
-        }
-        return this.verbBase;
-    }
-    // TODO do not force exceptional, use fixUpSpecialBaseForConsonant()
-    fixUpSpecialBaseForConsonantAndForceExceptional(): string {
-        let specialBase = VERB_EXCEPTION_ADD_VOWEL_MAP.get(this.verbDictForm)
-        if (specialBase != null) {
-            return specialBase
-        }
-        let meanings = getOptExceptVerbMeanings(this.verbDictForm);
-        if (meanings != null) {
-            return this.verbBase + VERB_PRESENT_TRANSITIVE_EXCEPTIONS_BASE_SUFFIX[this.softOffset];
-        }
-        return this.verbBase;
-    }
-    // TODO replace with genericBaseModifier()
     fixUpSpecialBaseForceExceptional(): string {
         let meanings = getOptExceptVerbMeanings(this.verbDictForm);
         if (meanings != null) {
@@ -567,8 +547,7 @@ class VerbBuilder {
         return this.getWantAuxBuilder().getFormByShak(GrammarPerson.Third, GrammarNumber.Singular, sentenceType, shak);
     }
     wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): Phrasal {
-        let specialBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getGygiKyki(baseAndLast.last, this.softOffset);
         let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.softOffset];
         let auxVerbPhrasal = this.getWantAuxVerb(sentenceType, shak);
@@ -647,8 +626,7 @@ class VerbBuilder {
                 .personalAffix(persAffix)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let specialBase = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = "с";
             let persAffix = getPersAffix1(person, number, affix, this.softOffset);
@@ -670,8 +648,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     intentionFutureCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
-        let specialBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let tenseAffix = getIntentionFutureAffix(baseAndLast.last, this.softOffset);
         let affixLast = getLastItem(tenseAffix);
         let persAffix = getPersAffix1(person, number, affixLast, this.softOffset);
@@ -686,8 +663,7 @@ class VerbBuilder {
             return this.intentionFutureCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let specialBase = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let tenseAffix = getIntentionFutureAffix(baseAndLast.last, this.softOffset);
             // last sound and softness come from "емес"
             let persAffix = getPersAffix1(person, number, "с", 1);
@@ -813,8 +789,7 @@ class VerbBuilder {
             return this.pastTransitiveCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = this.pastTransitiveSuffix(particleLast);
@@ -880,8 +855,7 @@ class VerbBuilder {
             return this.imperativeMoodCommonBuilder(person, number)
                 .build();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = getImperativeAffix(person, number, particleLast, this.softOffset);
@@ -902,8 +876,7 @@ class VerbBuilder {
         if (sentenceType == SentenceType.Statement) {
             return this.remotePastCommonBuilder();
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = getGangenKanken(particleLast, this.softOffset);
@@ -925,8 +898,7 @@ class VerbBuilder {
         if (sentenceType == SentenceType.Statement) {
             return this.presentParticipleCommonBuilder(false);
         } else if (sentenceType == SentenceType.Negative) {
-            let base = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(base, getLastItem(base));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let particleLast = getLastItem(particle);
             let affix = this.pastTransitiveSuffix(particleLast);
@@ -948,8 +920,7 @@ class VerbBuilder {
         if (sentenceType == SentenceType.Statement) {
             return this.possibleFutureCommonBuilder();
         } else if (sentenceType == SentenceType.Negative) {
-            let specialBase = this.fixUpSpecialBaseForConsonant();
-            let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+            let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
             let particle = getQuestionParticle(baseAndLast.last, this.softOffset);
             let affix = "с";
             return new PhrasalBuilder()
@@ -1012,8 +983,7 @@ class VerbBuilder {
         return NOT_SUPPORTED_PHRASAL;
     }
     intentionGerundBuilder(): PhrasalBuilder {
-        let specialBase = this.fixUpSpecialBaseForConsonant();
-        let baseAndLast = this.fixUpBaseForConsonant(specialBase, getLastItem(specialBase));
+        let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getGalygeliKalykeli(baseAndLast.last, this.softOffset);
         return new PhrasalBuilder()
             .verbBase(baseAndLast.base)
