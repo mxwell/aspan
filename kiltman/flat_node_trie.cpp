@@ -8,6 +8,29 @@
 
 namespace NKiltMan {
 
+const FlatNode* FlatNodeTrie::Traverse(TRunes::iterator begin, TRunes::iterator end, TRunes::iterator& next) const {
+    auto root = &nodes[0];
+    const FlatNode* node = root;
+    for (next = begin; next != end; ++next) {
+        TRuneValue runeValue = *next;
+
+        auto iter = runeMap.find(runeValue);
+        if (iter == runeMap.end()) {
+            break;
+        }
+        TRuneId runeId = iter->second;
+        FlatNode::TNodeId childId = node->FindChild(runeId, childData.data());
+        if (childId == FlatNode::kNoChild) {
+            break;
+        }
+        node = &nodes[childId];
+    }
+    if (node != root) {
+        return node;
+    }
+    return nullptr;
+}
+
 const FlatNode* FlatNodeTrie::Traverse(const TRunes& path) const {
     const FlatNode* node = &nodes[0];
     for (TRuneValue runeValue : path) {

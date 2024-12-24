@@ -64,6 +64,7 @@ struct FlatNodeTrie {
     std::vector<FlatNode> nodes;
     std::vector<FlatNode::TValueId> suggestions;
 
+    const FlatNode* Traverse(TRunes::iterator begin, TRunes::iterator end, TRunes::iterator& next) const;
     const FlatNode* Traverse(const TRunes& path) const;
 
     TSuggestionResults GetSuggestions(const FlatNode* node) const;

@@ -13,6 +13,7 @@
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/URI.h"
 
+#include <optional>
 #include <string>
 
 using namespace Poco;
@@ -21,10 +22,83 @@ using namespace Poco::Util;
 
 namespace {
 
+static const std::string kAnalyzePath = "/analyze";
 static const std::string kDetectPath = "/detect";
 
 bool StartsWith(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.size(), prefix) == 0;
+}
+
+std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, const NKiltMan::FlatNodeTrie& trie) {
+    Clock clock{};
+
+    JSON::Array textArray;
+
+    NKiltMan::TRunes runes;
+    auto conversionResult = NKiltMan::StringToRunesNoExcept(queryText, runes);
+    if (conversionResult != NKiltMan::ConversionResult::SUCCESS) {
+        return {};
+    }
+
+    NKiltMan::TRunes fragmentRunes;
+
+    auto flushFragment = [&textArray, &fragmentRunes]() {
+        if (!fragmentRunes.empty()) {
+            std::string fragmentStr;
+            NKiltMan::RunesToString(fragmentRunes, fragmentStr);
+
+            JSON::Object partObject;
+            partObject.set("found", false);
+            partObject.set("fragment", fragmentStr);
+            textArray.add(partObject);
+
+            fragmentRunes.clear();
+        }
+    };
+
+    for (auto runeIter = runes.begin(); runeIter != runes.end(); ) {
+        NKiltMan::TRunes::iterator next;
+        auto node = trie.Traverse(runeIter, runes.end(), next);
+        if (node) {
+            const auto terminalId = node->terminalId;
+            if (terminalId != NKiltMan::FlatNode::kNoTerminalId) {
+                flushFragment();
+
+                auto terminal = trie.terminals[terminalId];
+                JSON::Array wordArray;
+                for (const auto& terminalItem : terminal) {
+                    auto keyIndex = terminalItem.keyIndex;
+                    auto transitionId = terminalItem.transitionId;
+                    auto keyItem = trie.keys[keyIndex];
+
+                    JSON::Object word;
+                    std::string wordStr;
+                    NKiltMan::RunesToString(keyItem.runes, wordStr);
+                    word.set("initial", wordStr);
+                    word.set("meta", keyItem.metadata);
+                    if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+                        auto transition = trie.transitions[transitionId];
+                        word.set("transition", transition);
+                    }
+                    wordArray.add(word);
+                }
+                JSON::Object partObject;
+                partObject.set("found", true);
+                partObject.set("terminals", wordArray);
+                textArray.add(partObject);
+                runeIter = next;
+                continue;
+            }
+        }
+        fragmentRunes.push_back(*runeIter);
+        ++runeIter;
+    }
+    flushFragment();
+
+    JSON::Object response;
+    response.set("parts", textArray);
+    response.set("time", clock.elapsed() / 1e6);
+    return response;
 }
 
 JSON::Object buildDetectResponse(const std::string& queryText, bool suggest, const NKiltMan::FlatNodeTrie& trie) {
@@ -126,7 +200,35 @@ private:
         auto uri = Poco::URI(uriString);
         // app.logger().information("path: %s", uri.getPath());
 
-        if (uri.getPath() != kDetectPath) {
+        if (uri.getPath() == kAnalyzePath) {
+            auto params = uri.getQueryParameters();
+            std::string queryText;
+            for (const auto& [key, value]: params) {
+                if (key == "q") {
+                    queryText = value;
+                }
+            }
+            if (queryText.empty() || queryText.size() > 4096) {
+                response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_BAD_REQUEST);
+                response.setContentType("text/plain");
+                if (queryText.empty()) {
+                    response.send() << "Query parameter q is required";
+                } else {
+                    response.send() << "Query parameter q is too long";
+                }
+                return;
+            }
+            auto jsonObject = buildAnalyzeResponse(queryText, trie_);
+            if (!jsonObject) {
+                response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_INTERNAL_SERVER_ERROR);
+                response.setContentType("text/plain");
+                response.send() << "Internal error";
+                return;
+            }
+            response.setContentType("application/json");
+            jsonObject->stringify(response.send());
+            return;
+        } else if (uri.getPath() != kDetectPath) {
             response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_NOT_FOUND);
             response.setContentType("text/plain");
             response.send() << "Not found";
