@@ -11,6 +11,7 @@ namespace NKiltMan {
 const FlatNode* FlatNodeTrie::Traverse(TRunes::iterator begin, TRunes::iterator end, TRunes::iterator& next) const {
     auto root = &nodes[0];
     const FlatNode* node = root;
+    std::vector<std::pair<const FlatNode*, TRunes::iterator>> results;
     for (next = begin; next != end; ++next) {
         TRuneValue runeValue = *next;
 
@@ -24,9 +25,17 @@ const FlatNode* FlatNodeTrie::Traverse(TRunes::iterator begin, TRunes::iterator 
             break;
         }
         node = &nodes[childId];
+        auto after = next;
+        ++after;
+        if (node->terminalId != FlatNode::kNoTerminalId && (after == end || !IsAlpha(*after))) {
+            results.emplace_back(node, after);
+        }
     }
-    if (node != root) {
-        return node;
+    for (auto resIter = results.rbegin(); resIter != results.rend(); ++resIter) {
+        if (resIter->first != root) {
+            next = resIter->second;
+            return resIter->first;
+        }
     }
     return nullptr;
 }

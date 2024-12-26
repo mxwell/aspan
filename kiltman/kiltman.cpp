@@ -56,40 +56,45 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
         }
     };
 
+    bool prevIsAlpha = false;
     for (auto runeIter = runes.begin(); runeIter != runes.end(); ) {
-        NKiltMan::TRunes::iterator next;
-        auto node = trie.Traverse(runeIter, runes.end(), next);
-        if (node) {
-            const auto terminalId = node->terminalId;
-            if (terminalId != NKiltMan::FlatNode::kNoTerminalId) {
-                flushFragment();
+        if (!prevIsAlpha) {
+            NKiltMan::TRunes::iterator next;
+            auto node = trie.Traverse(runeIter, runes.end(), next);
+            if (node && (next == runes.end() || !NKiltMan::IsAlpha(*next))) {
+                const auto terminalId = node->terminalId;
+                if (terminalId != NKiltMan::FlatNode::kNoTerminalId) {
+                    flushFragment();
 
-                auto terminal = trie.terminals[terminalId];
-                JSON::Array wordArray;
-                for (const auto& terminalItem : terminal) {
-                    auto keyIndex = terminalItem.keyIndex;
-                    auto transitionId = terminalItem.transitionId;
-                    auto keyItem = trie.keys[keyIndex];
+                    auto terminal = trie.terminals[terminalId];
+                    JSON::Array wordArray;
+                    for (const auto& terminalItem : terminal) {
+                        auto keyIndex = terminalItem.keyIndex;
+                        auto transitionId = terminalItem.transitionId;
+                        auto keyItem = trie.keys[keyIndex];
 
-                    JSON::Object word;
-                    std::string wordStr;
-                    NKiltMan::RunesToString(keyItem.runes, wordStr);
-                    word.set("initial", wordStr);
-                    word.set("meta", keyItem.metadata);
-                    if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
-                        auto transition = trie.transitions[transitionId];
-                        word.set("transition", transition);
+                        JSON::Object word;
+                        std::string wordStr;
+                        NKiltMan::RunesToString(keyItem.runes, wordStr);
+                        word.set("initial", wordStr);
+                        word.set("meta", keyItem.metadata);
+                        if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+                            auto transition = trie.transitions[transitionId];
+                            word.set("transition", transition);
+                        }
+                        wordArray.add(word);
                     }
-                    wordArray.add(word);
+                    JSON::Object partObject;
+                    partObject.set("found", true);
+                    partObject.set("terminals", wordArray);
+                    textArray.add(partObject);
+                    prevIsAlpha = true;
+                    runeIter = next;
+                    continue;
                 }
-                JSON::Object partObject;
-                partObject.set("found", true);
-                partObject.set("terminals", wordArray);
-                textArray.add(partObject);
-                runeIter = next;
-                continue;
             }
         }
+        prevIsAlpha = NKiltMan::IsAlpha(*runeIter);
         fragmentRunes.push_back(*runeIter);
         ++runeIter;
     }

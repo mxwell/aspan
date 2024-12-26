@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace NKiltMan {
 
@@ -85,6 +86,23 @@ ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
         }
     }
     return ConversionResult::SUCCESS;
+}
+
+using TAlphaSet = std::unordered_set<TRuneValue>;
+
+TAlphaSet GenerateAlphaSet() {
+    TAlphaSet result;
+    auto mapping = GenerateLowercaseMapping();
+    for (const auto [k, v] : mapping) {
+        result.insert(k);
+        result.insert(v);
+    }
+    return result;
+}
+
+bool IsAlpha(TRuneValue rune) {
+    static auto alphaSet = GenerateAlphaSet();
+    return alphaSet.count(rune);
 }
 
 void StringToRunes(const std::string& s, TRunes& result) {
