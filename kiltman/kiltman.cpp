@@ -29,6 +29,29 @@ bool StartsWith(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.size(), prefix) == 0;
 }
 
+/* Response:
+ *
+ * {
+ *     "time": <DOUBLE>,
+ *     "parts": [
+ *         {
+ *             "recognized": <BOOL>,
+ *             "text": <STRING>,
+ *             "meanings": [
+ *                 {
+ *                     "initial": <STRING>,
+ *                     "meta": <OBJECT>,
+ *                     "transition": <STRING
+ *                 },
+ *                 {..}
+ *             ]
+ *         },
+ *         {..}
+ *     ]
+ * }
+ *
+ */
+
 std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, const NKiltMan::FlatNodeTrie& trie) {
     Clock clock{};
 
@@ -42,14 +65,18 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
 
     NKiltMan::TRunes fragmentRunes;
 
-    auto flushFragment = [&textArray, &fragmentRunes]() {
+    const JSON::Array kEmptyArray;
+
+    auto flushFragment = [&textArray, &fragmentRunes, &kEmptyArray]() {
         if (!fragmentRunes.empty()) {
             std::string fragmentStr;
             NKiltMan::RunesToString(fragmentRunes, fragmentStr);
 
             JSON::Object partObject;
-            partObject.set("found", false);
-            partObject.set("fragment", fragmentStr);
+            partObject.set("recognized", false);
+            partObject.set("text", fragmentStr);
+            partObject.set("terminals", kEmptyArray);
+
             textArray.add(partObject);
 
             fragmentRunes.clear();
@@ -81,11 +108,19 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
                         if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
                             auto transition = trie.transitions[transitionId];
                             word.set("transition", transition);
+                        } else {
+                            word.set("transition", "");
                         }
                         wordArray.add(word);
                     }
+
+                    NKiltMan::TRunes recognizedRunes(runeIter, next);
+                    std::string text;
+                    NKiltMan::RunesToString(recognizedRunes, text);
+
                     JSON::Object partObject;
-                    partObject.set("found", true);
+                    partObject.set("recognized", true);
+                    partObject.set("text", text);
                     partObject.set("terminals", wordArray);
                     textArray.add(partObject);
                     prevIsAlpha = true;
