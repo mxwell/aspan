@@ -35,9 +35,8 @@ bool StartsWith(const std::string& str, const std::string& prefix) {
  *     "time": <DOUBLE>,
  *     "parts": [
  *         {
- *             "recognized": <BOOL>,
  *             "text": <STRING>,
- *             "meanings": [
+ *             "forms": [
  *                 {
  *                     "initial": <STRING>,
  *                     "meta": <OBJECT>,
@@ -73,9 +72,8 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
             NKiltMan::RunesToString(fragmentRunes, fragmentStr);
 
             JSON::Object partObject;
-            partObject.set("recognized", false);
             partObject.set("text", fragmentStr);
-            partObject.set("terminals", kEmptyArray);
+            partObject.set("forms", kEmptyArray);
 
             textArray.add(partObject);
 
@@ -119,9 +117,8 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
                     NKiltMan::RunesToString(recognizedRunes, text);
 
                     JSON::Object partObject;
-                    partObject.set("recognized", true);
                     partObject.set("text", text);
-                    partObject.set("terminals", wordArray);
+                    partObject.set("forms", wordArray);
                     textArray.add(partObject);
                     prevIsAlpha = true;
                     runeIter = next;
