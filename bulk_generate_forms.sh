@@ -9,7 +9,7 @@ export GENERATOR="scripts/bulk_generate.js"
 export INPUT_VERBS="data/verbs_kk.v2.csv"
 
 export OUTPUT_DETECTOR_FORMS="data/detector_forms.csv"
-export OUTPUT_DETECT_SUGGEST_FORMS="data/detect_suggest_forms.jsonl"
+export OUTPUT_DETECT_SUGGEST_FORMS="data/detect_suggest_forms.20241230.jsonl"
 export OUTPUT_SUGGEST_INFINITIVE_TRANSLATION="data/suggest_infinitive_translation.csv"
 export OUTPUT_VERBS_WITH_META="data/verbs_fe_soft.csv"
 export OUTPUT_TESTSET="data/verb_testset.20241215.jsonl"
@@ -22,8 +22,8 @@ cat $COMPILED module_export.js > $ASPAN_JS
 # node $GENERATOR detector_forms ${INPUT_VERBS} ${OUTPUT_DETECTOR_FORMS}
 # echo "Generated detector forms data is stored to ${OUTPUT_DETECTOR_FORMS}."
 
-# node $GENERATOR detect_suggest_forms ${INPUT_VERBS} ${OUTPUT_DETECT_SUGGEST_FORMS}
-# echo "Generated detector+suggest forms data is stored to ${OUTPUT_DETECT_SUGGEST_FORMS}."
+node $GENERATOR detect_suggest_forms ${INPUT_VERBS} ${OUTPUT_DETECT_SUGGEST_FORMS}
+echo "Generated detector+suggest forms data is stored to ${OUTPUT_DETECT_SUGGEST_FORMS}."
 
 # node $GENERATOR suggest_infinitive_translation ${INPUT_VERBS} ${OUTPUT_SUGGEST_INFINITIVE_TRANSLATION}
 # echo "Generated infinitive and translation suggest data is stored to ${OUTPUT_SUGGEST_INFINITIVE_TRANSLATION}."
@@ -35,5 +35,5 @@ cat $COMPILED module_export.js > $ASPAN_JS
 # node $GENERATOR verbs_with_meta ${INPUT_VERBS} ${OUTPUT_VERBS_WITH_META}
 # echo "Generated verbs with meta data is stored to ${OUTPUT_VERBS_WITH_META}."
 
-node $GENERATOR testset ${INPUT_VERBS} ${OUTPUT_TESTSET}
-echo "Generated verb testset is stored to ${OUTPUT_TESTSET}."
+#node $GENERATOR testset ${INPUT_VERBS} ${OUTPUT_TESTSET}
+#echo "Generated verb testset is stored to ${OUTPUT_TESTSET}."

@@ -123,22 +123,38 @@ class FormBuilder {
             forms
         );
         // Present continuous tense forms look the same for all sentence types after the auxiliary verb is stripped.
-        if (sentenceTypeIndex == 0) {
+        if (!this.limitWords || sentenceTypeIndex == 0) {
             this.createForms(
                 sentenceTypeIndex,
                 "presentContinuous",
                 (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
                 forms
             );
+            if (sentenceTypeIndex == 1) {
+                this.createForms(
+                    sentenceTypeIndex,
+                    "presentContinuous",
+                    (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder, /* negate_aux */ false),
+                    forms
+                );
+            }
         }
         // Remote past tense forms look the same for all sentence types after the auxiliary verb is stripped.
-        if (sentenceTypeIndex == 0) {
+        if (!this.limitWords || sentenceTypeIndex == 0) {
             this.createForms(
                 sentenceTypeIndex,
                 "remotePast",
                 (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
                 forms
             );
+            if (sentenceTypeIndex == 1) {
+                this.createForms(
+                    sentenceTypeIndex,
+                    "remotePast",
+                    (person, number) => verbBuilder.remotePastTense(person, number, sentenceType, /* negate_aux */ false),
+                    forms
+                );
+            }
         }
         this.createForms(
             sentenceTypeIndex,
@@ -185,6 +201,12 @@ class FormBuilder {
             (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
             forms
         );
+        this.createForms(
+            sentenceTypeIndex,
+            "optativeMood",
+            (person, number) => verbBuilder.wantClause(person, number, sentenceType, /* shak */ "PresentTransitive"),
+            forms
+        );
         const pastParticiple = verbBuilder.pastParticiple(sentenceType).raw;
         forms.push(new WeightedForm(pastParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "pastParticiple", "", ""));
         const presentParticiple = verbBuilder.presentParticiple(sentenceType).raw;
@@ -223,7 +245,7 @@ class FormRow {
 }
 
 function createTenseFormsForAllVariants(verb, auxBuilder) {
-    const limitWords = true;
+    const limitWords = false;
     let formBuilder = new FormBuilder(verb, limitWords);
     const optExceptMeaning = aspan.getOptExceptVerbMeanings(verb);
     const isOptionalException = optExceptMeaning != null;
