@@ -44,6 +44,19 @@ function countSpaces(s) {
     return spaces;
 }
 
+function cutLastWords(s, words) {
+    let cutPos = s.length;
+    for (let i = 0; i < words && cutPos > 0; ++i) {
+        let space = s.lastIndexOf(" ", cutPos - 1);
+        if (space >= 0) {
+            cutPos = space;
+        } else {
+            break;
+        }
+    }
+    return s.substr(0, cutPos);
+}
+
 const SENTENCE_TYPES = ["Statement", "Negative"];
 const PERSONS = [aspan.GrammarPerson.First, aspan.GrammarPerson.Second, aspan.GrammarPerson.SecondPolite, aspan.GrammarPerson.Third];
 const NUMBERS = [aspan.GrammarNumber.Singular, aspan.GrammarNumber.Plural];
@@ -54,7 +67,7 @@ class FormBuilder {
         this.limitWords = limitWords;
         this.spaces = countSpaces(verb);
     }
-    createForms(sentenceTypeIndex, tenseName, caseFn, formsOut) {
+    createFormsWithCut(sentenceTypeIndex, tenseName, caseFn, cutLast, formsOut) {
         let spaces = this.spaces;
         let limitWords = this.limitWords;
         function addForm(personIndex, numberIndex, weight) {
@@ -79,6 +92,8 @@ class FormBuilder {
                     offset = spacePos + 1;
                 }
                 spacePos = fullForm.indexOf(" ", offset);
+            } else if (cutLast > 0) { // used only for optative mood
+                fullForm = cutLastWords(fullForm, cutLast);
             }
             let form = spacePos < 0 ? fullForm : fullForm.substring(0, spacePos);
             if (prev != form && form != aspan.NOT_SUPPORTED) {
@@ -108,6 +123,9 @@ class FormBuilder {
         addForm(secondP, plur, SECOND_PLURAL_WEIGHT);
         addForm(third, sing, THIRD_PERSON_WEIGHT);
         addForm(third, plur, THIRD_PERSON_WEIGHT);
+    }
+    createForms(sentenceTypeIndex, tenseName, caseFn, formsOut) {
+        this.createFormsWithCut(sentenceTypeIndex, tenseName, caseFn, 0, formsOut);
     }
     createTenseForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
         let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
@@ -203,10 +221,20 @@ class FormBuilder {
         );
         this.createForms(
             sentenceTypeIndex,
-            "optativeMood",
+            "optMoodPresTrans",
             (person, number) => verbBuilder.wantClause(person, number, sentenceType, /* shak */ "PresentTransitive"),
             forms
         );
+        // Optative mood forms look the same for all sentence types after the auxiliary verb is stripped
+        if (sentenceTypeIndex == 0) {
+            this.createFormsWithCut(
+                sentenceTypeIndex,
+                "optativeMood",
+                (person, number) => verbBuilder.wantClause(person, number, sentenceType, /* shak */ "PresentTransitive"),
+                1,
+                forms
+            );
+        }
         const pastParticiple = verbBuilder.pastParticiple(sentenceType).raw;
         forms.push(new WeightedForm(pastParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "pastParticiple", "", ""));
         const presentParticiple = verbBuilder.presentParticiple(sentenceType).raw;
