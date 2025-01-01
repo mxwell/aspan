@@ -11,6 +11,7 @@ enum PHRASAL_PART_TYPE {
     PluralAffix = "PluralAffix",
     PossessiveAffix = "PossessiveAffix",
     SeptikAffix = "SeptikAffix",
+    PronounBase = "PronounBase",
 }
 
 enum PART_EXPLANATION_TYPE {
@@ -211,6 +212,11 @@ class PhrasalBuilder {
     nounBase(nounBase: string): PhrasalBuilder {
         return this.addPart(
             new PhrasalPart(PHRASAL_PART_TYPE.NounBase, nounBase)
+        );
+    }
+    pronounBase(pronounBase: string): PhrasalBuilder {
+        return this.addPart(
+            new PhrasalPart(PHRASAL_PART_TYPE.PronounBase, pronounBase)
         );
     }
     pluralAffix(affix: string): PhrasalBuilder {

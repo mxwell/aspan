@@ -4438,6 +4438,19 @@ ALL_TESTS.push(["IntentionGerundTest", function() {
     }
 }]);
 
+ALL_TESTS.push(["PronounTest", function() {
+    T_EQ_ASSERT(
+        "мен",
+        new PronounBuilder(GrammarPerson.First, GrammarNumber.Singular).septikForm(Septik.Atau),
+        "1p sing pronoun"
+    );
+    T_EQ_ASSERT(
+        "бізбен",
+        new PronounBuilder(GrammarPerson.First, GrammarNumber.Plural).septikForm(Septik.Komektes),
+        "1p pl pronoun intrumental"
+    );
+}]);
+
 /* End of tests */
 
 testAll();

@@ -11,13 +11,13 @@ enum DropVowelType {
 };
 
 enum Septik {
-    Atau,
-    Ilik,
-    Barys,
-    Tabys,
-    Jatys,
-    Shygys,
-    Komektes,
+    Atau = "Atau",
+    Ilik = "Ilik",
+    Barys = "Barys",
+    Tabys = "Tabys",
+    Jatys = "Jatys",
+    Shygys = "Shygys",
+    Komektes = "Komektes",
 };
 
 const SEPTIKS: Septik[] = [Septik.Atau, Septik.Ilik, Septik.Barys, Septik.Tabys, Septik.Jatys, Septik.Shygys, Septik.Komektes];

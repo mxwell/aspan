@@ -15,5 +15,6 @@ export {
     getOptExceptVerbMeanings,
     validPresentContPair,
     NounBuilder,
+    PronounBuilder,
     VerbBuilder,
 }
