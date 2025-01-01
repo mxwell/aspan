@@ -546,20 +546,27 @@ class VerbBuilder {
         }
         return this.getWantAuxBuilder().getFormByShak(GrammarPerson.Third, GrammarNumber.Singular, sentenceType, shak);
     }
-    wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): Phrasal {
+    commonOptativeBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         let baseAndLast = this.genericBaseModifier(/* nc */ true, /* yp */ false);
         let affix = getGygiKyki(baseAndLast.last, this.softOffset);
         let persAffix = VERB_WANT_PERS_AFFIXES[person][number][this.softOffset];
-        let auxVerbPhrasal = this.getWantAuxVerb(sentenceType, shak);
         return new PhrasalBuilder()
             .verbBase(baseAndLast.base)
             .tenseAffix(affix)
-            .personalAffix(persAffix)
+            .personalAffix(persAffix);
+    }
+    wantClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, shak: VerbShak): Phrasal {
+        let auxVerbPhrasal = this.getWantAuxVerb(sentenceType, shak);
+        return this.commonOptativeBuilder(person, number)
             .space()
             .auxVerb(auxVerbPhrasal)
             .build();
     }
-
+    optativeMoodNoAux(person: GrammarPerson, number: GrammarNumber): Phrasal {
+        return this.commonOptativeBuilder(person, number)
+            .build();
+    }
+    /* "can" clause */
     getCanAuxBuilder(): VerbBuilder {
         if (this.canAuxBuilder == null) {
             this.canAuxBuilder = new VerbBuilder("алу");
