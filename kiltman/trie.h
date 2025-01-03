@@ -21,7 +21,7 @@ using TRuneId = uint8_t;
 constexpr TRuneId kNoRuneId = std::numeric_limits<TRuneId>::max();
 constexpr size_t kMaxSuggestions = 10;
 
-using TTransitionId = uint8_t;
+using TTransitionId = uint16_t;
 using TKey = uint16_t;
 using TTerminalId = uint32_t;
 
@@ -114,6 +114,8 @@ public:
     const TNode* Traverse(const std::string& path) const;
     std::string GetKey(uint16_t index) const;
     void PrintStats(Poco::Logger& logger) const;
+    uint32_t GetTransitionsCount() const;
+    void DebugPrintTransitions(Poco::Logger& logger) const;
     void PrintTrie(const std::string& filename) const;
 
     void BuildSuggestions();

@@ -287,6 +287,17 @@ void TrieBuilder::PrintNodes(std::ofstream& out) const {
     }
 }
 
+uint32_t TrieBuilder::GetTransitionsCount() const {
+    return transitions_.size();
+}
+
+void TrieBuilder::DebugPrintTransitions(Poco::Logger& logger) const {
+    logger.information("Transitions count: %z", transitions_.size());
+    for (const auto& transition : transitions_) {
+        logger.information("- %s", transition);
+    }
+}
+
 std::string TrieBuilder::BuildValue(const TNode::TValue value) const {
     std::string result;
     RunesToString(valueRunesVec_[value], result);
@@ -415,6 +426,12 @@ std::string ExtractTransition(const Poco::JSON::Object::Ptr& formObject) {
     result.append(ExtractOptionalString(formObject, "number"));
     result.push_back(':');
     result.append(ExtractOptionalString(formObject, "septik"));
+    result.push_back(':');
+    result.append(ExtractOptionalString(formObject, "possPerson"));
+    result.push_back(':');
+    result.append(ExtractOptionalString(formObject, "possNumber"));
+    result.push_back(':');
+    result.append(ExtractOptionalString(formObject, "wordgen"));
     return result;
 }
 
@@ -504,11 +521,19 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
             auto transitionStr = ExtractTransition(formObject);
             auto transitionId = builder.GetTransitionId(transitionStr);
             if (transitionId >= kNoTransition) {
+                if (logger) {
+                    builder.DebugPrintTransitions(*logger);
+                }
                 throw std::runtime_error("Too many transitions");
             }
-
             builder.AddPath(runes, weight, transitionId, keyIndex);
         }
+    }
+    if (builder.GetTransitionsCount() > kNoTransition) {
+        if (logger) {
+            builder.DebugPrintTransitions(*logger);
+        }
+        throw std::runtime_error("Too many transitions");
     }
     builder.BuildSuggestions();
     if (logger) {

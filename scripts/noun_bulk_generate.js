@@ -5,13 +5,23 @@ const aspan = require('../BUILD/aspan.js');
 const kDetectSuggestFormsCommand = "detect_suggest_forms";
 
 class NounForm {
-    constructor(form, weight, number, septik, person) {
+    constructor(form, weight, number, septik, possPerson, possNumber, wordgen) {
         this.form = form;
         this.weight = weight;
-        this.number = number;
-        this.septik = septik;
-        if (person != null) {
-            this.person = person;
+        if (number != null) {
+            this.number = number;
+        }
+        if (septik != null) {
+            this.septik = septik;
+        }
+        if (possPerson != null) {
+            this.possPerson = possPerson;
+        }
+        if (possNumber != null) {
+            this.possNumber = possNumber;
+        }
+        if (wordgen != null) {
+            this.wordgen = wordgen;
         }
     }
 }
@@ -32,6 +42,8 @@ function createMainNounForms(noun) {
             kSingularIndex,
             septikIndex,
             null,
+            null,
+            null,
         ));
         forms.push(new NounForm(
             nb.pluralSeptikForm(septik).raw,
@@ -39,25 +51,43 @@ function createMainNounForms(noun) {
             kPluralIndex,
             septikIndex,
             null,
+            null,
+            null,
         ));
-        for (let personIndex = 0; personIndex < aspan.GRAMMAR_PERSONS.length; ++personIndex) {
-            const person = aspan.GRAMMAR_PERSONS[personIndex];
-            forms.push(new NounForm(
-                nb.possessiveSeptikForm(person, aspan.GrammarNumber.Singular, septik).raw,
-                0.5,
-                kSingularIndex,
-                septikIndex,
-                personIndex,
-            ));
-            forms.push(new NounForm(
-                nb.possessiveSeptikForm(person, aspan.GrammarNumber.Plural, septik).raw,
-                0.5,
-                kPluralIndex,
-                septikIndex,
-                personIndex,
-            ));
+        for (let possPersonIndex = 0; possPersonIndex < aspan.GRAMMAR_PERSONS.length; ++possPersonIndex) {
+            const person = aspan.GRAMMAR_PERSONS[possPersonIndex];
+            for (let possNumberIndex = 0; possNumberIndex < aspan.GRAMMAR_NUMBERS.length; ++possNumberIndex) {
+                let number = aspan.GRAMMAR_NUMBERS[possNumberIndex];
+                forms.push(new NounForm(
+                    nb.possessiveSeptikForm(person, number, septik).raw,
+                    0.5,
+                    kSingularIndex,
+                    septikIndex,
+                    possPersonIndex,
+                    possNumberIndex,
+                    null,
+                ));
+                forms.push(new NounForm(
+                    nb.pluralPossessiveSeptikForm(person, number, septik).raw,
+                    0.5,
+                    kPluralIndex,
+                    septikIndex,
+                    possPersonIndex,
+                    possNumberIndex,
+                    null,
+                ));
+            }
         }
     }
+    forms.push(new NounForm(
+        nb.relatedAdj().raw,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        "dagy",
+    ));
     return forms;
 }
 
@@ -135,14 +165,15 @@ async function processLineByLine(args) {
             /**
              * {
              *   "base": <NOUN>,
-             *   "exceptional": <FORCE_EXCEPTIONAL>,
              *   "forms": [
              *     {
              *       "form": <FORM>,
              *       "weight": <FORM_WEIGHT>,
              *       "number": "<NUMBER>",
              *       "septik": "<SEPTIK>",
-             *       "person": "<PERSON>"
+             *       "possPerson": "<PERSON>",
+             *       "possNumber": "<NUMBER>",
+             *       "wordgen": "<WORDGEN>",
              *     },
              *     ...
              *   ]

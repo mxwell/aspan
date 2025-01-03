@@ -12,5 +12,6 @@ module.exports = {
     GrammarPerson,
     GrammarNumber,
     NounBuilder,
+    PronounBuilder,
     SEPTIKS,
 };

@@ -9,7 +9,7 @@ export GENERATOR="scripts/bulk_generate.js"
 export INPUT_VERBS="data/verbs_kk.v2.csv"
 
 export OUTPUT_DETECTOR_FORMS="data/detector_forms.csv"
-export OUTPUT_DETECT_SUGGEST_FORMS="data/detect_suggest_forms.20241230.jsonl"
+export OUTPUT_DETECT_SUGGEST_FORMS="data/detect_suggest_forms.20250103.jsonl"
 export OUTPUT_SUGGEST_INFINITIVE_TRANSLATION="data/suggest_infinitive_translation.csv"
 export OUTPUT_VERBS_WITH_META="data/verbs_fe_soft.csv"
 export OUTPUT_TESTSET="data/verb_testset.20241215.jsonl"

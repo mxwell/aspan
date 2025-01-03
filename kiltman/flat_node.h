@@ -15,7 +15,7 @@ namespace NKiltMan {
 
 struct FlatNode {
     using TKey = uint16_t;
-    using TTransitionId = uint8_t;
+    using TTransitionId = uint16_t;
     using TTerminalId = uint32_t;
     using TRuneId = uint8_t;
     using TNodeId = uint32_t;
