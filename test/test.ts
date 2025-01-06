@@ -4451,6 +4451,25 @@ ALL_TESTS.push(["PronounTest", function() {
     );
 }]);
 
+ALL_TESTS.push(["AdjCompTest", function() {
+    const relations = [
+        ["таза", "тазарақ"],
+        ["жаман", "жаманырақ"],
+        ["жуан", "жуанырақ"],
+        ["төмен", "төменірек"],
+        ["биік", "биігірек"],
+        ["ақ", "ағырақ"],
+        ["көп", "көбірек"],
+    ];
+    for (const [base, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new AdjBuilder(base).rakForm(),
+            "comparative adj form"
+        );
+    }
+}]);
+
 /* End of tests */
 
 testAll();

@@ -12,6 +12,8 @@ enum PHRASAL_PART_TYPE {
     PossessiveAffix = "PossessiveAffix",
     SeptikAffix = "SeptikAffix",
     PronounBase = "PronounBase",
+    AdjBase = "AdjBase",
+    AdjCompAffix = "AdjCompAffix",
 }
 
 enum PART_EXPLANATION_TYPE {
@@ -230,6 +232,12 @@ class PhrasalBuilder {
             this.alternative.septikAffix(affix);
         }
         return this.addPartOfType(PHRASAL_PART_TYPE.SeptikAffix, affix);
+    }
+    adjBase(adjBase: string): PhrasalBuilder {
+        return this.addPartOfType(PHRASAL_PART_TYPE.AdjBase, adjBase);
+    }
+    adjCompAffix(affix: string): PhrasalBuilder {
+        return this.addPartOfType(PHRASAL_PART_TYPE.AdjCompAffix, affix);
     }
     setForbidden(forbidden: boolean): PhrasalBuilder {
         this.forbidden = forbidden;
