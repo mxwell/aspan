@@ -110,13 +110,7 @@ class NounBuilder {
     }
 
     private getPluralAffix(baseLast): string {
-        if (vowel(baseLast) || checkCharPresence(baseLast, CONS_GROUP7)) {
-            return LARLER[this.softOffset];
-        }
-        if (checkCharPresence(baseLast, CONS_GROUP8)) {
-            return DARDER[this.softOffset];
-        }
-        return TARTER[this.softOffset];
+        return chooseLDT(baseLast, this.softOffset, LARLER, DARDER, TARTER);
     }
 
     private pluralBuilder(): PhrasalBuilder {

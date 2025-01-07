@@ -15,3 +15,13 @@ function chooseMBP(c: string, softOffset: number, mAffixes: string[], bAffixes: 
     }
     return pAffixes[softOffset];
 }
+
+function chooseLDT(c: string, softOffset: number, lAffixes: string[], dAffixes: string[], tAffixes: string[]): string {
+    if (vowel(c) || checkCharPresence(c, CONS_GROUP7)) {
+        return lAffixes[softOffset];
+    }
+    if (checkCharPresence(c, CONS_GROUP8)) {
+        return dAffixes[softOffset];
+    }
+    return tAffixes[softOffset];
+}

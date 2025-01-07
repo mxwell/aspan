@@ -323,9 +323,6 @@ const AFFIX_AT = ["ат", "ят"];
 
 const SASE = ["са", "се"];
 
-const RAKREK = ["рақ", "рек"];
-const YRAKIREK = ["ырақ", "ірек"];
-
 const PRONOUN_BY_PERSON_NUMBER: Record<GrammarPerson, Record<GrammarNumber, String>> = {
     First: {
         Singular: "мен",

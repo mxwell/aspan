@@ -46,4 +46,13 @@ class AdjBuilder {
             .adjCompAffix(affix)
             .build();
     }
+
+    dauForm(): Phrasal {
+        const last = getLastItem(this.adjDictForm);
+        const affix = chooseLDT(last, this.softOffset, LAULEU, DAUDEU, TAUTEU);
+        return new PhrasalBuilder()
+            .adjBase(this.adjDictForm)
+            .adjCompAffix(affix)
+            .build();
+    }
 }

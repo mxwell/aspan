@@ -4451,7 +4451,7 @@ ALL_TESTS.push(["PronounTest", function() {
     );
 }]);
 
-ALL_TESTS.push(["AdjCompTest", function() {
+ALL_TESTS.push(["AdjRakTest", function() {
     const relations = [
         ["таза", "тазарақ"],
         ["жаман", "жаманырақ"],
@@ -4460,12 +4460,36 @@ ALL_TESTS.push(["AdjCompTest", function() {
         ["биік", "биігірек"],
         ["ақ", "ағырақ"],
         ["көп", "көбірек"],
+        ["толық", "толығырақ"],
     ];
     for (const [base, expected] of relations) {
         T_EQ_ASSERT(
             expected,
             new AdjBuilder(base).rakForm(),
-            "comparative adj form"
+            "comparative rak/rek adj form"
+        );
+    }
+}]);
+
+ALL_TESTS.push(["AdjDauTest", function() {
+    const relations = [
+        ["таза", "тазалау"],
+        ["тәтті", "тәттілеу"],
+        ["лас", "ластау"],
+        ["жаман", "жамандау"],
+        ["жуан", "жуандау"],
+        ["төмен", "төмендеу"],
+        ["биік", "биіктеу"],
+        ["ақ", "ақтау"],
+        ["көп", "көптеу"],
+        ["семiз", "семiздеу"],
+        ["қымбат", "қымбаттау"],
+    ];
+    for (const [base, expected] of relations) {
+        T_EQ_ASSERT(
+            expected,
+            new AdjBuilder(base).dauForm(),
+            "comparative dau/tau/lau adj form"
         );
     }
 }]);
