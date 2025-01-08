@@ -14,4 +14,5 @@ module.exports = {
     NounBuilder,
     PronounBuilder,
     SEPTIKS,
+    AdjBuilder,
 };

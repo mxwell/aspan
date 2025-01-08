@@ -14,6 +14,7 @@ export {
     getDeclAltInfo,
     getOptExceptVerbMeanings,
     validPresentContPair,
+    AdjBuilder,
     NounBuilder,
     PronounBuilder,
     VerbBuilder,
