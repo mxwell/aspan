@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 from logging.config import dictConfig
 import os
@@ -7,6 +8,7 @@ import requests
 import sqlite3
 import sys
 import threading
+import urllib.parse
 import uuid
 
 import boto3
@@ -36,6 +38,8 @@ BUCKET_NAME="verbforms"
 BUCKET_URL = f"https://storage.yandexcloud.net/{BUCKET_NAME}/"
 app = Flask("un_app")
 unInstance = None
+
+ALLOWED_NONTEXT = " .,!?-():;\"'"
 
 
 def read_token(path):
@@ -87,6 +91,15 @@ class SynthYskV1(Synth):
                 total += len(audio_content)
         logging.info("Generated audio of %d for %s: %s", total, text, name)
 
+    def generate_sentence_audio(self, voice_id, sentence, path, name):
+        soft = voice_id > 0
+        total = 0
+        with open(path, "wb") as output_file:
+            for audio_content in self.request(soft, sentence):
+                output_file.write(audio_content)
+                total += len(audio_content)
+        logging.info("Generated sentence audio of %d for %s: %s", total, sentence, name)
+
 
 class SynthYskV3(Synth):
 
@@ -118,6 +131,12 @@ class SynthYskV3(Synth):
         result.export(path, format="mp3")
         logging.info("Generated audio for %s: %s", text, name)
 
+    def generate_sentence_audio(self, voice_id, sentence, path, name):
+        soft = voice_id > 0
+        result = self.get_model(soft).synthesize(sentence, raw_format=False)
+        result.export(path, format="mp3")
+        logging.info("Generated audio for %s: %s", sentence, name)
+
 
 class Un(object):
 
@@ -146,6 +165,13 @@ class Un(object):
         suffix = str(uuid.uuid4())[:6]
         return f"{verbT}{int(fe)}{textT}_{suffix}"
 
+    def make_sentence_audio_name(self, sentence):
+        sentenceT = transliterate(sentence[:32].strip())
+        if not sentenceT:
+            return None
+        suffix = str(uuid.uuid4())[:6]
+        return f"sent_{sentenceT}_{suffix}"
+
     # returns `(id: int, soft: boolean)` or `None, None`
     def check_verb_and_get_soft(self, verb, fe):
         with self.db_lock:
@@ -170,6 +196,18 @@ class Un(object):
             else:
                 return None
 
+    # returns `audio_name: string` or `None`
+    def check_sentence_audio(self, sentence):
+        with self.db_lock:
+            cursor = self.db_conn.cursor()
+            query = "SELECT audio FROM SentenceAudio WHERE sentence = ?"
+            cursor.execute(query, (sentence,))
+            result = cursor.fetchone()
+            if result is not None:
+                return result[0]
+            else:
+                return None
+
     def upload_audio_to_s3(self, audio_path, audio_name):
         self.s3.upload_file(audio_path, BUCKET_NAME, f"{audio_name}.mp3")
         logging.info("Uploaded audio %s to S3", audio_name)
@@ -181,6 +219,14 @@ class Un(object):
             cursor.execute(insert_query, (verb_id, text, audio_name))
             self.db_conn.commit()
             logging.info("Stored to db: %d, %s, %s", verb_id, text, audio_name)
+
+    def store_sentence_audio_to_db(self, sentence, audio_name):
+        with self.db_lock:
+            cursor = self.db_conn.cursor()
+            insert_query = "INSERT INTO SentenceAudio (sentence, audio) VALUES (?, ?)"""
+            cursor.execute(insert_query, (sentence, audio_name))
+            self.db_conn.commit()
+            logging.info("Stored to db: %s, %s", sentence, audio_name)
 
     def make_audio_path(self, name):
         return pj(self.audio_workdir, f"{name}.mp3")
@@ -241,6 +287,24 @@ class Un(object):
         os.unlink(path)
         return self.make_audio_url(name), 201
 
+    # returns an URL to a remote file or `None`, and a status code
+    def generate_sentence_audio_url(self, sentence, voice_id):
+        existing_audio_name = self.check_sentence_audio(sentence)
+        if existing_audio_name:
+            logging.info("Sentence audio is found in DB: %s", existing_audio_name)
+            return self.make_audio_url(existing_audio_name), 200
+        name = self.make_sentence_audio_name(sentence)
+        if not name:
+            return None, 400
+        path = self.make_audio_path(name)
+        if not self.acquire():
+            return None, 429
+        self.synth.generate_sentence_audio(voice_id, sentence, path, name)
+        self.upload_audio_to_s3(path, name)
+        self.store_sentence_audio_to_db(sentence, name)
+        os.unlink(path)
+        return self.make_audio_url(name), 201
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -267,6 +331,18 @@ CREATE TABLE IF NOT EXISTS Audio (
 );
     """.strip())
 
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS SentenceAudio (
+    id INTEGER PRIMARY KEY,
+    sentence TEXT NOT NULL,
+    audio TEXT NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+    """.strip())
+    conn.execute("""
+CREATE INDEX IF NOT EXISTS idx_sentence_audio ON SentenceAudio (sentence);
+    """.strip())
+
     logging.info("Database connection with %s established", db_path)
     return conn
 
@@ -281,6 +357,45 @@ def init_un_app():
     synth = SynthYskV1(yc_api_key, yc_folder_id)
     unInstance = Un("audio_workdir", synth, db_conn)
     logging.info("Un app initialized")
+
+
+# Returns:
+# - (breakdown, None), if the sentence is a valid Kazakh text, where breakdown is a dict with details
+# - (None, error_message), otherwise
+def request_grammar_breakdown(s):
+    encoded = urllib.parse.quote(s)
+    kiltman_url = f"https://kazakhverb.khairulin.com/analyze?q={encoded}"
+    response = requests.get(kiltman_url)
+    if response.status_code != 200:
+        logging.error("request_grammar_breakdown: bad status %d", response.status_code)
+        return (None, "server error")
+    try:
+        breakdown = response.json()
+    except json.JSONDecodeError as e:
+        logging.error("request_grammar_breakdown: bad json in response: %s", str(e))
+        return (None, "server error")
+
+    if "parts" not in breakdown:
+        logging.error("request_grammar_breakdown: no parts in response: %s", str(j))
+        return (None, "server error")
+
+    parts = breakdown["parts"]
+    for part in parts:
+        if "forms" not in part:
+            logging.error("request_grammar_breakdown: no forms in part: %s", str(part))
+            return (None, "server error")
+        # If there are any recognized forms, then the part is a valid Kazakh text
+        if len(part["forms"]) > 0:
+            continue
+        if "text" not in part:
+            logging.error("request_grammar_breakdown: no text in part: %s", str(part))
+            return (None, "server error")
+        text = part["text"]
+        for ch in text:
+            if ch not in ALLOWED_NONTEXT:
+                logging.error("request_grammar_breakdown: bad symbol in text [%s]: [%s]", text, ch)
+                return (None, f"word {text} is unknown, first bad symbol is {ch}")
+    return (breakdown, None)
 
 
 @app.route("/api/v1/test", methods=["GET"])
@@ -299,7 +414,7 @@ def get_sound():
     fe = request.args.get("fe") == "1"
     form = request.args.get("f")
 
-    logging.info("Request: [%s]%s -> [%s]",
+    logging.info("/api/v1/tts: [%s]%s -> [%s]",
         verb,
         " forced exceptional" if (fe) else "",
         form,
@@ -318,6 +433,40 @@ def get_sound():
         return jsonify({"message": "Invalid request"}), 400
 
     url, status_code = unInstance.generate_audio_url(verb, fe, form)
+    if not url:
+        logging.error("Failed to generate audio")
+        return jsonify({"message": "Invalid request"}), status_code
+    return redirect(url, code=302)
+
+
+@app.route("/api/v1/sentence_tts", methods=["GET"])
+def sentence_tts():
+    global unInstance
+
+    s = request.args.get("s")
+    voice_value = request.args.get("voice", "1")
+
+    if not voice_value.isdigit():
+        logging.error("sentence_tts: bad voice %s", voice_value)
+        return jsonify({"message": "Invalid request"}), 400
+    voice_id = int(voice_value)
+    logging.info("sentence_tts: %d, [%s]", voice_id, s)
+
+    if not s:
+        logging.error("sentence_tts: no sentence")
+        return jsonify({"message": "Invalid request"}), 400
+    if len(s) > 4096:
+        logging.error("sentence_tts: sentence too long - %d", len(s))
+        return jsonify({"message": "Invalid request"}), 400
+
+    breakdown, error_message = request_grammar_breakdown(s)
+
+    if breakdown is None:
+        logging.error("sentence_tts: breakdown error %s", error_message)
+        return jsonify({"message": error_message}), 422
+
+    lowered = s.strip().lower()
+    url, status_code = unInstance.generate_sentence_audio_url(lowered, voice_id)
     if not url:
         logging.error("Failed to generate audio")
         return jsonify({"message": "Invalid request"}), status_code

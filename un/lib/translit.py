@@ -46,6 +46,15 @@ CYR_TO_ASCII = {
   " ": "_",
   "-": "-",
   "?": "Qestion",
+  "!": "Bang",
+  ",": "Comma",
+  ".": "Dot",
+  ":": "Colon",
+  ";": "Semicol",
+  "(": "BraceOp",
+  ")": "BraceCl",
+  "\"": "DQuot",
+  "'": "SQuot",
 }
 
 
