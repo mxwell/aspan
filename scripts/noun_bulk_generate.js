@@ -76,6 +76,17 @@ function createMainNounForms(noun) {
                     possNumberIndex,
                     null,
                 ));
+                if (septikIndex == 0) {
+                    forms.push(new NounForm(
+                        nb.possessiveRelatedAdj(person, number).raw,
+                        0.5,
+                        kSingularIndex,
+                        null,
+                        possPersonIndex,
+                        possNumberIndex,
+                        "dagy",
+                    ));
+                }
             }
         }
     }
