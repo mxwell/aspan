@@ -78,3 +78,10 @@ def transliterate(cyr):
             return None
 
     return "".join(result)
+
+
+def check_content(s):
+    for ch in s:
+        if ch not in CYR_TO_ASCII:
+            return False, ch
+    return True, None

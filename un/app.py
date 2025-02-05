@@ -16,7 +16,7 @@ from flask import Flask, jsonify, redirect, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
 
 from lib.limiter import Limiter
-from lib.translit import transliterate
+from lib.translit import transliterate, check_content
 
 dictConfig({
     'version': 1,
@@ -380,6 +380,7 @@ def request_grammar_breakdown(s):
         return (None, "server error")
 
     parts = breakdown["parts"]
+    not_recognized = []
     for part in parts:
         if "forms" not in part:
             logging.error("request_grammar_breakdown: no forms in part: %s", str(part))
@@ -391,10 +392,29 @@ def request_grammar_breakdown(s):
             logging.error("request_grammar_breakdown: no text in part: %s", str(part))
             return (None, "server error")
         text = part["text"]
+        allowed, bad_ch = check_content(text)
+        if not allowed:
+            if bad_ch == "\n":
+                logging.error("request_grammar_breakdown: found end of line in [%s]", s)
+                return (None, f"Текст содержит перевод строки. Если текст состоит из нескольких строк, то отправьте эти строки по отдельности в разных сообщениях.")
+            logging.error("request_grammar_breakdown: bad symbol in text [%s]: [%s]", text, bad_ch)
+            return (None, f"word {text} is unknown, first bad symbol is {bad_ch}")
+        nontext = True
         for ch in text:
             if ch not in ALLOWED_NONTEXT:
-                logging.error("request_grammar_breakdown: bad symbol in text [%s]: [%s]", text, ch)
-                return (None, f"word {text} is unknown, first bad symbol is {ch}")
+                nontext = False
+                break
+        if not nontext:
+            not_recognized.append(text)
+
+    not_recognized_length = sum([len(item) for item in not_recognized])
+    if not_recognized_length > 0:
+        logging.info("request_grammar_breakdown: not recognized %d out of %d", not_recognized_length, len(s))
+        # Threshold is 25%
+        if not_recognized_length * 4 > len(s) or len(not_recognized) > 10:
+            summary = ", ".join(not_recognized)
+            return (None, f"Слишком много нераспознанных слов: {summary}")
+
     return (breakdown, None)
 
 
