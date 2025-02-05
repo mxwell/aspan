@@ -17,6 +17,7 @@ export APP_WORKDIR="/workdir"
 uwsgi \
     --socket "${APP_WORKDIR}/sockets/un.socket" \
     --chmod-socket=666 \
+    --buffer-size=32768 \
     --wsgi-file "${APP_WORKDIR}/app.py" \
     --pyargv "" \
     --callable app \
