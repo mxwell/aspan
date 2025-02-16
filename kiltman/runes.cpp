@@ -69,10 +69,14 @@ ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
     result.clear();
     for (size_t i = 0; i < s.size(); ) {
         uint8_t ch0 = s.at(i);
-        if (ch0 < 0x80) {
+        // 1 byte  0..<0xC0
+        // 2 bytes 0xC0..<0xE0
+        // 3 bytes 0xE0..<0XF0
+        // 4 bytes 0xF0...
+        if (ch0 < 0xC0) {
             result.push_back(ch0);
             ++i;
-        } else {
+        } else if (ch0 < 0xE0) {
             if (i + 1 >= s.size()) {
                 return ConversionResult::INVALID_UTF8;
             }
@@ -83,6 +87,23 @@ ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
             auto rune = GetLowercase((ch1 << 8) | ch0);
             result.push_back(rune);
             i += 2;
+        } else if (ch0 < 0xF0) {
+            if (i + 2 >= s.size()) {
+                return ConversionResult::INVALID_UTF8;
+            }
+            result.push_back(ch0);
+            result.push_back(static_cast<uint8_t>(s.at(i + 1)));
+            result.push_back(static_cast<uint8_t>(s.at(i + 2)));
+            i += 3;
+        } else {
+            if (i + 3 >= s.size()) {
+                return ConversionResult::INVALID_UTF8;
+            }
+            result.push_back(ch0);
+            result.push_back(static_cast<uint8_t>(s.at(i + 1)));
+            result.push_back(static_cast<uint8_t>(s.at(i + 2)));
+            result.push_back(static_cast<uint8_t>(s.at(i + 3)));
+            i += 4;
         }
     }
     return ConversionResult::SUCCESS;
