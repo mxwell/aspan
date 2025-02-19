@@ -410,8 +410,8 @@ def request_grammar_breakdown(s):
     not_recognized_length = sum([len(item) for item in not_recognized])
     if not_recognized_length > 0:
         logging.info("request_grammar_breakdown: not recognized %d out of %d", not_recognized_length, len(s))
-        # Threshold is 25%
-        if not_recognized_length * 4 > len(s) or len(not_recognized) > 10:
+        # Threshold is 50%
+        if not_recognized_length * 2 > len(s) or len(not_recognized) > 10:
             summary = ", ".join(not_recognized)
             return (None, f"Слишком много нераспознанных слов: {summary}")
 
