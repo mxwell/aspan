@@ -28,6 +28,7 @@ def insert_lines(db_conn, lines, offset):
     query = f"INSERT INTO {TABLE_NAME} (book_id, chunk_id, content) VALUES (?, ?, ?);"
     records = []
     for i, line in enumerate(lines):
+        assert len(line) < 1024
         records.append((BOOK_ID, offset + i, line))
     cursor = db_conn.cursor()
     cursor.executemany(query, records)
@@ -47,7 +48,20 @@ def main():
     for line in sys.stdin:
         if len(line.strip()) == 0:
             continue
-        accumulated.append(line.rstrip())
+
+        # naive approach
+        sentences = []
+        cur_len = 0
+        for sent in line.rstrip().split(". "):
+            sentences.append(sent)
+            cur_len += len(sent)
+            if cur_len > 256:
+                accumulated.append(". ".join(sentences))
+                sentences = []
+                cur_len = 0
+        if len(sentences) > 0:
+            accumulated.append(". ".join(sentences))
+
         if len(accumulated) > 10:
             offset = insert_lines(db_conn, accumulated, offset)
             accumulated = []
