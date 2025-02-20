@@ -52,15 +52,18 @@ def main():
         # naive approach
         sentences = []
         cur_len = 0
-        for sent in line.rstrip().split(". "):
+        input_sentences = line.rstrip().split(". ")
+        for sent_index, sent in enumerate(input_sentences):
             sentences.append(sent)
             cur_len += len(sent)
             if cur_len > 256:
-                accumulated.append(". ".join(sentences))
+                if sent_index + 1 < len(input_sentences):
+                    sentences.append("")
+                accumulated.append(". ".join(sentences).rstrip())
                 sentences = []
                 cur_len = 0
         if len(sentences) > 0:
-            accumulated.append(". ".join(sentences))
+            accumulated.append(". ".join(sentences).rstrip())
 
         if len(accumulated) > 10:
             offset = insert_lines(db_conn, accumulated, offset)
