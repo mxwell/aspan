@@ -502,6 +502,12 @@ TrieBuilder BuildDetectSuggestTrie(const std::string& filepath, Poco::Logger* lo
                 metadataRoot.set("ruwkt", ruwkt);
             }
         }
+        if (!root->isNull("rutr")) {
+            JSON::Array::Ptr rutr = root->getArray("rutr");
+            if (rutr->size() > 0) {
+                metadataRoot.set("rutr", rutr);
+            }
+        }
         if (!root->isNull("enwkt")) {
             JSON::Array::Ptr enwkt = root->getArray("enwkt");
             if (enwkt->size() > 0) {
