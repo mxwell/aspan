@@ -11,3 +11,6 @@ upload_files: build/kiltman
 
 run_kiltman:
 	export LD_LIBRARY_PATH=${PWD}/lib && ./kiltman load detect_suggest_trie.20240522.txt
+
+build_runtime_image: static_build/kiltman Dockerfile
+	docker build --tag cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/kiltman:v1 .
