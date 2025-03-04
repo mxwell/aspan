@@ -23,6 +23,15 @@ const FIRST_SINGULAR_WEIGHT  = FORM_WEIGHT_PORTION * 4;
 const THIRD_PERSON_WEIGHT    = FORM_WEIGHT_PORTION * 5;
 const INFINITIVE_WEIGHT      = FORM_WEIGHT_PORTION * 6;
 
+class DeclensionDetails {
+    constructor(number, septik, possPerson, possNumber) {
+        this.number = number;
+        this.septik = septik;
+        this.possPerson = possPerson;
+        this.possNumber = possNumber;
+    }
+}
+
 class WeightedForm {
     constructor(form, weight, sentenceTypeIndex, tenseName, person, number, auxNeg) {
         this.form = form;
@@ -35,7 +44,14 @@ class WeightedForm {
         this.tenseName = tenseName;
         this.person = person;
         this.number = number;
+        this.declensionDetails = null;
     }
+}
+
+function makeFormWithDeclension(form, weight, sentenceTypeIndex, tenseName, declensionDetails) {
+    let weightedForm = new WeightedForm(form, weight, sentenceTypeIndex, tenseName, null, null, true);
+    weightedForm.declensionDetails = declensionDetails;
+    return weightedForm;
 }
 
 function countSpaces(s) {
@@ -134,6 +150,49 @@ class FormBuilder {
     }
     createNoAuxNegForms(sentenceTypeIndex, tenseName, caseFn, formsOut) {
         this.createFormsWithCut(sentenceTypeIndex, tenseName, 0, caseFn, 0, formsOut);
+    }
+    createParticipleDeclensionForms(nb, baseWeight, sentenceTypeIndex, tenseName, formsOut) {
+        const kSingularIndex = 0;
+        const kPluralIndex = 1;
+        const halfWeight = baseWeight / 2.0;
+        for (let septikIndex = 0; septikIndex < aspan.SEPTIKS.length; ++septikIndex) {
+            const septik = aspan.SEPTIKS[septikIndex];
+            formsOut.push(makeFormWithDeclension(
+                nb.septikForm(septik).raw,
+                baseWeight,
+                sentenceTypeIndex,
+                tenseName,
+                new DeclensionDetails(kSingularIndex, septikIndex, null, null)
+            ));
+            formsOut.push(makeFormWithDeclension(
+                nb.pluralSeptikForm(septik).raw,
+                baseWeight,
+                sentenceTypeIndex,
+                tenseName,
+                new DeclensionDetails(kPluralIndex, septikIndex, null, null)
+            ));
+            // constraint to 3rd person, singular only to avoid bloated output
+            for (let possPersonIndex = aspan.GRAMMAR_PERSONS.length - 1; possPersonIndex < aspan.GRAMMAR_PERSONS.length; ++possPersonIndex) {
+                const person = aspan.GRAMMAR_PERSONS[possPersonIndex];
+                for (let possNumberIndex = 0; possNumberIndex < aspan.GRAMMAR_NUMBERS.length - 1; ++possNumberIndex) {
+                    let number = aspan.GRAMMAR_NUMBERS[possNumberIndex];
+                    formsOut.push(makeFormWithDeclension(
+                        nb.possessiveSeptikForm(person, number, septik).raw,
+                        halfWeight,
+                        sentenceTypeIndex,
+                        tenseName,
+                        new DeclensionDetails(kSingularIndex, septikIndex, possPersonIndex, possNumberIndex)
+                    ));
+                    formsOut.push(makeFormWithDeclension(
+                        nb.pluralPossessiveSeptikForm(person, number, septik).raw,
+                        halfWeight,
+                        sentenceTypeIndex,
+                        tenseName,
+                        new DeclensionDetails(kPluralIndex, septikIndex, possPersonIndex, possNumberIndex)
+                    ));
+                }
+            }
+        }
     }
     createTenseForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
         let verbBuilder = new aspan.VerbBuilder(this.verb, forceExceptional);
@@ -244,18 +303,25 @@ class FormBuilder {
                 forms
             );
         }
-        const pastParticiple = verbBuilder.pastParticiple(sentenceType).raw;
-        forms.push(new WeightedForm(pastParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "pastParticiple", "", "", true));
-        const presentParticiple = verbBuilder.presentParticiple(sentenceType).raw;
-        forms.push(new WeightedForm(presentParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "presentParticiple", "", "", true));
-        const futureParticiple = verbBuilder.futureParticiple(sentenceType).raw;
-        forms.push(new WeightedForm(futureParticiple, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "futureParticiple", "", "", true));
+        const pastPB = verbBuilder.pastParticipleBuilder(sentenceType);
+        const pastNB = new aspan.NounBuilder(pastPB, verbBuilder.soft);
+        this.createParticipleDeclensionForms(pastNB, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "pastParticiple", forms);
+
+        const presentPB = verbBuilder.presentParticipleBuilder(sentenceType);
+        const presentNB = new aspan.NounBuilder(presentPB, verbBuilder.soft);
+        this.createParticipleDeclensionForms(presentNB, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "presentParticiple", forms);
+
+        const futurePB = verbBuilder.futureParticipleBuilder(sentenceType);
+        const futureNB = new aspan.NounBuilder(futurePB, verbBuilder.soft);
+        this.createParticipleDeclensionForms(futureNB, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "futureParticiple", forms);
+
         const perfectGerund = verbBuilder.perfectGerund(sentenceType).raw;
         forms.push(new WeightedForm(perfectGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "perfectGerund", "", "", true));
         const continuousGerund = verbBuilder.continuousGerund(sentenceType).raw;
         forms.push(new WeightedForm(continuousGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "continuousGerund", "", "", true));
         const intentionGerund = verbBuilder.intentionGerund(sentenceType).raw;
         forms.push(new WeightedForm(intentionGerund, THIRD_PERSON_WEIGHT, sentenceTypeIndex, "intentionGerund", "", "", true));
+
         return forms;
     }
     createPresentContinuousForms(forceExceptional, sentenceTypeIndex, auxBuilder) {
@@ -697,7 +763,7 @@ async function processLineByLine(args) {
                 if (wf.sentenceTypeIndex == 0) {
                     weight += STATEMENT_WEIGHT;
                 }
-                const verbForm = {
+                let verbForm = {
                     form: wf.form,
                     weight: printWeight(weight),
                     sent: wf.sentenceTypeIndex,
@@ -705,6 +771,15 @@ async function processLineByLine(args) {
                     person: wf.person,
                     number: wf.number,
                 };
+                if (wf.declensionDetails != null) {
+                    const srcDecl = wf.declensionDetails;
+                    verbForm.declension = {
+                        number: srcDecl.number,
+                        septik: srcDecl.septik,
+                        possNumber: srcDecl.possNumber,
+                        possPerson: srcDecl.possPerson
+                    };
+                }
                 if (formRow.forceExceptional == 1) {
                     exceptionalForms.push(verbForm);
                 } else {
