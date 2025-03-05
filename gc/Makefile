@@ -37,3 +37,6 @@ exported_translations.jsonl: gc.db
 
 upload_export: exported_translations.jsonl
 	python3 scripts/export.py upload-export --jsonl $< --db-path gc.db
+
+build_runtime_image: app.py Dockerfile requirements.txt
+	docker build --tag cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/gc:v1 .

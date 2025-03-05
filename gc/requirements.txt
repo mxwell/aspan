@@ -1,2 +1,5 @@
+flask
 google-auth
+gunicorn
 PyJWT==2.3.0
+requests
