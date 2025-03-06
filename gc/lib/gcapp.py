@@ -24,6 +24,8 @@ from lib.word_info import WordInfo
 
 dictConfig({
     'version': 1,
+    # from https://stackoverflow.com/questions/77257846/logging-flask-application-with-gunicorn
+    'disable_existing_loggers': False,
     'formatters': {'default': {
         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
     }},
@@ -37,7 +39,7 @@ dictConfig({
         'handlers': ['wsgi']
     }
 })
-DATABASE_PATH = "gc.db"
+DATABASE_PATH = "/data/gc.db"
 CACHE_TTL_SECS = 300
 REVIEW_PAGE_SIZE = 20
 APPROVE_THRESHOLD = 2

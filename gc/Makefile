@@ -40,3 +40,8 @@ upload_export: exported_translations.jsonl
 
 build_runtime_image: app.py Dockerfile requirements.txt
 	docker build --tag cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/gc:v1 .
+
+dbg_run_runtime_image:
+	docker run --rm -p 2999:80 \
+	    -v $(PWD)/data:/data \
+	    cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/gc:v1
