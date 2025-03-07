@@ -1,2 +1,6 @@
 boto3
+cryptography
+flask
+gunicorn
+requests
 yandex-speechkit==1.3.3

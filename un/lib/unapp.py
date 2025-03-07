@@ -33,7 +33,7 @@ dictConfig({
         'handlers': ['wsgi']
     }
 })
-DATABASE_PATH = "un.db"
+DATABASE_PATH = "/data/un.db"
 BUCKET_NAME="verbforms"
 BUCKET_URL = f"https://storage.yandexcloud.net/{BUCKET_NAME}/"
 app = Flask("un_app")
@@ -491,59 +491,3 @@ def sentence_tts():
         logging.error("Failed to generate audio")
         return jsonify({"message": "Invalid request"}), status_code
     return redirect(url, code=302)
-
-
-def parse_boolean(part, name, line):
-    if part == "0":
-        return False
-    elif part == "1":
-        return True
-    else:
-        raise ValueError(f"unexpected {name} in input line: {line}")
-
-
-def load_verbs(args):
-    conn = init_db_conn(args.db_path)
-    cursor = conn.cursor()
-    insert_query = """INSERT INTO Verbs (verb, fe, soft) VALUES (?, ?, ?)"""
-    batch = 0
-    total = 0
-    for line in open(args.verbs_path):
-        parts = line.strip().split("\t")
-        if len(parts) != 3:
-            raise ValueError(f"unexpected number of parts in input line: {len(parts)} != 3, {line}")
-        verb = parts[0]
-        fe = parse_boolean(parts[1], "fe", line)
-        soft = parse_boolean(parts[2], "soft", line)
-        cursor.execute(insert_query, (verb, fe, soft))
-        batch += 1
-        total += 1
-        if batch >= 100:
-            conn.commit()
-            batch = 0
-    conn.commit()
-    conn.close()
-    logging.info("Loaded %d verbs", total)
-
-
-def main():
-    LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
-    logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
-
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-
-    load_verbs_parser = subparsers.add_parser("load-verbs")
-    load_verbs_parser.add_argument("--verbs-path", required=True)
-    load_verbs_parser.add_argument("--db-path", default=DATABASE_PATH)
-    load_verbs_parser.set_defaults(func=load_verbs)
-
-    args = parser.parse_args()
-    args.func(args)
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
-else:
-    init_un_app()
