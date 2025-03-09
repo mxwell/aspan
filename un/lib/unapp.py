@@ -12,6 +12,7 @@ import urllib.parse
 import uuid
 
 import boto3
+from botocore.config import Config
 from flask import Flask, jsonify, redirect, request, make_response, send_file
 from speechkit import model_repository, configure_credentials, creds
 
@@ -20,6 +21,8 @@ from lib.translit import transliterate, check_content
 
 dictConfig({
     'version': 1,
+    # from https://stackoverflow.com/questions/77257846/logging-flask-application-with-gunicorn
+    'disable_existing_loggers': False,
     'formatters': {'default': {
         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
     }},
@@ -147,9 +150,13 @@ class Un(object):
         self.limiter = Limiter(60)
 
         self.boto_session = boto3.session.Session()
+        boto_config = Config(
+            region_name="ru-central1",
+        )
         self.s3 = self.boto_session.client(
             service_name="s3",
-            endpoint_url="https://storage.yandexcloud.net"
+            endpoint_url="https://storage.yandexcloud.net",
+            config=boto_config,
         )
 
         self.db_lock = threading.Lock()
@@ -350,12 +357,12 @@ CREATE INDEX IF NOT EXISTS idx_sentence_audio ON SentenceAudio (sentence);
 def init_un_app():
     global unInstance
     db_conn = init_db_conn(DATABASE_PATH)
-    yc_api_key_path = ".secrets/.yc.apikey"
+    yc_api_key_path = "/etc/secret-volume/.yc.apikey"
     yc_api_key = read_token(yc_api_key_path)
-    yc_folder_id = read_token(".secrets/.yc.folderid")
+    yc_folder_id = read_token("/etc/secret-volume/.yc.folderid")
     # synth = SynthYskV3(yc_api_key_path)
     synth = SynthYskV1(yc_api_key, yc_folder_id)
-    unInstance = Un("audio_workdir", synth, db_conn)
+    unInstance = Un("/data/audio_workdir", synth, db_conn)
     logging.info("Un app initialized")
 
 
@@ -418,7 +425,7 @@ def request_grammar_breakdown(s):
     return (breakdown, None)
 
 
-@app.route("/api/v1/test", methods=["GET"])
+@app.route("/unapi/v1/test", methods=["GET"])
 def get_test():
     global unInstance
     for i in range(10):
@@ -426,7 +433,7 @@ def get_test():
     return jsonify({"message": "You've reached Un!"}), 200
 
 
-@app.route("/api/v1/tts", methods=["GET"])
+@app.route("/unapi/v1/tts", methods=["GET"])
 def get_sound():
     global unInstance
 
@@ -434,7 +441,7 @@ def get_sound():
     fe = request.args.get("fe") == "1"
     form = request.args.get("f")
 
-    logging.info("/api/v1/tts: [%s]%s -> [%s]",
+    logging.info("/unapi/v1/tts: [%s]%s -> [%s]",
         verb,
         " forced exceptional" if (fe) else "",
         form,
@@ -459,7 +466,7 @@ def get_sound():
     return redirect(url, code=302)
 
 
-@app.route("/api/v1/sentence_tts", methods=["GET"])
+@app.route("/unapi/v1/sentence_tts", methods=["GET"])
 def sentence_tts():
     global unInstance
 
