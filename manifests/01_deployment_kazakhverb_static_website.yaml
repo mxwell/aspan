@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ labels:
+   app: kazakhverb-static-website
+ name: kazakhverb-static-website
+spec:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: kazakhverb-static-website
+ template:
+   metadata:
+     labels:
+       app: kazakhverb-static-website
+   spec:
+     containers:
+     - image: cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/static-website:v1
+       name: nginx
+     imagePullSecrets:
+       - name: cr-yandex-creds
+
