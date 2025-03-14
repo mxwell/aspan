@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kazakhverb-volume-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kazakhverb-kiltman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kazakhverb-kiltman
+  template:
+    metadata:
+      labels:
+        app: kazakhverb-kiltman
+    spec:
+      volumes:
+        - name: kiltman-data
+          persistentVolumeClaim:
+            claimName: kazakhverb-volume-claim
+      initContainers:
+        - name: trie-downloader
+          image: nginx:latest
+          command:
+            - "/bin/sh"
+            - "-c"
+            - "[ -f \"$KILTMAN_TRIE_LAST_URL\" ] && [ \"$(cat $KILTMAN_TRIE_LAST_URL)\" = \"$KILTMAN_TRIE_URL\" ] || ((curl -s \"$KILTMAN_TRIE_URL\" | gunzip > \"$KILTMAN_TRIE_DST\") && echo \"$KILTMAN_TRIE_URL\" > \"$KILTMAN_TRIE_LAST_URL\" && echo Downloaded)"
+          envFrom:
+            - configMapRef:
+                name: kiltman-trie-config
+          volumeMounts:
+            - name: kiltman-data
+              mountPath: /data
+      containers:
+        - name: kazakhverb-kiltman
+          image: cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/kiltman:v1
+          volumeMounts:
+            - name: kiltman-data
+              mountPath: /data
+          ports:
+          - containerPort: 80
+      imagePullSecrets:
+        - name: cr-yandex-creds
+

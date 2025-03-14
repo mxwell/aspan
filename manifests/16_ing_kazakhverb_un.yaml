@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kazakhverb-un-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+      - kazakhverb.khairulin.com
+      secretName: kazakhverb-tls
+  rules:
+  - host: kazakhverb.khairulin.com
+    http:
+      paths:
+      - path: /unapi
+        pathType: Prefix
+        backend:
+          service:
+            name: kazakhverb-un
+            port:
+              number: 80
+

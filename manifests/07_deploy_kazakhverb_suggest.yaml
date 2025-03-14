@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kazakhverb-volume-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kazakhverb-suggest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kazakhverb-suggest
+  template:
+    metadata:
+      labels:
+        app: kazakhverb-suggest
+    spec:
+      volumes:
+        - name: suggest-data
+          persistentVolumeClaim:
+            claimName: kazakhverb-volume-claim
+      initContainers:
+        - name: blob-downloader
+          image: nginx:latest
+          command:
+            - "/bin/sh"
+            - "-c"
+            - "[ -f \"$SUGGEST_BLOB_LAST_URL\" ] && [ \"$(cat $SUGGEST_BLOB_LAST_URL)\" = \"$SUGGEST_BLOB_URL\" ] || ((curl -s \"$SUGGEST_BLOB_URL\" | gunzip > \"$SUGGEST_BLOB_DST\") && echo \"$SUGGEST_BLOB_URL\" > \"$SUGGEST_BLOB_LAST_URL\" && echo Downloaded)"
+          envFrom:
+            - configMapRef:
+                name: suggest-blob-config
+          volumeMounts:
+            - name: suggest-data
+              mountPath: /data
+      containers:
+        - name: kazakhverb-suggest
+          image: cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/suggest:v1
+          volumeMounts:
+            - name: suggest-data
+              mountPath: /data
+          ports:
+          - containerPort: 80
+      imagePullSecrets:
+        - name: cr-yandex-creds

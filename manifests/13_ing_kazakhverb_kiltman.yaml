@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kazakhverb-kiltman-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+      - kazakhverb.khairulin.com
+      secretName: kazakhverb-tls
+  rules:
+  - host: kazakhverb.khairulin.com
+    http:
+      paths:
+      - path: /analyze
+        pathType: Prefix
+        backend:
+          service:
+            name: kazakhverb-kiltman
+            port:
+              number: 80
+      - path: /detect
+        pathType: Prefix
+        backend:
+          service:
+            name: kazakhverb-kiltman
+            port:
+              number: 80
+
+

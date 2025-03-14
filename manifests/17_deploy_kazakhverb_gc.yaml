@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kazakhverb-volume-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kazakhverb-gc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kazakhverb-gc
+  template:
+    metadata:
+      labels:
+        app: kazakhverb-gc
+    spec:
+      volumes:
+        - name: gc-data
+          persistentVolumeClaim:
+            claimName: kazakhverb-volume-claim
+        - name: secret-volume
+          secret:
+            secretName: gc-auth-creds
+      containers:
+        - name: kazakhverb-gc
+          image: cr.yandex/crp33sksvqbe0tmf8sj2/kazakhverb/gc:v1
+          volumeMounts:
+            - name: gc-data
+              mountPath: "/data"
+            - name: secret-volume
+              readOnly: true
+              mountPath: "/etc/secret-volume"
+          ports:
+          - containerPort: 80
+      imagePullSecrets:
+        - name: cr-yandex-creds

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiltman-trie-config
+data:
+  KILTMAN_TRIE_URL: "https://storage.yandexcloud.net/BUCKET/FILENAME"
+  KILTMAN_TRIE_DST: "/data/kiltman.txt"
+  KILTMAN_TRIE_LAST_URL: "/data/kiltman.txt.url"
+

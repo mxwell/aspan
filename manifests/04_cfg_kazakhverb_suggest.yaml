@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suggest-blob-config
+data:
+  SUGGEST_BLOB_URL: "https://storage.yandexcloud.net/BUCKET/FILENAME"
+  SUGGEST_BLOB_DST: "/data/suggest.protobin"
+  SUGGEST_BLOB_LAST_URL: "/data/suggest.protobin.url"
+
