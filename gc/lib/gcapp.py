@@ -1793,6 +1793,17 @@ CREATE TABLE IF NOT EXISTS book_chunks (
 );
     """.strip())
 
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS video_subtitles (
+    video_id TEXT NOT NULL,
+    start_ms INTEGER NOT NULL,
+    end_ms INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (video_id, start_ms, end_ms)
+);
+    """.strip())
+
     logging.info("Database connection with %s established", db_path)
     return conn
 

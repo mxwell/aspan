@@ -3,11 +3,14 @@ import json
 import logging
 import os
 import requests
+import sqlite3
 import sys
 
 
 ENDPOINT = "transcribe.api.cloud.yandex.net/speech/stt/v2/longRunningRecognize"
 STATUS_ENDPOINT = "operation.api.cloud.yandex.net"
+DB_PATH = "gc.db"
+TABLE_NAME = "video_subtitles"
 
 
 def build_body_json(audio_url):
@@ -111,14 +114,20 @@ def print_timestamp(t):
     return f"{d}.{r:03}"
 
 
-def extract_transcription(args):
-    operation_id = args.operation_id
+def load_operation_result_chunks(operation_id):
     assert len(operation_id) > 0
 
     with open(make_operation_status_filepath(operation_id)) as inputfile:
         jsondoc = json.load(inputfile)
     if not jsondoc["done"]:
         logging.info("operation is not done: %s", str(jsondoc["done"]))
+        return None
+    return jsondoc["response"]["chunks"]
+
+
+def extract_transcription(args):
+    chunks = load_operation_result_chunks(args.operation_id)
+    if chunks is None:
         return
 
     output_filepath = f"transcription_{operation_id}.jsonl"
@@ -126,7 +135,7 @@ def extract_transcription(args):
     max_dur = 0
     with open(output_filepath, "wt") as output:
         prev_end = -1000000000
-        for chunk in jsondoc["response"]["chunks"]:
+        for chunk in chunks:
             if chunk["channelTag"] != "1":
                 continue
             startTime = 1000000000
@@ -157,6 +166,70 @@ def extract_transcription(args):
     logging.info("Durations are from %s to %s", print_timestamp(min_dur), print_timestamp(max_dur))
 
 
+def init_db_conn(db_path):
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute(f"""
+CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+    video_id TEXT NOT NULL,
+    start_ms INTEGER NOT NULL,
+    end_ms INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (video_id, start_ms, end_ms)
+);
+    """.strip())
+
+    logging.info("Database connection with %s established", db_path)
+    return conn
+
+
+def insert_records(db_conn, records):
+    query = f"INSERT INTO {TABLE_NAME} (video_id, start_ms, end_ms, content) VALUES (?, ?, ?, ?);"
+    cursor = db_conn.cursor()
+    cursor.executemany(query, records)
+    db_conn.commit()
+    logging.info("Inserted %d more subtitles into %s", len(records), TABLE_NAME)
+    cursor.close()
+
+
+def insert_subtitles(args):
+    db_conn = init_db_conn(DB_PATH)
+
+    inserted = 0
+    accumulated = []
+
+    chunks = load_operation_result_chunks(args.operation_id)
+    if chunks is None:
+        return
+
+    prev_end = -1000000000
+    for chunk in chunks:
+        if chunk["channelTag"] != "1":
+            continue
+        startTime = 1000000000
+        endTime = 0
+        alt0 = chunk["alternatives"][0]
+        for word in alt0["words"]:
+            st = parse_timestamp(word["startTime"])
+            et = parse_timestamp(word["endTime"])
+            startTime = min(startTime, st)
+            endTime = max(endTime, et)
+        if prev_end > startTime + 10:
+            logging.error("overlap: prev end %d, cur start %d", prev_end, startTime)
+        prev_end = endTime
+        accumulated.append((args.video_id, startTime, endTime, alt0["text"]))
+        if len(accumulated) > 50:
+            insert_records(db_conn, accumulated)
+            inserted += len(accumulated)
+            accumulated = []
+    if len(accumulated) > 0:
+        insert_records(db_conn, accumulated)
+        inserted += len(accumulated)
+        accumulated = []
+    logging.info("Inserted %d subtitles for video %s", inserted, args.video_id)
+
+
 def main():
     LOG_FORMAT = "%(asctime)s %(threadName)s %(message)s"
     logging.basicConfig(format=LOG_FORMAT, level=logging.INFO)
@@ -176,6 +249,11 @@ def main():
     extract_transcription_parser = subparsers.add_parser("extract_transcription")
     extract_transcription_parser.add_argument("--operation-id", type=str, required=True)
     extract_transcription_parser.set_defaults(func=extract_transcription)
+
+    insert_subtitles_parser = subparsers.add_parser("insert_subtitles")
+    insert_subtitles_parser.add_argument("--operation-id", type=str, required=True)
+    insert_subtitles_parser.add_argument("--video-id", type=str, required=True)
+    insert_subtitles_parser.set_defaults(func=insert_subtitles)
 
     args = parser.parse_args()
     args.func(args)
