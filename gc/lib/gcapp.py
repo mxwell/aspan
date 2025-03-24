@@ -2381,6 +2381,9 @@ def get_video_subtitles():
         return jsonify({"message": "Invalid start_ms"}), 400
     if end_ms is None:
         return jsonify({"message": "Invalid end_ms"}), 400
+    if start_ms > end_ms:
+        logging.error("start after end: %d < %d", start_ms, end_ms)
+        return jsonify({"message": "Invalid combination of start_ms and end_ms"}), 400
 
     subtitles = gc_instance.get_video_subtitles(video_id, start_ms, end_ms)
     if subtitles is None:
