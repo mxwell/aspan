@@ -53,6 +53,18 @@ def validate_lang(lang):
     return lang == "en" or lang == "kk" or lang == "ru"
 
 
+def validate_int(a_request, name, min_val, max_val):
+    s = a_request.args.get(name)
+    if s is None or not s.isdigit():
+        logging.error("invalid number is provided for param %s: %s", name, str(s))
+        return None
+    val = int(s)
+    if not(min_val <= val and val <= max_val):
+        logging.error("value for param %s is out of range [%d,%d]: %d", name, min_val, max_val, val)
+        return None
+    return val
+
+
 def read_words(fetched_results):
     grouped = dict()
     for row in fetched_results:
@@ -1630,6 +1642,38 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_book_chunks(book_id, offset, count)
 
+    def do_get_video_subtitles(self, video_id, start_ms, end_ms):
+        cursor = self.db_conn.cursor()
+        # Cover in SELECT subtitles starting during preceding 60 seconds
+        start_ms_extended = max(0, start_ms - 60000)
+        cursor.execute("""
+            SELECT
+                video_id, start_ms, end_ms, content
+            FROM
+                video_subtitles
+            WHERE
+                video_id = ? AND
+                start_ms >= ? AND start_ms <= ? AND
+                end_ms >= ?
+            LIMIT 100;
+        """, (video_id, start_ms_extended, end_ms, start_ms))
+        fetched_results = cursor.fetchall()
+
+        video_subtitles = [
+            {
+                "start_ms": row["start_ms"],
+                "end_ms": row["end_ms"],
+                "content": row["content"]
+            }
+            for row in fetched_results
+        ]
+        cursor.close()
+        return video_subtitles
+
+    def get_video_subtitles(self, video_id, start_ms, end_ms):
+        with self.db_lock:
+            return self.do_get_video_subtitles(video_id, start_ms, end_ms)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -2319,3 +2363,27 @@ def get_book_chunks():
         logging.error("null chunks: %s, %s, %s", book_id, offset, count)
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "chunks": chunks}), 200
+
+
+@app.route("/gcapi/v1/get_video_subtitles", methods=["GET"])
+def get_video_subtitles():
+    global gc_instance
+
+    video_id = request.args.get("video_id")
+    hours12_as_ms = 43200000
+    start_ms = validate_int(request, "start_ms", 0, hours12_as_ms)
+    end_ms = validate_int(request, "end_ms", 0, hours12_as_ms)
+
+    if video_id is None or len(video_id) == 0:
+        logging.error("empty video_id")
+        return jsonify({"message": "Invalid video_id"}), 400
+    if start_ms is None:
+        return jsonify({"message": "Invalid start_ms"}), 400
+    if end_ms is None:
+        return jsonify({"message": "Invalid end_ms"}), 400
+
+    subtitles = gc_instance.get_video_subtitles(video_id, start_ms, end_ms)
+    if subtitles is None:
+        logging.error("null subtitles: %s, [%d, %d]", video_id, start_ms, end_ms)
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "subtitles": subtitles}), 200
