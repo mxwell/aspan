@@ -10,7 +10,7 @@ import sys
 ENDPOINT = "transcribe.api.cloud.yandex.net/speech/stt/v2/longRunningRecognize"
 STATUS_ENDPOINT = "operation.api.cloud.yandex.net"
 DB_PATH = "gc.db"
-TABLE_NAME = "video_subtitles"
+TABLE_NAME = "subtitles"
 
 
 def build_body_json(audio_url):
@@ -130,7 +130,7 @@ def extract_transcription(args):
     if chunks is None:
         return
 
-    output_filepath = f"transcription_{operation_id}.jsonl"
+    output_filepath = f"transcription_{args.operation_id}.jsonl"
     min_dur = 1000000000
     max_dur = 0
     with open(output_filepath, "wt") as output:
@@ -141,9 +141,15 @@ def extract_transcription(args):
             startTime = 1000000000
             endTime = 0
             alt0 = chunk["alternatives"][0]
+            converted_words = []
             for word in alt0["words"]:
                 st = parse_timestamp(word["startTime"])
                 et = parse_timestamp(word["endTime"])
+                converted_words.append({
+                    "word": word["word"],
+                    "startTime": st,
+                    "endTime": et,
+                })
                 startTime = min(startTime, st)
                 endTime = max(endTime, et)
             if prev_end > startTime + 10:
@@ -158,8 +164,9 @@ def extract_transcription(args):
                 logging.info("Update max_dur: %s, %s", print_timestamp(max_dur), alt0["text"])
             jline = {
                 "text": alt0["text"],
-                "startTime": print_timestamp(startTime),
-                "endTime": print_timestamp(endTime),
+                "startTime": startTime,
+                "endTime": endTime,
+                "words": converted_words,
             }
             output_line = json.dumps(jline, ensure_ascii=False)
             output.write(f"{output_line}\n")
@@ -175,8 +182,9 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
     start_ms INTEGER NOT NULL,
     end_ms INTEGER NOT NULL,
     content TEXT NOT NULL,
+    words TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (video_id, start_ms, end_ms)
+    PRIMARY KEY (video_id, start_ms)
 );
     """.strip())
 
@@ -185,7 +193,7 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
 
 
 def insert_records(db_conn, records):
-    query = f"INSERT INTO {TABLE_NAME} (video_id, start_ms, end_ms, content) VALUES (?, ?, ?, ?);"
+    query = f"INSERT INTO {TABLE_NAME} (video_id, start_ms, end_ms, content, words) VALUES (?, ?, ?, ?, ?);"
     cursor = db_conn.cursor()
     cursor.executemany(query, records)
     db_conn.commit()
@@ -210,15 +218,30 @@ def insert_subtitles(args):
         startTime = 1000000000
         endTime = 0
         alt0 = chunk["alternatives"][0]
+        converted_words = []
         for word in alt0["words"]:
             st = parse_timestamp(word["startTime"])
             et = parse_timestamp(word["endTime"])
+            converted_words.append({
+                "word": word["word"],
+                "startTime": st,
+                "endTime": et,
+            })
             startTime = min(startTime, st)
             endTime = max(endTime, et)
         if prev_end > startTime + 10:
             logging.error("overlap: prev end %d, cur start %d", prev_end, startTime)
         prev_end = endTime
-        accumulated.append((args.video_id, startTime, endTime, alt0["text"]))
+        accumulated.append((
+            args.video_id,
+            startTime,
+            endTime,
+            alt0["text"],
+            json.dumps(
+                {"words": converted_words},
+                ensure_ascii=False
+            )
+        ))
         if len(accumulated) > 50:
             insert_records(db_conn, accumulated)
             inserted += len(accumulated)
