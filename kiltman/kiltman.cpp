@@ -4,6 +4,7 @@
 
 #include "Poco/Clock.h"
 #include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
@@ -13,6 +14,7 @@
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/URI.h"
 
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -23,13 +25,17 @@ using namespace Poco::Util;
 namespace {
 
 static const std::string kAnalyzePath = "/analyze";
+static const std::string kAnalyzeSubPath = "/analyze_sub";  // analyze subtitles where words have start/end timestamps that should be preserved in the response
 static const std::string kDetectPath = "/detect";
+
+static constexpr size_t kNoWordIndex = std::numeric_limits<size_t>::max();
+static constexpr size_t kNoTimestamp = std::numeric_limits<uint32_t>::max();
 
 bool StartsWith(const std::string& str, const std::string& prefix) {
     return str.compare(0, prefix.size(), prefix) == 0;
 }
 
-/* Response:
+/* Response for /analyze:
  *
  * {
  *     "time": <DOUBLE>,
@@ -113,6 +119,7 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
                     }
 
                     NKiltMan::TRunes recognizedRunes(runeIter, next);
+                    // TODO can this be replaced with flushFragment() call?
                     std::string text;
                     NKiltMan::RunesToString(recognizedRunes, text);
 
@@ -134,6 +141,218 @@ std::optional<JSON::Object> buildAnalyzeResponse(const std::string& queryText, c
 
     JSON::Object response;
     response.set("parts", textArray);
+    response.set("time", clock.elapsed() / 1e6);
+    return response;
+}
+
+/* Response for /analyze_sub:
+ *
+ * {
+ *     "time": <DOUBLE>,
+ *     "parts": [
+ *         {
+ *             "text": <STRING>,
+ *             "startTime": <TIMESTAMP>,
+ *             "endTime": <TIMESTAMP>,
+ *             "forms": [
+ *                 {
+ *                     "initial": <STRING>,
+ *                     "meta": <OBJECT>,
+ *                     "transition": <STRING
+ *                 },
+ *                 {..}
+ *             ]
+ *         },
+ *         {..}
+ *     ]
+ * }
+ *
+ */
+
+using TTimeRange = std::pair<uint32_t, uint32_t>;
+static constexpr TTimeRange kEmptyTimeRange{kNoTimestamp, kNoTimestamp};
+
+bool TimeRangeIsEmpty(const TTimeRange& range) {
+    return range.first == kNoTimestamp || range.second == kNoTimestamp;
+}
+
+void FlushRunesAsFragmentToJsonArray(const NKiltMan::TRunes& runes, const JSON::Array& forms, const TTimeRange& range, JSON::Array& array) {
+    if (runes.empty()) {
+        return;
+    }
+
+    std::string text;
+    NKiltMan::RunesToString(runes, text);
+
+    JSON::Object partObject;
+
+    partObject.set("text", text);
+    partObject.set("forms", forms);
+    if (!TimeRangeIsEmpty(range)) {
+        partObject.set("startTime", range.first);
+        partObject.set("endTime", range.second);
+    }
+
+    array.add(partObject);
+}
+
+uint32_t ExtractTimestamp(JSON::Object::Ptr object, const std::string& key) {
+    if (!object) {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    try {
+        if (!object->has(key)) {
+            return kNoTimestamp;
+        }
+        Poco::Dynamic::Var value = object->get(key);
+
+        if (!value.isNumeric()) {
+            return kNoTimestamp;
+        }
+
+        uint32_t timestamp = value.convert<uint32_t>();
+        if (timestamp > 1'000'000'000) {
+            return kNoTimestamp;
+        }
+        return timestamp;
+    }
+    catch (const Poco::Exception& /* e */) {
+        // Catch any POCO conversion or other exceptions
+        return kNoTimestamp;
+    }
+    catch (const std::exception& /* e */) {
+        // Catch any standard library exceptions
+        return kNoTimestamp;
+    }
+}
+
+std::pair<uint32_t, uint32_t> GetTimeRange(const JSON::Array::Ptr words, const std::vector<size_t>& runeWordIndex, size_t runeStart, size_t runeEnd) {
+    uint32_t rangeStart = kNoTimestamp;
+    uint32_t rangeEnd = kNoTimestamp;
+    for (size_t runePos = runeStart; runePos < runeEnd; ) {
+        const size_t curWordIndex = runeWordIndex[runePos];
+        bool wordStartCovered = (
+            (curWordIndex != kNoWordIndex) &&
+            (
+                (runePos == 0) ||
+                (runeWordIndex[runePos - 1] != curWordIndex)
+            )
+        );
+        size_t wordEnd = runePos + 1;
+        while (wordEnd < runeEnd && runeWordIndex[wordEnd] == curWordIndex) {
+            ++wordEnd;
+        }
+        const bool wordEndCovered = (
+            (wordEnd >= runeWordIndex.size()) ||
+            (runeWordIndex[wordEnd] != curWordIndex)
+        );
+        if (wordStartCovered && wordEndCovered) {
+            JSON::Object::Ptr wordObject = words->getObject(curWordIndex);
+            auto startTime = ExtractTimestamp(wordObject, "startTime");
+            auto endTime = ExtractTimestamp(wordObject, "endTime");
+            if (startTime != kNoTimestamp && endTime != kNoTimestamp) {
+                if (rangeStart == kNoTimestamp || rangeStart > startTime) {
+                    rangeStart = startTime;
+                }
+                if (rangeEnd == kNoTimestamp || rangeEnd < endTime) {
+                    rangeEnd = endTime;
+                }
+            }
+        }
+        runePos = wordEnd;
+    }
+    return {rangeStart, rangeEnd};
+}
+
+std::optional<JSON::Object> buildAnalyzeSubResponse(const JSON::Array::Ptr words, const NKiltMan::FlatNodeTrie& trie) {
+    Clock clock{};
+
+    /* Step 1. Convert all words to runes and collect in one place. Also, keep rune associations with the original words. */
+
+    std::vector<size_t> runeWordIndex;
+    NKiltMan::TRunes runes;
+    for (size_t i = 0; i < words->size(); ++i) {
+        JSON::Object::Ptr wordObject = words->getObject(i);
+        std::string word = wordObject->getValue<std::string>("word");
+        if (!runes.empty() && runes.back() != ' ') {
+            runes.push_back(' ');
+        }
+        size_t startPos = runes.size();
+        auto conversionResult = NKiltMan::StringToRunesNoExceptAppend(word, runes);
+        if (conversionResult != NKiltMan::ConversionResult::SUCCESS) {
+            return {};
+        }
+        size_t endPos = runes.size();
+        while (runeWordIndex.size() < startPos) {
+            runeWordIndex.push_back(kNoWordIndex);
+        }
+        for (size_t pos = startPos; pos < endPos; ++pos) {
+            runeWordIndex.push_back(i);
+        }
+    }
+
+    /* Step 2. Iterate over runes and look for matches with paths within the trie. */
+
+    JSON::Array parts;
+    size_t consumedPos = 0;
+    NKiltMan::TRunes noMatchRunes;
+    const JSON::Array kNoForms;
+    bool prevIsAlpha = false;
+    for (auto runeIter = runes.begin(); runeIter != runes.end(); ) {
+        if (!prevIsAlpha) {
+            NKiltMan::TRunes::iterator next;
+            auto node = trie.Traverse(runeIter, runes.end(), next);
+            if (node && (next == runes.end() || !NKiltMan::IsAlpha(*next))) {
+                const auto terminalId = node->terminalId;
+                if (terminalId != NKiltMan::FlatNode::kNoTerminalId) {
+                    size_t runePos = static_cast<size_t>(runeIter - runes.begin());
+                    auto noMatchRange = GetTimeRange(words, runeWordIndex, consumedPos, runePos);
+                    FlushRunesAsFragmentToJsonArray(noMatchRunes, kNoForms, noMatchRange, parts);
+                    consumedPos = runePos;
+                    noMatchRunes.clear();
+
+                    auto terminal = trie.terminals[terminalId];
+                    JSON::Array wordArray;
+                    for (const auto& terminalItem : terminal) {
+                        auto keyIndex = terminalItem.keyIndex;
+                        auto transitionId = terminalItem.transitionId;
+                        auto keyItem = trie.keys[keyIndex];
+
+                        JSON::Object word;
+                        std::string wordStr;
+                        NKiltMan::RunesToString(keyItem.runes, wordStr);
+                        word.set("initial", wordStr);
+                        word.set("meta", keyItem.metadata);
+                        if (transitionId != NKiltMan::FlatNode::kNoTransitionId) {
+                            auto transition = trie.transitions[transitionId];
+                            word.set("transition", transition);
+                        } else {
+                            word.set("transition", "");
+                        }
+                        wordArray.add(word);
+                    }
+
+                    NKiltMan::TRunes recognizedRunes(runeIter, next);
+                    size_t matchEndRunePos = static_cast<size_t>(next - runes.begin());
+                    auto matchRange = GetTimeRange(words, runeWordIndex, consumedPos, matchEndRunePos);
+                    FlushRunesAsFragmentToJsonArray(recognizedRunes, wordArray, matchRange, parts);
+                    prevIsAlpha = true;
+                    runeIter = next;
+                    consumedPos = matchEndRunePos;
+                    continue;
+                }
+            }
+        }
+        prevIsAlpha = NKiltMan::IsAlpha(*runeIter);
+        noMatchRunes.push_back(*runeIter);
+        ++runeIter;
+    }
+    auto noMatchRange = GetTimeRange(words, runeWordIndex, consumedPos, runes.size());
+    FlushRunesAsFragmentToJsonArray(noMatchRunes, kNoForms, noMatchRange, parts);
+
+    JSON::Object response;
+    response.set("parts", parts);
     response.set("time", clock.elapsed() / 1e6);
     return response;
 }
@@ -264,6 +483,28 @@ private:
             }
             response.setContentType("application/json");
             jsonObject->stringify(response.send());
+            return;
+        } else if (uri.getPath() == kAnalyzeSubPath && request.getMethod() == HTTPRequest::HTTP_POST) {
+            std::istream& requestStream = request.stream();
+            JSON::Parser parser;
+            auto result = parser.parse(requestStream);
+            auto requestRoot = result.extract<JSON::Object::Ptr>();
+            if (requestRoot->isNull("words")) {
+                response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_BAD_REQUEST);
+                response.setContentType("text/plain");
+                response.send() << "words not found in request body";
+                return;
+            }
+            JSON::Array::Ptr words = requestRoot->getArray("words");
+            auto jsonResponse = buildAnalyzeSubResponse(words, trie_);
+            if (!jsonResponse) {
+                response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_INTERNAL_SERVER_ERROR);
+                response.setContentType("text/plain");
+                response.send() << "Internal error";
+                return;
+            }
+            response.setContentType("application/json");
+            jsonResponse->stringify(response.send());
             return;
         } else if (uri.getPath() != kDetectPath) {
             response.setStatusAndReason(HTTPServerResponse::HTTPStatus::HTTP_NOT_FOUND);

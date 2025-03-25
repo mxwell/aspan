@@ -15,6 +15,7 @@ enum class ConversionResult: int {
     UNEXPECTED_ZERO_BYTE,
 };
 
+ConversionResult StringToRunesNoExceptAppend(const std::string& s, TRunes& result);
 ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result);
 bool IsAlpha(TRuneValue rune);
 void StringToRunes(const std::string& s, TRunes& result);

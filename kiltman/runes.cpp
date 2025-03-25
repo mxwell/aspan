@@ -65,8 +65,7 @@ TRuneValue GetLowercase(TRuneValue rune) {
     return rune;
 }
 
-ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
-    result.clear();
+ConversionResult StringToRunesNoExceptAppend(const std::string& s, TRunes& result) {
     for (size_t i = 0; i < s.size(); ) {
         uint8_t ch0 = s.at(i);
         // 1 byte  0..<0xC0
@@ -107,6 +106,11 @@ ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
         }
     }
     return ConversionResult::SUCCESS;
+}
+
+ConversionResult StringToRunesNoExcept(const std::string& s, TRunes& result) {
+    result.clear();
+    return StringToRunesNoExceptAppend(s, result);
 }
 
 using TAlphaSet = std::unordered_set<TRuneValue>;
