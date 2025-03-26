@@ -1648,9 +1648,9 @@ class Gc(object):
         start_ms_extended = max(0, start_ms - 60000)
         cursor.execute("""
             SELECT
-                video_id, start_ms, end_ms, content
+                video_id, start_ms, end_ms, content, words
             FROM
-                video_subtitles
+                subtitles
             WHERE
                 video_id = ? AND
                 start_ms >= ? AND start_ms <= ? AND
@@ -1663,7 +1663,8 @@ class Gc(object):
             {
                 "start_ms": row["start_ms"],
                 "end_ms": row["end_ms"],
-                "content": row["content"]
+                "content": row["content"],
+                "words": row["words"],
             }
             for row in fetched_results
         ]
@@ -1838,13 +1839,14 @@ CREATE TABLE IF NOT EXISTS book_chunks (
     """.strip())
 
     conn.execute("""
-CREATE TABLE IF NOT EXISTS video_subtitles (
+CREATE TABLE IF NOT EXISTS subtitles (
     video_id TEXT NOT NULL,
     start_ms INTEGER NOT NULL,
     end_ms INTEGER NOT NULL,
     content TEXT NOT NULL,
+    words TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (video_id, start_ms, end_ms)
+    PRIMARY KEY (video_id, start_ms)
 );
     """.strip())
 
