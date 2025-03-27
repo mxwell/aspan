@@ -97,6 +97,11 @@ def check_status(args):
     with open(filepath, "wt") as output:
         output.write(response.text)
     logging.info("operation status is stored to %s", filepath)
+    parsed = json.loads(response.text)
+    if parsed["done"]:
+        logging.info("%s DONE", operation_id)
+    else:
+        logging.info("%s IN PROGRESS", operation_id)
 
 
 def parse_timestamp(s):
