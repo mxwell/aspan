@@ -12,6 +12,13 @@ spec:
   rules:
   - host: kazakhverb.khairulin.com
     http:
+      - path: /analyze_sub
+        pathType: Prefix
+        backend:
+          service:
+            name: kazakhverb-kiltman
+            port:
+              number: 80
       paths:
       - path: /analyze
         pathType: Prefix
