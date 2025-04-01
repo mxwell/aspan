@@ -168,4 +168,33 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
+
+    private fun pastCommonBuilder(): PhrasalBuilder {
+        val pastBase = genericBaseModifier(nc = true, yp = false)
+        val affix = VerbSuffix.getDydiTyti(pastBase.last, softOffset)
+        return PhrasalBuilder()
+            .verbBase(pastBase.base)
+            .tenseAffix(affix)
+    }
+
+    fun past(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val persAffix = Rules.VERB_PERS_AFFIXES2[person]!![number]!![softOffset]
+        return when (sentenceType) {
+            SentenceType.Statement -> pastCommonBuilder().personalAffix(persAffix).build()
+            SentenceType.Negative -> {
+                val pastBase = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(pastBase.last, softOffset)
+                val affix = Rules.DYDI[softOffset]
+                return PhrasalBuilder()
+                    .verbBase(pastBase.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question ->
+                buildQuestionForm(pastCommonBuilder().personalAffix(persAffix)).build()
+            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
 }

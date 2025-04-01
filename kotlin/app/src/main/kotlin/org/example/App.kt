@@ -6,9 +6,19 @@ package org.example
 class App {
     fun run() {
         val verbBuilder = VerbBuilder("алу", false)
+
+        println("present transitive")
         for (person in GrammarPerson.entries) {
             for (number in GrammarNumber.entries) {
                 val form = verbBuilder.presentTransitiveForm(person, number, SentenceType.Statement)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
+
+        println("past")
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.past(person, number, SentenceType.Statement)
                 println("- ${person}, ${number}: ${form.raw}")
             }
         }
