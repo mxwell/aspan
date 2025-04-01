@@ -31,6 +31,14 @@ class App {
                 println("- ${person}, ${number}: ${form.raw}")
             }
         }
+
+        println("remote past")
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.remotePast(person, number, SentenceType.Statement)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
     }
 }
 

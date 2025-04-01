@@ -302,4 +302,63 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
+
+    private fun remotePastCommonBuilder(): PhrasalBuilder {
+        val pastBase = genericBaseModifier(nc = true, yp = false)
+        val affix = VerbSuffix.getGangenKanken(char = pastBase.last, softOffset = softOffset)
+        return PhrasalBuilder()
+            .verbBase(pastBase.base)
+            .tenseAffix(affix)
+    }
+
+    fun remotePast(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, negateAux: Boolean = true): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                val builder = remotePastCommonBuilder()
+                val affixLast = builder.getLastItem()
+                val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+                builder
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                if (negateAux) {
+                    val builder = remotePastCommonBuilder()
+
+                    // parameters of "жоқ", not of the verb base
+                    val gokLast: Char = 'қ'
+                    val gokSoftOffset = 0
+
+                    val persAffix = PersAffix.getPersAffix1(person, number, gokLast, gokSoftOffset)
+                    builder
+                        .space()
+                        .negation("жоқ")
+                        .personalAffix(persAffix)
+                        .build()
+                } else {
+                    val pastBase = genericBaseModifier(nc = true, yp = false)
+                    val particle = Question.getQuestionParticle(char = pastBase.last, softOffset = softOffset)
+                    val particleLast = particle.last()
+                    val affix = VerbSuffix.getGangenKanken(char = particleLast, softOffset = softOffset)
+                    val affixLast = affix.last()
+                    val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+                    PhrasalBuilder()
+                        .verbBase(pastBase.base)
+                        .negation(particle)
+                        .tenseAffix(affix)
+                        .personalAffix(persAffix)
+                        .build()
+                }
+            }
+            SentenceType.Question -> {
+                val builder = remotePastCommonBuilder()
+                val affixLast = builder.getLastItem()
+                val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+                buildQuestionForm(
+                    builder.personalAffix(persAffix)
+                ).build()
+            }
+            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
 }
