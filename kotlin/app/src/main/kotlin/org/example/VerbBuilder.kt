@@ -187,7 +187,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             }
             SentenceType.Question ->
                 buildQuestionForm(appendPresentTransitivePersAffix(person, number, sentenceType, presentTransitiveCommonBuilder())).build()
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 
@@ -232,7 +231,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                     presentSimpleContinuousCommonBuilder(person, number)
                 ).build()
             }
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 
@@ -299,7 +297,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             }
             SentenceType.Question ->
                 buildQuestionForm(pastCommonBuilder().personalAffix(persAffix)).build()
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 
@@ -358,7 +355,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                     builder.personalAffix(persAffix)
                 ).build()
             }
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 
@@ -395,7 +391,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                         .personalAffix(persAffix)
                 ).build()
             }
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 
@@ -431,7 +426,6 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                     imperativeMoodCommonBuilder(person, number)
                 ).build()
             }
-            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
 

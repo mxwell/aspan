@@ -11,6 +11,7 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.1.10'
 }
 
 repositories {
@@ -24,6 +25,8 @@ dependencies {
 
     // Use the JUnit 5 integration.
     testImplementation libs.junit.jupiter.engine
+
+    testImplementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0"
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
