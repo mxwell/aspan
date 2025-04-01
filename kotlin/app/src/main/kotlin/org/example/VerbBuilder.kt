@@ -106,6 +106,28 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         else -> "а"
     }
 
+    private fun getPersAffix1ExceptThirdPerson(person: GrammarPerson, number: GrammarNumber, formSoftOffset: Int): String {
+        if (person == GrammarPerson.Third) {
+            return ""
+        }
+        return Rules.VERB_PERS_AFFIXES1[person]!![number]!![formSoftOffset]
+    }
+
+    private fun getPresentContinuousBase(): String {
+        if (Rules.VERB_PRESENT_CONT_EXCEPTION_U_SET.contains(verbDictForm) && !forceExceptional) {
+            return StrManip.replaceLast(verbBase, 'у')
+        }
+        return verbBase
+    }
+
+    private fun getPresentContinousAffix(): String {
+        return when {
+            Rules.VERB_PRESENT_CONT_EXCEPTION_A_SET.contains(verbDictForm) -> "а"
+            Rules.VERB_PRESENT_CONT_EXCEPTION_E_SET.contains(verbDictForm) -> "е"
+            else -> VerbSuffix.getYpip(char = baseLast, softOffset = softOffset)
+        }
+    }
+
     private fun mergeBaseWithVowelAffix(origBase: String, origAffix: String): PhrasalBuilder {
         var base = origBase
         var affix = origAffix
@@ -166,6 +188,89 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             SentenceType.Question ->
                 buildQuestionForm(appendPresentTransitivePersAffix(person, number, sentenceType, presentTransitiveCommonBuilder())).build()
             else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
+
+    private fun presentSimpleContinuousCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        if (contContext == null) {
+            return PhrasalBuilder()
+        }
+        val persAffix = getPersAffix1ExceptThirdPerson(person, number, formSoftOffset = softOffset)
+        return PhrasalBuilder()
+            .verbBase(contContext)
+            .personalAffix(persAffix)
+    }
+
+    fun presentSimpleContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        if (contContext == null) {
+            return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                presentSimpleContinuousCommonBuilder(person, number)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val affix = VerbSuffix.getGangenKanken(char = baseLast, softOffset = softOffset)
+
+                // parameters of "жоқ", not of the verb base
+                val gokLast: Char = 'қ'
+                val gokSoftOffset = 0
+
+                val persAffix = PersAffix.getPersAffix1(person, number, gokLast, gokSoftOffset)
+                PhrasalBuilder()
+                    .verbBase(verbBase)
+                    .tenseAffix(affix)
+                    .space()
+                    .negation("жоқ")
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    presentSimpleContinuousCommonBuilder(person, number)
+                ).build()
+            }
+            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
+
+    fun presentContinuousForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder, negateAux: Boolean = true): Phrasal {
+        if (auxBuilder.contContext == null) {
+            return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+
+        val aeException = (
+                Rules.VERB_PRESENT_CONT_EXCEPTION_A_SET.contains(verbDictForm) ||
+                Rules.VERB_PRESENT_CONT_EXCEPTION_E_SET.contains(verbDictForm)
+        )
+        val forbidden = aeException && auxBuilder.verbDictForm != Rules.VERB_PRESENT_CONT_EXCEPTION_AE_AUX_ENABLED
+
+        return if (sentenceType != SentenceType.Negative || negateAux) {
+            val contBase = getPresentContinuousBase()
+            val affix = getPresentContinousAffix()
+            val auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, sentenceType)
+            PhrasalBuilder()
+                .verbBase(contBase)
+                .tenseAffix(affix)
+                .space()
+                .auxVerb(phrasal = auxVerbPhrasal)
+                .setForbidden(forbidden = forbidden)
+                .build()
+        } else {
+            val base = genericBaseModifier(nc = true, yp = false)
+            val particle = Question.getQuestionParticle(char = base.last, softOffset = softOffset)
+            val affix = "й"
+            val auxVerbPhrasal = auxBuilder.presentSimpleContinuousForm(person, number, SentenceType.Statement)
+            PhrasalBuilder()
+                .verbBase(base.base)
+                .negation(particle)
+                .tenseAffix(affix)
+                .space()
+                .auxVerb(phrasal = auxVerbPhrasal)
+                .setForbidden(forbidden = forbidden)
+                .build()
         }
     }
 

@@ -15,6 +15,15 @@ class App {
             }
         }
 
+        println("present continuous")
+        val auxBuilder = VerbBuilder("жату", false)
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.presentContinuousForm(person, number, SentenceType.Statement, auxBuilder)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
+
         println("past")
         for (person in GrammarPerson.entries) {
             for (number in GrammarNumber.entries) {
