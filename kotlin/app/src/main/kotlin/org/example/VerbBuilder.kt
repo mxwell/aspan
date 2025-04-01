@@ -361,4 +361,103 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
     }
+
+    private fun conditionalMoodCommonBuilder(): PhrasalBuilder {
+        val pastBase = genericBaseModifier(nc = true, yp = false)
+        val affix = Rules.SASE[softOffset]
+        return PhrasalBuilder()
+            .verbBase(pastBase.base)
+            .tenseAffix(affix)
+    }
+
+    fun conditionalMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val persAffix = Rules.VERB_PERS_AFFIXES2[person]!![number]!![softOffset]
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                conditionalMoodCommonBuilder()
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val pastBase = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(char = pastBase.last, softOffset = softOffset)
+                val affix = Rules.SASE[softOffset]
+                PhrasalBuilder()
+                    .verbBase(pastBase.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    conditionalMoodCommonBuilder()
+                        .personalAffix(persAffix)
+                ).build()
+            }
+            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
+
+    private fun imperativeMoodCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        val nc = (
+                (person == GrammarPerson.Second && number == GrammarNumber.Singular) ||
+                        person == GrammarPerson.Third
+                )
+        val baseAndLast = genericBaseModifier(nc = nc, yp = false)
+        val affix = VerbSuffix.getImperativeAffix(person = person, number = number, char = baseAndLast.last, softOffset = softOffset)
+        return mergeBaseWithVowelAffix(origBase = baseAndLast.base, origAffix = affix)
+    }
+
+    fun imperativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                imperativeMoodCommonBuilder(person, number)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val pastBase = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(char = pastBase.last, softOffset = softOffset)
+                val particleLast = particle.last()
+                val affix = VerbSuffix.getImperativeAffix(person = person, number = number, char = particleLast, softOffset = softOffset)
+                PhrasalBuilder()
+                    .verbBase(pastBase.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    imperativeMoodCommonBuilder(person, number)
+                ).build()
+            }
+            else -> PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+    }
+
+    private fun createOptativeAuxBuilder(): VerbBuilder {
+        return optativeAuxBuilder ?: run {
+            val builder = VerbBuilder(verbDictForm = "келу")
+            optativeAuxBuilder = builder
+            builder
+        }
+    }
+
+    private fun getOptativeAux(sentenceType: SentenceType): Phrasal {
+        return createOptativeAuxBuilder().presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, sentenceType)
+    }
+
+    fun optativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val baseAndLast = genericBaseModifier(nc = true, yp = false)
+        val affix = VerbSuffix.getGygiKyki(char = baseAndLast.last, softOffset = softOffset)
+        val persAffix = Rules.VERB_WANT_PERS_AFFIXES[person]!![number]!![softOffset]
+        val aux = getOptativeAux(sentenceType = sentenceType)
+        return PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix)
+            .personalAffix(persAffix)
+            .space()
+            .auxVerb(phrasal = aux)
+            .build()
+    }
 }

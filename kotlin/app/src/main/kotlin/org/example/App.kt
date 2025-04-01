@@ -39,6 +39,30 @@ class App {
                 println("- ${person}, ${number}: ${form.raw}")
             }
         }
+
+        println("conditional mood")
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.conditionalMood(person, number, SentenceType.Statement)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
+
+        println("imperative mood")
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.imperativeMood(person, number, SentenceType.Statement)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
+
+        println("optative mood")
+        for (person in GrammarPerson.entries) {
+            for (number in GrammarNumber.entries) {
+                val form = verbBuilder.optativeMood(person, number, SentenceType.Statement)
+                println("- ${person}, ${number}: ${form.raw}")
+            }
+        }
     }
 }
 
