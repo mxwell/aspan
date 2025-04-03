@@ -42,17 +42,20 @@ fun SettingsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
-            Button(
-                onClick = onNavigateToAbout
-            ) {
-                Text(text = "About")
-            }
-        }
-        item {
             Text(
                 text = "Settings",
                 style = MaterialTheme.typography.headlineMedium
             )
+        }
+        item {
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 10.dp),
+                onClick = onNavigateToAbout
+            ) {
+                Text(text = "About")
+            }
         }
         item {
             Text(
