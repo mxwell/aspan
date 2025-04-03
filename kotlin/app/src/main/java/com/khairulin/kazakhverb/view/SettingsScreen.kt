@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,20 +18,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.khairulin.kazakhverb.ConjugationScreen
+import com.khairulin.kazakhverb.config.ConfigSection
+import com.khairulin.kazakhverb.config.SharedPreferencesManager
 import com.khairulin.kazakhverb.vm.ConjugationVM
+import kotlinx.serialization.Serializable
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    vm: ConjugationVM = viewModel()
+    conjugationVM: ConjugationVM,
+    onNavigateToAbout: () -> Unit
 ) {
-    val tensesConfig by vm.tenseConfigFlow.collectAsState()
-    val formConfig by vm.formConfigFlow.collectAsState()
+    val tensesConfig by conjugationVM.tenseConfigFlow.collectAsState()
+    val formConfig by conjugationVM.formConfigFlow.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        item {
+            Button(
+                onClick = onNavigateToAbout
+            ) {
+                Text(text = "About")
+            }
+        }
         item {
             Text(
                 text = "Settings",
@@ -49,7 +66,7 @@ fun SettingsScreen(
         }
         itemsIndexed(tensesConfig.settings) { index, setting ->
             SettingItem(title = setting.title, isChecked = setting.on) {
-                vm.toggleTenseSetting(index)
+                conjugationVM.toggleTenseSetting(index)
             }
 
             if (index < tensesConfig.settings.size - 1) {
@@ -71,7 +88,7 @@ fun SettingsScreen(
         }
         itemsIndexed(formConfig.settings) { index, setting ->
             SettingItem(title = setting.title, isChecked = setting.on) {
-                vm.toggleFormSetting(index)
+                conjugationVM.toggleFormSetting(index)
             }
 
             if (index < formConfig.settings.size - 1) {
@@ -81,7 +98,6 @@ fun SettingsScreen(
                 )
             }
         }
-        // Add your profile content here
     }
 }
 
@@ -89,6 +105,6 @@ fun SettingsScreen(
 @Composable
 fun SettingsScreenPreview() {
     MaterialTheme {
-        SettingsScreen()
+        SettingsScreen(conjugationVM = viewModel(), onNavigateToAbout = {})
     }
 }

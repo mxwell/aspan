@@ -22,8 +22,8 @@ object ProfilePreferences {
 
     fun storeTenseConfig(config: ConfigSection) {
         val encoded = config.encodeToString()
-        SharedPreferencesManager.storeString(FORM_CONFIG, encoded)
-        Log.i(TAG, "stored ${FORM_CONFIG}: ${encoded}")
+        SharedPreferencesManager.storeString(TENSE_CONFIG, encoded)
+        Log.i(TAG, "stored ${TENSE_CONFIG}: ${encoded}")
     }
 
     fun loadFormConfig(): ConfigSection {

@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KazakhVerbTheme {
-                MainTabView()
+                AppNavigation()
                 /*
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(

@@ -30,7 +30,7 @@ data class ConfigSection(
 
         private fun decodeFromString(s: String, defaultSettings: List<Setting>): ConfigSection {
             require(s.length == defaultSettings.size) {
-                "failed to decode TenseConfig: invalid string size ${s.length}"
+                "failed to decode TenseConfig: invalid string size ${s.length}, ${s}"
             }
             val settings = mutableListOf<Setting>()
             defaultSettings.forEachIndexed { index, setting ->

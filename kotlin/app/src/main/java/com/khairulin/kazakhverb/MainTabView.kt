@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +21,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.khairulin.kazakhverb.view.SettingsScreen
+import com.khairulin.kazakhverb.vm.ConjugationVM
 
 @Composable
-fun MainTabView() {
+fun MainTabView(
+    navController: NavController
+) {
+    val conjugationVM: ConjugationVM = viewModel()
+
     val tabs = listOf("Conjugation", "Settings")
 
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -60,15 +67,20 @@ fun MainTabView() {
             color = MaterialTheme.colorScheme.background
         ) {
             when (selectedTabIndex) {
-                0 -> ConjugationScreen()
-                1 -> SettingsScreen()
+                0 -> ConjugationScreen(conjugationVM = conjugationVM)
+                1 -> SettingsScreen(conjugationVM = conjugationVM) {
+                    navController.navigate(AboutScreenTag)
+                }
             }
         }
     }
 }
 
 @Composable
-fun ConjugationScreen() {
+fun ConjugationScreen(
+    modifier: Modifier = Modifier,
+    conjugationVM: ConjugationVM
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -100,6 +112,6 @@ fun ProfileScreen() {
 @Composable
 fun BottomTabLayoutPreview() {
     MaterialTheme {
-        MainTabView()
+        MainTabView(rememberNavController())
     }
 }
