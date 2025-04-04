@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AboutScreen(
     modifier: Modifier = Modifier,
-    onBackPressed: () -> Unit
 ) {
     val version = extractVersion(LocalContext.current)
     val linkColor = MaterialTheme.colorScheme.tertiary
@@ -75,9 +74,9 @@ fun AboutScreen(
     ) {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
                 .padding(20.dp, 30.dp, 20.dp, 30.dp)
-                .fillMaxWidth(),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
@@ -144,7 +143,6 @@ private fun extractVersion(context: Context): String {
 @Composable
 fun AboutScreenPreview() {
     MaterialTheme {
-        AboutScreen {
-        }
+        AboutScreen()
     }
 }

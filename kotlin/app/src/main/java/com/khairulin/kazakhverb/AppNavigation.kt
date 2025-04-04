@@ -25,9 +25,7 @@ fun AppNavigation() {
         }
 
         composable<AboutScreenTag> {
-            AboutScreen(
-                onBackPressed = { navController.navigateUp() }
-            )
+            AboutScreen()
         }
     }
 }

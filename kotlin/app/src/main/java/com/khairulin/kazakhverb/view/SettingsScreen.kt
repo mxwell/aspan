@@ -5,27 +5,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.khairulin.kazakhverb.config.ConfigSection
-import com.khairulin.kazakhverb.config.SharedPreferencesManager
 import com.khairulin.kazakhverb.vm.ConjugationVM
-import kotlinx.serialization.Serializable
 
 @Composable
 fun SettingsScreen(
@@ -37,7 +36,9 @@ fun SettingsScreen(
     val formConfig by conjugationVM.formConfigFlow.collectAsState()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
@@ -47,7 +48,7 @@ fun SettingsScreen(
             )
         }
         item {
-            Button(
+            OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 10.dp),
@@ -55,6 +56,23 @@ fun SettingsScreen(
             ) {
                 Text(text = "About")
             }
+        }
+        item {
+            Text(
+                text = buildAnnotatedString {
+                    withLink(LinkAnnotation.Url(url = "https://kazakhverb.khairulin.com/legal/android_privacy.html")) {
+                        withStyle(
+                            style = SpanStyle(
+                                textDecoration = TextDecoration.Underline,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        ) {
+                            append("Privacy Policy")
+                        }
+                    }
+                },
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
         item {
             Text(
