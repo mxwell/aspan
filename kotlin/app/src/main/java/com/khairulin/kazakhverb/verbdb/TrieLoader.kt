@@ -6,8 +6,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class TrieLoader(private val context: Context) {
-    private val TAG = "TrieLoader"
-
     private fun loadChars(): List<Char>? {
         try {
             context.assets.open("Chars.txt").use { inputStream ->
@@ -160,7 +158,7 @@ class TrieLoader(private val context: Context) {
         }
     }
 
-    fun load(): Trie? {
+    private fun load(): Trie? {
         val chars = loadChars()
         if (chars == null) {
             Log.e(TAG, "load: failed to load chars")
@@ -189,5 +187,25 @@ class TrieLoader(private val context: Context) {
         Log.i(TAG, "load: loaded ${nodes.size} nodes")
 
         return Trie(suggestions, nodes)
+    }
+
+    companion object {
+        private val TAG = "TrieLoader"
+        private var loadedTrie: Trie? = null
+
+        fun loadTrie(context: Context) {
+            Log.i(TAG, "Loading trie...")
+            val trie = TrieLoader(context).load()
+            if (trie == null) {
+                Log.e(TAG, "Failed to load trie")
+            } else {
+                Log.i(TAG, "Trie is loaded: ${trie.suggestions.size} suggestions, ${trie.nodes.size} nodes")
+            }
+            loadedTrie = trie
+        }
+
+        fun getTrie(): Trie? {
+            return loadedTrie
+        }
     }
 }

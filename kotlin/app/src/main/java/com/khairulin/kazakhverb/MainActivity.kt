@@ -24,9 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         SharedPreferencesManager.init(this)
-
-        Log.i(TAG, "loading trie")
-        TrieLoader(this).load()
+        TrieLoader.loadTrie(this)
 
         setContent {
             KazakhVerbTheme {

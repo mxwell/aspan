@@ -1,6 +1,5 @@
 package com.khairulin.kazakhverb
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,12 +17,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.khairulin.kazakhverb.view.ConjugationScreen
 import com.khairulin.kazakhverb.view.SettingsScreen
 import com.khairulin.kazakhverb.vm.ConjugationVM
 
@@ -75,38 +74,6 @@ fun MainTabView(
         }
     }
 }
-
-@Composable
-fun ConjugationScreen(
-    modifier: Modifier = Modifier,
-    conjugationVM: ConjugationVM
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Conjugation Screen",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        // TODO
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Settings Screen",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        // Add your profile content here
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable

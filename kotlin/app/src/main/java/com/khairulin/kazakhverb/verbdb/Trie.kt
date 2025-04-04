@@ -18,6 +18,6 @@ class Trie(val suggestions: List<String>, val nodes: List<TrieNode>) {
         for (suggestionId in node.suggestions) {
             curSuggestions.add(suggestions[suggestionId])
         }
-        return TrieResult(words, suggestions)
+        return TrieResult(words, curSuggestions)
     }
 }

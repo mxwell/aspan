@@ -8,7 +8,12 @@ object ProfilePreferences {
     private val TENSE_CONFIG = "tense_config"
     private val FORM_CONFIG = "form_config"
 
+    private val debug = false
+
     fun loadTenseConfig(): ConfigSection {
+        if (debug) {
+            return ConfigSection.makeTenseConfigDefault()
+        }
         val stored = SharedPreferencesManager.loadString(TENSE_CONFIG)
         try {
             Log.i(TAG, "loaded value for ${TENSE_CONFIG}: ${stored}")
@@ -27,6 +32,9 @@ object ProfilePreferences {
     }
 
     fun loadFormConfig(): ConfigSection {
+        if (debug) {
+            return ConfigSection.makeFormConfigDefault()
+        }
         val stored = SharedPreferencesManager.loadString(FORM_CONFIG)
         try {
             Log.i(TAG, "loaded value for ${FORM_CONFIG}: ${stored}")

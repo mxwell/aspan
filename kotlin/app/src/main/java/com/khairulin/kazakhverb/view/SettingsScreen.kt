@@ -22,7 +22,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.khairulin.kazakhverb.ConjugationScreen
 import com.khairulin.kazakhverb.config.ConfigSection
 import com.khairulin.kazakhverb.config.SharedPreferencesManager
 import com.khairulin.kazakhverb.vm.ConjugationVM
