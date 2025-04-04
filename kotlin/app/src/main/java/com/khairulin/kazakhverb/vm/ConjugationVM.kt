@@ -1,7 +1,6 @@
 package com.khairulin.kazakhverb.vm
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +11,7 @@ import com.khairulin.kazakhverb.verbdb.TrieLoader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.example.SentenceType
 
 class ConjugationVM : ViewModel() {
     private val TAG = "ConjugationVM"
@@ -20,8 +20,10 @@ class ConjugationVM : ViewModel() {
 
     var lastEntered by mutableStateOf("ке")
         private set
+    var selectedSentenceTypeIndex by mutableStateOf(0)
+        private set
 
-    private val suggestions = MutableStateFlow(listOf<String>("алу", "бару", "зерттеу"))
+    private val suggestions = MutableStateFlow(listOf<String>())
     private val tenseConfig = MutableStateFlow(ProfilePreferences.loadTenseConfig())
     private val formConfig = MutableStateFlow(ProfilePreferences.loadFormConfig())
 
@@ -70,6 +72,15 @@ class ConjugationVM : ViewModel() {
             val newSuggestions = result.words + result.suggestions
             updateSuggestions(newSuggestions)
         }
+    }
+
+    fun onSentenceTypeChange(newIndex: Int) {
+        if (newIndex !in 0 until SentenceType.entries.size) {
+            Log.e(TAG, "onSentenceTypeChange: bad index ${newIndex}")
+            return
+        }
+        selectedSentenceTypeIndex = newIndex
+        Log.i(TAG, "onSentenceTypeChange: ${selectedSentenceTypeIndex}")
     }
 
     fun onSubmit() = viewModelScope.launch {

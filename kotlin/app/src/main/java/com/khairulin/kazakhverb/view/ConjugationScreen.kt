@@ -19,6 +19,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.khairulin.kazakhverb.vm.ConjugationVM
+import org.example.SentenceType
 
 @Composable
 fun ConjugationScreen(
@@ -82,20 +86,44 @@ fun ConjugationScreen(
             }
         }
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 0.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
-            shape = RectangleShape,
-        ) {
-            LazyColumn {
-                items(suggestions) { suggestion: String ->
-                    Text(
-                        text = suggestion,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { conjugationVM.onSuggestionClick(suggestion) }
-                            .padding(16.dp)
+        if (suggestions.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
+                shape = RectangleShape,
+            ) {
+                LazyColumn {
+                    items(suggestions) { suggestion: String ->
+                        Text(
+                            text = suggestion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { conjugationVM.onSuggestionClick(suggestion) }
+                                .padding(16.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+            ) {
+                val options = SentenceType.entries
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ),
+                        onClick = {
+                            conjugationVM.onSentenceTypeChange(index)
+                        },
+                        selected = index == conjugationVM.selectedSentenceTypeIndex,
+                        label = {
+                            Text(label.name)
+                        }
                     )
                 }
             }
