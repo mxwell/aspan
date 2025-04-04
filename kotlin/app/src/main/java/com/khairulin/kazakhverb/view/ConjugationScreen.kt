@@ -72,7 +72,7 @@ fun ConjugationScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Conjugation Screen",
+            text = "Conjugation",
             style = MaterialTheme.typography.headlineMedium
         )
 
