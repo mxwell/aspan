@@ -16,19 +16,32 @@ import org.example.SentenceType
 class ConjugationVM : ViewModel() {
     private val TAG = "ConjugationVM"
 
-    private val state = MutableStateFlow(ViewModelState.awaitingInput)
-
+    var state by mutableStateOf(ViewModelState.loadedForms)
+        private set
     var lastEntered by mutableStateOf("ке")
         private set
     var selectedSentenceTypeIndex by mutableStateOf(0)
         private set
+    var optionalExceptional by mutableStateOf(true)
+        private set
+    var conjugationTypeIndex by mutableStateOf(0)
+        private set
+    var loadedVerb by mutableStateOf("зерттеу")
+        private set
+    var contAuxVerbIndex by mutableStateOf(0)
+        private set
+
+    private val tenses = MutableStateFlow(listOf<TenseInfo>(
+        TenseInfo.preview()
+    ))
 
     private val suggestions = MutableStateFlow(listOf<String>())
     private val tenseConfig = MutableStateFlow(ProfilePreferences.loadTenseConfig())
     private val formConfig = MutableStateFlow(ProfilePreferences.loadFormConfig())
 
-    val stateFlow = state.asStateFlow()
     val suggestionsFlow = suggestions.asStateFlow()
+    val tensesFlow = tenses.asStateFlow()
+
     val tenseConfigFlow = tenseConfig.asStateFlow()
     val formConfigFlow = formConfig.asStateFlow()
 
@@ -91,5 +104,23 @@ class ConjugationVM : ViewModel() {
     fun onSuggestionClick(suggestion: String) = viewModelScope.launch {
         Log.i(TAG, "onSuggestionClick called: ${suggestion}")
         // TODO
+    }
+
+    fun onConjugationTypeChange(newIndex: Int) {
+        if (newIndex !in 0 until ConjugationType.entries.size) {
+            Log.e(TAG, "onConjugationTypeChange: bad index ${newIndex}")
+            return
+        }
+        conjugationTypeIndex = newIndex
+        Log.i(TAG, "onConjugationTypeChange: ${conjugationTypeIndex}")
+    }
+
+    fun onContAuxVerbChange(newIndex: Int) {
+        if (newIndex !in 0 until ContinuousAuxVerb.entries.size) {
+            Log.e(TAG, "onContAuxVerbChange: bad index ${newIndex}")
+            return
+        }
+        contAuxVerbIndex = newIndex
+        Log.i(TAG, "onContAuxVerbChange: ${contAuxVerbIndex}")
     }
 }
