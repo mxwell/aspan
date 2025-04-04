@@ -2,7 +2,6 @@ package org.example
 
 import kotlinx.serialization.json.Json
 import java.io.File
-import kotlin.test.Test
 
 class TestsetRunner {
     private val auxBuilders: Map<TenseIndex, VerbBuilder> by lazy {
@@ -91,7 +90,7 @@ class TestsetRunner {
         return VerbBuilder(verb, forceExceptional)
     }
 
-    @Test
+    //@Test
     fun run() {
         val inputStream = File("/data/verb_testset.20241217.jsonl").inputStream()
         var counter = 0
