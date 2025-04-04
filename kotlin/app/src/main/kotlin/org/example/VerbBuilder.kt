@@ -185,8 +185,16 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                 val affix = "й"
                 appendPresentTransitivePersAffix(person, number, sentenceType, PhrasalBuilder().verbBase(pastBase.base).negation(particle).tenseAffix(affix)).build()
             }
-            SentenceType.Question ->
-                buildQuestionForm(appendPresentTransitivePersAffix(person, number, sentenceType, presentTransitiveCommonBuilder())).build()
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    appendPresentTransitivePersAffix(
+                        person,
+                        number,
+                        sentenceType,
+                        presentTransitiveCommonBuilder()
+                    )
+                ).build()
+            }
         }
     }
 

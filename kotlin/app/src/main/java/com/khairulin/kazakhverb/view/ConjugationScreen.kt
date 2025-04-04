@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
@@ -36,6 +38,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +57,13 @@ fun ConjugationScreen(
 ) {
     val suggestions by conjugationVM.suggestionsFlow.collectAsState()
     val tenses by conjugationVM.tensesFlow.collectAsState()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun onSubmit() {
+        keyboardController?.hide()
+        conjugationVM.onSubmit()
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -72,6 +83,13 @@ fun ConjugationScreen(
         ) {
             OutlinedTextField(
                 conjugationVM.lastEntered,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onSubmit()
+                    }
+                ),
                 onValueChange = { it: String ->
                     conjugationVM.onVerbChange(it)
                 },
@@ -84,7 +102,7 @@ fun ConjugationScreen(
             )
             OutlinedButton(
                 onClick = {
-                    conjugationVM.onSubmit()
+                    onSubmit()
                 },
                 modifier = Modifier
                     .size(50.dp),
@@ -111,7 +129,10 @@ fun ConjugationScreen(
                             text = suggestion,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { conjugationVM.onSuggestionClick(suggestion) }
+                                .clickable {
+                                    keyboardController?.hide()
+                                    conjugationVM.applySuggestion(suggestion)
+                                }
                                 .padding(16.dp)
                         )
                     }
@@ -165,7 +186,7 @@ fun ConjugationScreen(
                         modifier = Modifier
                             .padding(10.dp)
                             .clickable {
-                                conjugationVM.onSuggestionClick("келу")
+                                conjugationVM.applySuggestion("келу")
                             }
                     )
                     Text("or")
@@ -175,7 +196,7 @@ fun ConjugationScreen(
                         modifier = Modifier
                             .padding(10.dp)
                             .clickable {
-                                conjugationVM.onSuggestionClick("алу")
+                                conjugationVM.applySuggestion("алу")
                             }
                     )
                 }

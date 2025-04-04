@@ -1,5 +1,6 @@
 package com.khairulin.kazakhverb.view
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -56,7 +57,12 @@ fun HighlightedPhrasal(
         text = buildAnnotatedString {
             append(prefix)
             phrasal.parts.forEach { part ->
-                val color = PartColor.getPartColorByPartType(part.partType).color
+                val partColor = PartColor.getPartColorByPartType(part.partType)
+                val color = if (partColor != PartColor.default) {
+                    partColor.color
+                } else {
+                    MaterialTheme.colorScheme.onBackground
+                }
                 if (isMainPart(part)) {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = color)) {
                         append(part.content)

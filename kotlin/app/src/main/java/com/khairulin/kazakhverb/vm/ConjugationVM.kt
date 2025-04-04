@@ -16,9 +16,9 @@ import org.example.SentenceType
 class ConjugationVM : ViewModel() {
     private val TAG = "ConjugationVM"
 
-    var state by mutableStateOf(ViewModelState.loadedForms)
+    var state by mutableStateOf(ViewModelState.awaitingInput)
         private set
-    var lastEntered by mutableStateOf("ке")
+    var lastEntered by mutableStateOf("")
         private set
     var selectedSentenceTypeIndex by mutableStateOf(0)
         private set
@@ -26,14 +26,12 @@ class ConjugationVM : ViewModel() {
         private set
     var conjugationTypeIndex by mutableStateOf(0)
         private set
-    var loadedVerb by mutableStateOf("зерттеу")
+    var loadedVerb by mutableStateOf("")
         private set
     var contAuxVerbIndex by mutableStateOf(0)
         private set
 
-    private val tenses = MutableStateFlow(listOf<TenseInfo>(
-        TenseInfo.preview()
-    ))
+    private val tenses = MutableStateFlow(listOf<TenseInfo>())
 
     private val suggestions = MutableStateFlow(listOf<String>())
     private val tenseConfig = MutableStateFlow(ProfilePreferences.loadTenseConfig())
@@ -46,18 +44,89 @@ class ConjugationVM : ViewModel() {
     val formConfigFlow = formConfig.asStateFlow()
 
     private val trie = TrieLoader.getTrie()
+    private val generator = Generator()
     private var appliedSuggestion: String? = null
 
     fun toggleTenseSetting(index: Int) = viewModelScope.launch {
         val updated = tenseConfig.value.toggleAt(index)
         ProfilePreferences.storeTenseConfig(updated)
         tenseConfig.value = updated
+        reload(loadedVerb)
     }
 
     fun toggleFormSetting(index: Int) = viewModelScope.launch {
         val updated = formConfig.value.toggleAt(index)
         ProfilePreferences.storeFormConfig(updated)
         formConfig.value = updated
+        reload(loadedVerb)
+    }
+
+    private fun putToState(state: ViewModelState) {
+        this.state = state
+    }
+
+    private fun putToLoadingForms(verb: String): Boolean {
+        if (state == ViewModelState.loadingForms) {
+            return false
+        }
+        this.loadedVerb = verb
+        putToState(ViewModelState.loadingForms)
+        return true
+    }
+
+    private fun putToLoadedForms(tenses: List<TenseInfo>, optExcept: Boolean) {
+        this.tenses.value = tenses
+        this.optionalExceptional = optExcept
+        putToState(ViewModelState.loadedForms)
+    }
+
+    private fun putToNotFound() {
+        putToState(ViewModelState.notFound)
+    }
+
+    private fun loadForms(verb: String, sentenceType: SentenceType, contAux: ContinuousAuxVerb) {
+        val aFormConfig = formConfig.value
+        val conjugationType = ConjugationType.entries[conjugationTypeIndex]
+
+        val tenses = mutableListOf<TenseInfo>()
+
+        TenseId.entries.forEachIndexed { index, tenseId ->
+            if (tenseConfig.value.settings[index].on) {
+                val tense = generator.generateTense(
+                    tenseId,
+                    aFormConfig,
+                    verb,
+                    sentenceType,
+                    contAux,
+                    conjugationType,
+                )
+                if (tense == null) {
+                    putToNotFound()
+                    return
+                }
+                tenses.add(tense)
+            }
+        }
+
+        putToLoadedForms(tenses, generator.isOptExcept(verb))
+    }
+
+    private fun reload(newVerb: String) {
+        if (newVerb.length < 2) {
+            Log.e(TAG, "reload: too short input")
+            return
+        }
+        val sentenceType = SentenceType.entries[selectedSentenceTypeIndex]
+        val contAux = ContinuousAuxVerb.entries[contAuxVerbIndex]
+
+        if (!putToLoadingForms(newVerb)) {
+            Log.e(TAG, "reload: already loading")
+            return
+        }
+
+        loadForms(newVerb, sentenceType, contAux)
+
+        this.suggestions.value = emptyList()
     }
 
     private fun updateSuggestions(newSuggestions: List<String>) {
@@ -87,6 +156,19 @@ class ConjugationVM : ViewModel() {
         }
     }
 
+    fun applySuggestion(suggestion: String) {
+        appliedSuggestion = suggestion
+        lastEntered = suggestion
+        this.suggestions.value = emptyList()
+        reload(suggestion)
+    }
+
+    fun onSubmit() = viewModelScope.launch {
+        Log.i(TAG, "onSubmit called")
+        val newVerb = lastEntered
+        reload(newVerb)
+    }
+
     fun onSentenceTypeChange(newIndex: Int) {
         if (newIndex !in 0 until SentenceType.entries.size) {
             Log.e(TAG, "onSentenceTypeChange: bad index ${newIndex}")
@@ -94,16 +176,7 @@ class ConjugationVM : ViewModel() {
         }
         selectedSentenceTypeIndex = newIndex
         Log.i(TAG, "onSentenceTypeChange: ${selectedSentenceTypeIndex}")
-    }
-
-    fun onSubmit() = viewModelScope.launch {
-        Log.i(TAG, "onSubmit called")
-        // TODO
-    }
-
-    fun onSuggestionClick(suggestion: String) = viewModelScope.launch {
-        Log.i(TAG, "onSuggestionClick called: ${suggestion}")
-        // TODO
+        reload(loadedVerb)
     }
 
     fun onConjugationTypeChange(newIndex: Int) {
@@ -113,6 +186,7 @@ class ConjugationVM : ViewModel() {
         }
         conjugationTypeIndex = newIndex
         Log.i(TAG, "onConjugationTypeChange: ${conjugationTypeIndex}")
+        reload(loadedVerb)
     }
 
     fun onContAuxVerbChange(newIndex: Int) {
@@ -122,5 +196,6 @@ class ConjugationVM : ViewModel() {
         }
         contAuxVerbIndex = newIndex
         Log.i(TAG, "onContAuxVerbChange: ${contAuxVerbIndex}")
+        reload(loadedVerb)
     }
 }
