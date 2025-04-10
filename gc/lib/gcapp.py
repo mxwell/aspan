@@ -42,6 +42,7 @@ dictConfig({
 DATABASE_PATH = "/data/gc.db"
 CACHE_TTL_SECS = 300
 REVIEW_PAGE_SIZE = 20
+CLIP_PAGE_SIZE = 20
 APPROVE_THRESHOLD = 2
 DISAPPROVE_THRESHOLD = 2
 WEEK_SECONDS = 7 * 24 * 60 * 60
@@ -1675,6 +1676,35 @@ class Gc(object):
         with self.db_lock:
             return self.do_get_video_subtitles(video_id, start_ms, end_ms)
 
+    def do_get_clips(self, offset, count):
+        cursor = self.db_conn.cursor()
+        cursor.execute("""
+            SELECT
+               *
+            FROM
+                clips
+            LIMIT ?, ?;
+        """, (offset, count))
+        fetched_results = cursor.fetchall()
+
+        clips = [
+            {
+                "clip_id": row["clip_id"],
+                "video_id": row["video_id"],
+                "author": row["author"],
+                "title": row["title"],
+                "duration_secs": row["duration_secs"],
+                "published_on": row["published_on"],
+            }
+            for row in fetched_results
+        ]
+        cursor.close()
+        return clips
+
+    def get_clips(self, offset, count):
+        with self.db_lock:
+            return self.do_get_clips(offset, count)
+
 
 def init_db_conn(db_path):
     conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -1847,6 +1877,18 @@ CREATE TABLE IF NOT EXISTS subtitles (
     words TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (video_id, start_ms)
+);
+    """.strip())
+
+    conn.execute("""
+CREATE TABLE IF NOT EXISTS clips (
+    clip_id INTEGER PRIMARY KEY,
+    video_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    title TEXT NOT NULL,
+    duration_secs INTEGER NOT NULL,
+    published_on TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
     """.strip())
 
@@ -2392,3 +2434,23 @@ def get_video_subtitles():
         logging.error("null subtitles: %s, [%d, %d]", video_id, start_ms, end_ms)
         return jsonify({"message": "Internal error"}), 500
     return jsonify({"message": "ok", "subtitles": subtitles}), 200
+
+
+@app.route("/gcapi/v1/get_clips", methods=["GET"])
+def get_clips():
+    global gc_instance
+
+    offset_raw = request.args.get("o")
+    offset = int(offset_raw) if (isinstance(offset_raw, str) and offset_raw.isdigit()) else 0
+    count_raw = request.args.get("c")
+    count = int(count_raw) if (isinstance(count_raw, str) and count_raw.isdigit()) else CLIP_PAGE_SIZE
+
+    if count <= 0:
+        logging.error("Invalid count: %s", str(count_raw))
+        return jsonify({"message": "Invalid request"}), 400
+
+    clips = gc_instance.get_clips(offset, count)
+    if clips is None:
+        logging.error("null clips: %s, %s", str(offset_raw), str(count_raw))
+        return jsonify({"message": "Internal error"}), 500
+    return jsonify({"message": "ok", "clips": clips}), 200
