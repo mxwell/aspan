@@ -1,6 +1,6 @@
 package com.khairulin.kazakhverb.vm
 
-import org.example.Phrasal
+import com.khairulin.kazakhverb.grammar.Phrasal
 
 data class TenseFormRow(
     val pronoun: String,

@@ -2,14 +2,14 @@ package com.khairulin.kazakhverb.vm
 
 import android.util.Log
 import com.khairulin.kazakhverb.config.ConfigSection
-import org.example.GrammarNumber
-import org.example.GrammarPerson
-import org.example.Phrasal
-import org.example.PhrasalBuilder
-import org.example.Rules
-import org.example.SentenceType
-import org.example.StrManip
-import org.example.VerbBuilder
+import com.khairulin.kazakhverb.grammar.GrammarNumber
+import com.khairulin.kazakhverb.grammar.GrammarPerson
+import com.khairulin.kazakhverb.grammar.Phrasal
+import com.khairulin.kazakhverb.grammar.PhrasalBuilder
+import com.khairulin.kazakhverb.grammar.Rules
+import com.khairulin.kazakhverb.grammar.SentenceType
+import com.khairulin.kazakhverb.grammar.StrManip
+import com.khairulin.kazakhverb.grammar.VerbBuilder
 
 class Generator {
 
@@ -98,7 +98,10 @@ class Generator {
         val pronouns = if (tenseId == TenseId.optativeMood) kGenPronouns else kNormPronouns
 
         val builder = try {
-            VerbBuilder(verb, forceExceptional = conjType == ConjugationType.exceptionVerb)
+            VerbBuilder(
+                verb,
+                forceExceptional = conjType == ConjugationType.exceptionVerb
+            )
         } catch (e: Exception) {
             Log.e(TAG, "generateTense: failed to create VerbBuilder")
             return null

@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 enum class PersAffix1LetterGroup {
     PersAffix1DefaultGroup,

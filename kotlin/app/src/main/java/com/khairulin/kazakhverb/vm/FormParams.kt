@@ -1,7 +1,7 @@
 package com.khairulin.kazakhverb.vm
 
-import org.example.GrammarNumber
-import org.example.GrammarPerson
+import com.khairulin.kazakhverb.grammar.GrammarNumber
+import com.khairulin.kazakhverb.grammar.GrammarPerson
 
 data class FormParams(
     val grammarPerson: GrammarPerson,

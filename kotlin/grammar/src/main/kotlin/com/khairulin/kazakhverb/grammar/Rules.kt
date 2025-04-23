@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object Rules {
     val VOWELS = setOf(

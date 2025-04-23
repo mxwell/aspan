@@ -9,9 +9,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import org.example.Phrasal
-import org.example.PhrasalPart
-import org.example.PhrasalPartType
+import com.khairulin.kazakhverb.grammar.Phrasal
+import com.khairulin.kazakhverb.grammar.PhrasalPart
+import com.khairulin.kazakhverb.grammar.PhrasalPartType
 
 enum class PartColor(val color: Color) {
     verbBase(Color(49, 151, 149)),

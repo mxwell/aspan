@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 data class Phrasal(
     val parts: List<PhrasalPart>,

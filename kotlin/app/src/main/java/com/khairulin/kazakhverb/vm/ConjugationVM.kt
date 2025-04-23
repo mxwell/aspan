@@ -11,7 +11,7 @@ import com.khairulin.kazakhverb.verbdb.TrieLoader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.example.SentenceType
+import com.khairulin.kazakhverb.grammar.SentenceType
 
 class ConjugationVM : ViewModel() {
     private val TAG = "ConjugationVM"

@@ -48,7 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.khairulin.kazakhverb.vm.ConjugationType
 import com.khairulin.kazakhverb.vm.ConjugationVM
 import com.khairulin.kazakhverb.vm.ViewModelState
-import org.example.SentenceType
+import com.khairulin.kazakhverb.grammar.SentenceType
 
 @Composable
 fun ConjugationScreen(

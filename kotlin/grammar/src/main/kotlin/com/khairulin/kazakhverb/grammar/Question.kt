@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object Question {
     fun getQuestionParticle(char: Char, softOffset: Int): String {

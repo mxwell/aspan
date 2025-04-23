@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object PersAffix {
     fun getFirstPersAffix1LetterGroup(char: Char): PersAffix1LetterGroup {

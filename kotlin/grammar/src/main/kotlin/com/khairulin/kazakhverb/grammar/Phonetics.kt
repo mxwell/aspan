@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object Phonetics {
     fun genuineVowel(char: Char): Boolean {

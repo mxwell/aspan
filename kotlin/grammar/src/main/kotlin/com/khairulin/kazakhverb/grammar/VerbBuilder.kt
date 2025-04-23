@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 class VerbBuilder(private val verbDictForm: String, private val forceExceptional: Boolean = false) {
 
@@ -148,7 +148,12 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         require(!(nc && yp)) { "genericBaseModifier called with nc and yp simultaneously" }
         return when {
             nc -> Rules.VERB_EXCEPTION_ADD_VOWEL_MAP[verbDictForm]?.let { BaseAndLast.ofBase(it) }
-                ?: Rules.VERB_LAST_NEGATIVE_CONVERSION[verbBase.last()]?.let { BaseAndLast.ofBaseAndLastReplacement(verbBase, it) }
+                ?: Rules.VERB_LAST_NEGATIVE_CONVERSION[verbBase.last()]?.let {
+                    BaseAndLast.ofBaseAndLastReplacement(
+                        verbBase,
+                        it
+                    )
+                }
                 ?: BaseAndLast(verbBase, baseLast)
             yp && Rules.VERB_PRESENT_CONT_EXCEPTION_U_SET.contains(verbDictForm) && !forceExceptional ->
                 BaseAndLast.ofBaseAndLastReplacement(regularVerbBase, 'у')
@@ -408,7 +413,12 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                         person == GrammarPerson.Third
                 )
         val baseAndLast = genericBaseModifier(nc = nc, yp = false)
-        val affix = VerbSuffix.getImperativeAffix(person = person, number = number, char = baseAndLast.last, softOffset = softOffset)
+        val affix = VerbSuffix.getImperativeAffix(
+            person = person,
+            number = number,
+            char = baseAndLast.last,
+            softOffset = softOffset
+        )
         return mergeBaseWithVowelAffix(origBase = baseAndLast.base, origAffix = affix)
     }
 
@@ -422,7 +432,12 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                 val pastBase = genericBaseModifier(nc = true, yp = false)
                 val particle = Question.getQuestionParticle(char = pastBase.last, softOffset = softOffset)
                 val particleLast = particle.last()
-                val affix = VerbSuffix.getImperativeAffix(person = person, number = number, char = particleLast, softOffset = softOffset)
+                val affix = VerbSuffix.getImperativeAffix(
+                    person = person,
+                    number = number,
+                    char = particleLast,
+                    softOffset = softOffset
+                )
                 PhrasalBuilder()
                     .verbBase(pastBase.base)
                     .negation(particle)
@@ -446,7 +461,10 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
     }
 
     private fun getOptativeAux(sentenceType: SentenceType): Phrasal {
-        return createOptativeAuxBuilder().presentTransitiveForm(GrammarPerson.Third, GrammarNumber.Singular, sentenceType)
+        return createOptativeAuxBuilder().presentTransitiveForm(
+            GrammarPerson.Third,
+            GrammarNumber.Singular, sentenceType
+        )
     }
 
     fun optativeMood(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {

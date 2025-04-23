@@ -1,5 +1,10 @@
 package org.example
 
+import com.khairulin.kazakhverb.grammar.GrammarNumber
+import com.khairulin.kazakhverb.grammar.GrammarPerson
+import com.khairulin.kazakhverb.grammar.Phrasal
+import com.khairulin.kazakhverb.grammar.SentenceType
+import com.khairulin.kazakhverb.grammar.VerbBuilder
 import kotlinx.serialization.json.Json
 import java.io.File
 

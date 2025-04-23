@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object StrManip {
     fun getLastWord(string: String): String {

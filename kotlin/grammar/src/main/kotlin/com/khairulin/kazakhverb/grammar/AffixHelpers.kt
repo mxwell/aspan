@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar
 
 object AffixHelpers {
     fun mameCompatible(char: Char): Boolean {

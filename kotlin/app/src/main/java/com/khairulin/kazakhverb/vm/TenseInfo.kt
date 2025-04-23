@@ -1,6 +1,6 @@
 package com.khairulin.kazakhverb.vm
 
-import org.example.PhrasalBuilder
+import com.khairulin.kazakhverb.grammar.PhrasalBuilder
 
 data class TenseInfo(
     val tenseId: TenseId,
