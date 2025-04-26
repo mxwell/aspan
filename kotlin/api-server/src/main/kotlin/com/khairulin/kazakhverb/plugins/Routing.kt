@@ -14,7 +14,9 @@ fun Application.configureRouting(apiServer: ApiServer) {
             call.respondText("Hello World!")
         }
         get("/api/v1/get_topics") {
-            call.respond(GetTopics(TaskTopic.entries))
+            val topics = TaskTopic.entries
+            val ruTitles = topics.map { it.ruTitle }
+            call.respond(GetTopics(topics, ruTitles))
         }
         get("/api/v1/get_tasks") {
             val topicName = call.parameters["topic"]

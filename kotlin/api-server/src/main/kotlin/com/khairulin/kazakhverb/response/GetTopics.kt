@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetTopics(
-    val topics: List<TaskTopic>
+    val topics: List<TaskTopic>,
+    val ruTitles: List<String>,
 )
