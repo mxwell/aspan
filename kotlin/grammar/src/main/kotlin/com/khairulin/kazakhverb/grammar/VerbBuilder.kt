@@ -65,6 +65,7 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
     private val baseLast: Char
     private val contContext: String?
     var optativeAuxBuilder: VerbBuilder? = null
+    var canAuxBuilder: VerbBuilder? = null
 
     init {
         require(validateVerb(verbDictForm)) { "Invalid verb dictionary form" }
@@ -494,6 +495,30 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .verbBase(baseAndLast.base)
             .tenseAffix(affix)
             .personalAffix(persAffix)
+            .space()
+            .auxVerb(phrasal = aux)
+            .build()
+    }
+
+    private fun createCanAuxBuilder(): VerbBuilder {
+        return canAuxBuilder ?: run {
+            val builder = VerbBuilder(verbDictForm = "алу")
+            canAuxBuilder = builder
+            builder
+        }
+    }
+
+    fun canClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val aux = createCanAuxBuilder().presentTransitiveForm(person, number, sentenceType)
+        return this.presentTransitiveCommonBuilder()
+            .space()
+            .auxVerb(phrasal = aux)
+            .build()
+    }
+
+    fun canClauseInPastTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val aux = createCanAuxBuilder().past(person, number, sentenceType)
+        return this.presentTransitiveCommonBuilder()
             .space()
             .auxVerb(phrasal = aux)
             .build()

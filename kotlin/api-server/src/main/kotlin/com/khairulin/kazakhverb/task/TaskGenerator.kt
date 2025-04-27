@@ -329,6 +329,66 @@ class TaskGenerator {
 
     private fun genOptativeMoodPastTense() = genEasy(this::optativeMoodPastTenseGenerator)
 
+    private fun canClauseGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
+
+        val phrasal = builder.canClause(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+
+        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
+
+        val description = buildTaskDescription(
+            "конструкция с алу = мочь",
+            sentenceStart,
+            verb.verbDictForm,
+            verb.forceExceptional,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}")
+        )
+    }
+
+    private fun canClausePastGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
+
+        val phrasal = builder.canClauseInPastTense(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+
+        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
+
+        val description = buildTaskDescription(
+            "конструкция с алу = мочь, прошедшее время",
+            sentenceStart,
+            verb.verbDictForm,
+            verb.forceExceptional,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}")
+        )
+    }
+
+    private fun genCanClauseEasy() = genEasy(this::canClauseGenerator)
+
+    private fun genCanClause() = genRegular(this::canClauseGenerator)
+
+    private fun genCanClausePastTense() = genEasy(this::canClausePastGenerator)
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -342,6 +402,9 @@ class TaskGenerator {
             TaskTopic.CONJ_OPTATIVE_MOOD_EASY -> genOptativeMoodEasy()
             TaskTopic.CONJ_OPTATIVE_MOOD -> genOptativeMood()
             TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> genOptativeMoodPastTense()
+            TaskTopic.CONJ_CAN_CLAUSE_EASY -> genCanClauseEasy()
+            TaskTopic.CONJ_CAN_CLAUSE -> genCanClause()
+            TaskTopic.CONJ_CAN_CLAUSE_PAST -> genCanClausePastTense()
             else -> null
         }
     }

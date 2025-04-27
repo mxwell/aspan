@@ -14,7 +14,10 @@ enum class TaskTopic(val ruTitle: String) {
     CONJ_REMOTE_PAST("Давнопрошедшее очевидное время - 2"),
     CONJ_OPTATIVE_MOOD_EASY("Желательное наклонение - 1"),
     CONJ_OPTATIVE_MOOD("Желательное наклонение - 2"),
-    CONJ_OPTATIVE_MOOD_PAST("Желательное наклонение - 3")
+    CONJ_OPTATIVE_MOOD_PAST("Желательное наклонение - 3"),
+    CONJ_CAN_CLAUSE_EASY("Конструкция с алу - 1"),
+    CONJ_CAN_CLAUSE("Конструкция с алу - 2"),
+    CONJ_CAN_CLAUSE_PAST("Конструкция с алу - 3"),
     ;
 
     companion object {
@@ -31,6 +34,9 @@ enum class TaskTopic(val ruTitle: String) {
                 CONJ_OPTATIVE_MOOD_EASY.name -> CONJ_OPTATIVE_MOOD_EASY
                 CONJ_OPTATIVE_MOOD.name -> CONJ_OPTATIVE_MOOD
                 CONJ_OPTATIVE_MOOD_PAST.name -> CONJ_OPTATIVE_MOOD_PAST
+                CONJ_CAN_CLAUSE_EASY.name -> CONJ_CAN_CLAUSE_EASY
+                CONJ_CAN_CLAUSE.name -> CONJ_CAN_CLAUSE
+                CONJ_CAN_CLAUSE_PAST.name -> CONJ_CAN_CLAUSE_PAST
                 else -> null
             }
         }
