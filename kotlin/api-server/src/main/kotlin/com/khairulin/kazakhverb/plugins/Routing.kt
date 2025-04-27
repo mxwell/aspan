@@ -10,15 +10,15 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting(apiServer: ApiServer) {
     routing {
-        get("/") {
-            call.respondText("Hello World!")
+        get("/gymapi") {
+            call.respondText("Have you been to the gym today?")
         }
-        get("/api/v1/get_topics") {
+        get("/gymapi/v1/get_topics") {
             val topics = TaskTopic.entries
             val ruTitles = topics.map { it.ruTitle }
             call.respond(GetTopics(topics, ruTitles))
         }
-        get("/api/v1/get_tasks") {
+        get("/gymapi/v1/get_tasks") {
             val topicName = call.parameters["topic"]
             val topic = TaskTopic.of(topicName)
             if (topic == null) {
