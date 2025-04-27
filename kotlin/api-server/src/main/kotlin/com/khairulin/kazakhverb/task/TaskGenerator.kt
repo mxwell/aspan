@@ -57,7 +57,7 @@ class TaskGenerator {
         } else {
             ""
         }
-        val auxVerb = if (auxVerb != null) {
+        val auxVerbPart = if (auxVerb != null) {
             ", вспомогательный глагол ${auxVerb}"
         } else {
             ""
@@ -67,17 +67,56 @@ class TaskGenerator {
         } else {
             ""
         }
-        sb.append("`${sentenceStart}[${verb}${noteOnException}${auxVerb}]${questionMark}`\n")
+        sb.append("`${sentenceStart}[${verb}${noteOnException}${auxVerbPart}]${questionMark}`\n")
         return sb.toString()
     }
 
-    private fun genCommon(generator: (taskId: Int) -> TaskItem): GetTasks {
+    data class Combo(
+        val taskId: Int,
+        val verb: VerbEntry,
+        val grammarForm: GrammarForm,
+        val sentenceType: SentenceType,
+    )
+
+    private fun generateCombos(easy: Boolean, taskCount: Int): List<Combo> {
+        val used = mutableSetOf<String>()
+        val result = mutableListOf<Combo>()
+        for (taskId in 1..taskCount) {
+            var verb = Top100.pickRandom()
+            var grammarForm = usedForms.random()
+            for (retry in 1..5) {
+                val key = "${verb.verbDictForm} + ${grammarForm.pronoun}"
+                if (used.contains(key)) {
+                    verb = Top100.pickRandom()
+                    grammarForm = usedForms.random()
+                    continue
+                } else {
+                    used.add(key)
+                    break
+                }
+            }
+            val sentenceType = if (easy) {
+                SentenceType.Statement
+            } else {
+                getSentenceTypeByTaskId(taskId)
+            }
+            result.add(Combo(taskId, verb, grammarForm, sentenceType))
+        }
+        return result
+    }
+
+    private fun genCommon(easy: Boolean, generator: (combo: Combo) -> TaskItem): GetTasks {
         val tasks = mutableListOf<TaskItem>()
-        for (taskId in 1..kTaskCount) {
-            tasks.add(generator(taskId))
+        val combos = generateCombos(easy, kTaskCount)
+        for (combo in combos) {
+            tasks.add(generator(combo))
         }
         return GetTasks(tasks)
     }
+
+    private fun genEasy(generator: (combo: Combo) -> TaskItem) = genCommon(true, generator)
+
+    private fun genRegular(generator: (combo: Combo) -> TaskItem) = genCommon(false, generator)
 
     private fun getSentenceTypeByTaskId(taskId: Int): SentenceType {
         return if (taskId <= 6) {
@@ -89,31 +128,11 @@ class TaskGenerator {
         }
     }
 
-    private fun genPresentTransitiveEasy() = genCommon {
-        val verb = Top100.pickRandom()
+    private fun presentTransitiveGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
         val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val phrasal = builder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement)
-
-        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
-
-        val description = buildTaskDescription(
-            "переходное время",
-            sentenceStart,
-            verb.verbDictForm,
-            verb.forceExceptional,
-        )
-        TaskItem(
-            description,
-            listOf("${sentenceStart}${phrasal.raw}")
-        )
-    }
-
-    private fun genPresentTransitive() = genCommon { taskId ->
-        val verb = Top100.pickRandom()
-        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val sentenceType = getSentenceTypeByTaskId(taskId)
 
         val phrasal = builder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType)
 
@@ -126,43 +145,21 @@ class TaskGenerator {
             verb.forceExceptional,
             sentenceType,
         )
-        TaskItem(
+        return TaskItem(
             description,
             listOf("${sentenceStart}${phrasal.raw}")
         )
     }
 
-    private fun genPresentContinuousEasy() = genCommon {
-        val verb = Top100.pickRandom()
+    private fun genPresentTransitiveEasy() = genEasy(this::presentTransitiveGenerator)
+
+    private fun genPresentTransitive() = genRegular(this::presentTransitiveGenerator)
+
+    private fun presentContinuousGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
         val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val phrasal = builder.presentContinuousForm(
-            grammarForm.person,
-            grammarForm.number,
-            SentenceType.Statement,
-            jatuBuilder
-        )
-
-        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
-
-        val description = buildTaskDescription(
-            "настоящее время",
-            sentenceStart,
-            verb.verbDictForm,
-            verb.forceExceptional,
-            auxVerb = "жату",
-        )
-        TaskItem(
-            description,
-            listOf("${sentenceStart}${phrasal.raw}")
-        )
-    }
-
-    private fun genPresentContinuous() = genCommon { taskId ->
-        val verb = Top100.pickRandom()
-        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val sentenceType = getSentenceTypeByTaskId(taskId)
 
         val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
 
@@ -193,41 +190,21 @@ class TaskGenerator {
             sentenceType,
             auxVerb = "жату",
         )
-        TaskItem(
+        return TaskItem(
             description,
             answers
         )
     }
 
-    fun genPastEasy() = genCommon {
-        val verb = Top100.pickRandom()
+    private fun genPresentContinuousEasy() = genEasy(this::presentContinuousGenerator)
+
+    private fun genPresentContinuous() = genRegular(this::presentContinuousGenerator)
+
+    private fun pastGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
         val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val phrasal = builder.past(
-            grammarForm.person,
-            grammarForm.number,
-            SentenceType.Statement,
-        )
-
-        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
-
-        val description = buildTaskDescription(
-            "прошедшее время",
-            sentenceStart,
-            verb.verbDictForm,
-            verb.forceExceptional,
-        )
-        TaskItem(
-            description,
-            listOf("${sentenceStart}${phrasal.raw}")
-        )
-    }
-
-    fun genPast() = genCommon { taskId ->
-        val verb = Top100.pickRandom()
-        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val sentenceType = getSentenceTypeByTaskId(taskId)
 
         val phrasal = builder.past(grammarForm.person, grammarForm.number, sentenceType)
 
@@ -240,41 +217,21 @@ class TaskGenerator {
             verb.forceExceptional,
             sentenceType,
         )
-        TaskItem(
+        return TaskItem(
             description,
             listOf("${sentenceStart}${phrasal.raw}")
         )
     }
 
-    fun genRemotePastEasy() = genCommon {
-        val verb = Top100.pickRandom()
+    private fun genPastEasy() = genEasy(this::pastGenerator)
+
+    private fun genPast() = genRegular(this::pastGenerator)
+
+    private fun remotePastGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
         val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val phrasal = builder.remotePast(
-            grammarForm.person,
-            grammarForm.number,
-            SentenceType.Statement,
-        )
-
-        val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
-
-        val description = buildTaskDescription(
-            "давнопрошедшее очевидное время",
-            sentenceStart,
-            verb.verbDictForm,
-            verb.forceExceptional,
-        )
-        TaskItem(
-            description,
-            listOf("${sentenceStart}${phrasal.raw}")
-        )
-    }
-
-    private fun genRemotePast() = genCommon { taskId ->
-        val verb = Top100.pickRandom()
-        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
-        val grammarForm = usedForms.random()
-        val sentenceType = getSentenceTypeByTaskId(taskId)
 
         val sentenceStart = buildSentenceStart(grammarForm.pronoun, verb.randomPreceding())
 
@@ -302,11 +259,75 @@ class TaskGenerator {
             verb.forceExceptional,
             sentenceType,
         )
-        TaskItem(
+        return TaskItem(
             description,
             answers
         )
     }
+
+    private fun genRemotePastEasy() = genEasy(this::remotePastGenerator)
+
+    private fun genRemotePast() = genRegular(this::remotePastGenerator)
+
+    private fun optativeMoodGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
+
+        val phrasal = builder.optativeMood(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+
+        val sentenceStart = buildSentenceStart(grammarForm.poss, verb.randomPreceding())
+
+        val description = buildTaskDescription(
+            "желательное наклонение",
+            sentenceStart,
+            verb.verbDictForm,
+            verb.forceExceptional,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}")
+        )
+    }
+
+    private fun optativeMoodPastTenseGenerator(combo: Combo): TaskItem {
+        val verb = combo.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val builder = VerbBuilder(verb.verbDictForm, verb.forceExceptional)
+
+        val phrasal = builder.optativeMoodInPastTense(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+
+        val sentenceStart = buildSentenceStart(grammarForm.poss, verb.randomPreceding())
+
+        val description = buildTaskDescription(
+            "желательное наклонение, прошедшее время",
+            sentenceStart,
+            verb.verbDictForm,
+            verb.forceExceptional,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}")
+        )
+    }
+
+    private fun genOptativeMoodEasy() = genEasy(this::optativeMoodGenerator)
+
+    private fun genOptativeMood() = genRegular(this::optativeMoodGenerator)
+
+    private fun genOptativeMoodPastTense() = genEasy(this::optativeMoodPastTenseGenerator)
 
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
@@ -318,6 +339,9 @@ class TaskGenerator {
             TaskTopic.CONJ_PAST -> genPast()
             TaskTopic.CONJ_REMOTE_PAST_EASY -> genRemotePastEasy()
             TaskTopic.CONJ_REMOTE_PAST -> genRemotePast()
+            TaskTopic.CONJ_OPTATIVE_MOOD_EASY -> genOptativeMoodEasy()
+            TaskTopic.CONJ_OPTATIVE_MOOD -> genOptativeMood()
+            TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> genOptativeMoodPastTense()
             else -> null
         }
     }

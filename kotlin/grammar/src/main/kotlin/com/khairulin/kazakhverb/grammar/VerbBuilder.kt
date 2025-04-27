@@ -480,4 +480,22 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .auxVerb(phrasal = aux)
             .build()
     }
+
+    fun optativeMoodInPastTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val baseAndLast = genericBaseModifier(nc = true, yp = false)
+        val affix = VerbSuffix.getGygiKyki(char = baseAndLast.last, softOffset = softOffset)
+        val persAffix = Rules.VERB_WANT_PERS_AFFIXES[person]!![number]!![softOffset]
+        val aux = createOptativeAuxBuilder().past(
+            GrammarPerson.Third,
+            GrammarNumber.Singular,
+            sentenceType
+        )
+        return PhrasalBuilder()
+            .verbBase(baseAndLast.base)
+            .tenseAffix(affix)
+            .personalAffix(persAffix)
+            .space()
+            .auxVerb(phrasal = aux)
+            .build()
+    }
 }
