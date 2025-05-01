@@ -5,6 +5,7 @@ import com.khairulin.kazakhverb.grammar.SentenceType
 import com.khairulin.kazakhverb.grammar.VerbBuilder
 import com.khairulin.kazakhverb.response.GetTasks
 import com.khairulin.kazakhverb.response.TaskItem
+import kotlin.random.Random
 
 class TaskGenerator {
 
@@ -389,6 +390,39 @@ class TaskGenerator {
 
     private fun genCanClausePastTense() = genEasy(this::canClausePastGenerator)
 
+    private fun getUnauClause(): GetTasks {
+        val subjects = listOf(
+            "кітап",
+            "гүлдер",
+            "спортпен айналысу",
+            "демалысты жоспарлау",
+            "кешкі ас жасау",
+            "көлік жүргізу",
+            "дүкен",
+            "автобус күту",
+            "хатты жазу",
+            "көшеде тұру",
+        )
+        val tasks = mutableListOf<TaskItem>()
+        for (taskId in 1..kTaskCount) {
+            val grammarForm = usedForms.random()
+            val subject = subjects.random()
+            val negation = Random.nextBoolean()
+            val hint = if (negation) {
+                "не нравится, переходное время"
+            } else {
+                "нравится, переходное время"
+            }
+            val pronoun = grammarForm.pronoun
+            val description = "(${hint})\n[${pronoun}] ${subject} [ұнау]"
+            val dative = grammarForm.dative
+            val verb = if (negation) "ұнамайды" else "ұнайды"
+            val answer = "${dative} ${subject} ${verb}"
+            tasks.add(TaskItem(description, listOf(answer)))
+        }
+        return GetTasks(tasks)
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -405,6 +439,7 @@ class TaskGenerator {
             TaskTopic.CONJ_CAN_CLAUSE_EASY -> genCanClauseEasy()
             TaskTopic.CONJ_CAN_CLAUSE -> genCanClause()
             TaskTopic.CONJ_CAN_CLAUSE_PAST -> genCanClausePastTense()
+            TaskTopic.CONJ_UNAU_CLAUSE -> getUnauClause()
             else -> null
         }
     }
