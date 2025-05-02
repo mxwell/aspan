@@ -400,12 +400,17 @@ class TaskGenerator {
         Pair("кітап", "кітапты"),
         Pair("гүлдер", "гүлдерді"),
         Pair("спортпен айналысу", "спортпен айналысуды"),
+        Pair("спортпен айналысқан", "спортпен айналысқанды"),
         Pair("демалысты жоспарлау", "демалысты жоспарлауды"),
+        Pair("демалысты жоспарлаған", "демалысты жоспарлағанды"),
         Pair("кешкі ас жасау", "кешкі ас жасауды"),
+        Pair("кешкі ас жасаған", "кешкі ас жасағанды"),
         Pair("көлік жүргізу", "көлік жүргізуді"),
+        Pair("көлік жүргізген", "көлік жүргізгенді"),
         Pair("дүкен", "дүкенді"),
         Pair("автобус күту", "автобус күтуді"),
         Pair("хатты жазу", "хатты жазуды"),
+        Pair("хатты жазған", "хатты жазғанды"),
         Pair("көшеде тұру", "көшеде тұруды"),
     )
 
@@ -461,6 +466,44 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    private fun genKoruClause(): GetTasks {
+        val tasks = mutableListOf<TaskItem>()
+        val loveVerb = "жақсы көру"
+        val hateVerb = "жек көру"
+        val loveBuilder = VerbBuilder(loveVerb, false)
+        val hateBuilder = VerbBuilder(hateVerb, false)
+        for (taskId in 1..kTaskCount) {
+            val grammarForm = usedForms.random()
+            val subject = kLikableSubjects.random()
+            val negation = Random.nextBoolean()
+            val hint = if (negation) {
+                "ненавидеть, переходное время"
+            } else {
+                "любить, переходное время"
+            }
+            val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
+            val description = buildTaskDescription(
+                hint,
+                sentenceStart,
+                if (negation) hateVerb else loveVerb,
+                false,
+                SentenceType.Statement,
+                subject = subject.first
+            )
+            val subjectPart = "${subject.second} "
+            val phrasal = if (negation) {
+                hateBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement)
+            } else {
+                loveBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement)
+            }
+            tasks.add(TaskItem(
+                description,
+                listOf("${sentenceStart}${subjectPart}${phrasal.raw}")
+            ))
+        }
+        return GetTasks(tasks)
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -479,6 +522,7 @@ class TaskGenerator {
             TaskTopic.CONJ_CAN_CLAUSE_PAST -> genCanClausePastTense()
             TaskTopic.CONJ_UNAU_CLAUSE -> genUnauClause()
             TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
+            TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             else -> null
         }
     }

@@ -20,6 +20,7 @@ enum class TaskTopic(val ruTitle: String) {
     CONJ_CAN_CLAUSE_PAST("Конструкция с алу - 3"),
     CONJ_UNAU_CLAUSE("Конструкция с ұнау"),
     CONJ_UNATU_CLAUSE("Конструкция с ұнату"),
+    CONJ_KORU_CLAUSE("Конструкция с жақсы, жек көру")
     ;
 
     companion object {
@@ -41,6 +42,7 @@ enum class TaskTopic(val ruTitle: String) {
                 CONJ_CAN_CLAUSE_PAST.name -> CONJ_CAN_CLAUSE_PAST
                 CONJ_UNAU_CLAUSE.name -> CONJ_UNAU_CLAUSE
                 CONJ_UNATU_CLAUSE.name -> CONJ_UNATU_CLAUSE
+                CONJ_KORU_CLAUSE.name -> CONJ_KORU_CLAUSE
                 else -> null
             }
         }
