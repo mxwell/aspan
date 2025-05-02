@@ -48,11 +48,17 @@ class TaskGenerator {
         verb: String,
         forceExceptional: Boolean,
         sentenceType: SentenceType = SentenceType.Statement,
+        subject: String? = null,
         auxVerb: String? = null
     ): String {
         val sb = StringBuilder()
         val hint = buildConjugationHint(tense, sentenceType)
         sb.append("(${hint})\n")
+        val subjectPart = if (subject != null) {
+            "[${subject}] "
+        } else {
+            ""
+        }
         val noteOnException = if (forceExceptional) {
             ", глагол-исключение"
         } else {
@@ -68,7 +74,7 @@ class TaskGenerator {
         } else {
             ""
         }
-        sb.append("`${sentenceStart}[${verb}${noteOnException}${auxVerbPart}]${questionMark}`\n")
+        sb.append("`${sentenceStart}${subjectPart}[${verb}${noteOnException}${auxVerbPart}]${questionMark}`\n")
         return sb.toString()
     }
 
@@ -390,23 +396,24 @@ class TaskGenerator {
 
     private fun genCanClausePastTense() = genEasy(this::canClausePastGenerator)
 
-    private fun getUnauClause(): GetTasks {
-        val subjects = listOf(
-            "кітап",
-            "гүлдер",
-            "спортпен айналысу",
-            "демалысты жоспарлау",
-            "кешкі ас жасау",
-            "көлік жүргізу",
-            "дүкен",
-            "автобус күту",
-            "хатты жазу",
-            "көшеде тұру",
-        )
+    private val kLikableSubjects = listOf(
+        Pair("кітап", "кітапты"),
+        Pair("гүлдер", "гүлдерді"),
+        Pair("спортпен айналысу", "спортпен айналысуды"),
+        Pair("демалысты жоспарлау", "демалысты жоспарлауды"),
+        Pair("кешкі ас жасау", "кешкі ас жасауды"),
+        Pair("көлік жүргізу", "көлік жүргізуді"),
+        Pair("дүкен", "дүкенді"),
+        Pair("автобус күту", "автобус күтуді"),
+        Pair("хатты жазу", "хатты жазуды"),
+        Pair("көшеде тұру", "көшеде тұруды"),
+    )
+
+    private fun genUnauClause(): GetTasks {
         val tasks = mutableListOf<TaskItem>()
         for (taskId in 1..kTaskCount) {
             val grammarForm = usedForms.random()
-            val subject = subjects.random()
+            val subject = kLikableSubjects.random()
             val negation = Random.nextBoolean()
             val hint = if (negation) {
                 "не нравится, переходное время"
@@ -414,11 +421,42 @@ class TaskGenerator {
                 "нравится, переходное время"
             }
             val pronoun = grammarForm.pronoun
-            val description = "(${hint})\n[${pronoun}] ${subject} [ұнау]"
+            val description = "(${hint})\n`[${pronoun}] ${subject.first} [ұнау]`"
             val dative = grammarForm.dative
             val verb = if (negation) "ұнамайды" else "ұнайды"
-            val answer = "${dative} ${subject} ${verb}"
+            val answer = "${dative} ${subject.first} ${verb}"
             tasks.add(TaskItem(description, listOf(answer)))
+        }
+        return GetTasks(tasks)
+    }
+
+    private fun genUnatuClause(): GetTasks {
+        val tasks = mutableListOf<TaskItem>()
+        val verb = "ұнату"
+        val builder = VerbBuilder(verb, false)
+        for (taskId in 1..kTaskCount) {
+            val grammarForm = usedForms.random()
+            val subject = kLikableSubjects.random()
+            val sentenceType = getSentenceTypeByTaskId(taskId)
+            val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
+            val description = buildTaskDescription(
+                "нравится, переходное время",
+                sentenceStart,
+                verb,
+                false,
+                sentenceType,
+                subject = subject.first,
+            )
+            val subjectPart = "${subject.second} "
+            val phrasal = builder.presentTransitiveForm(
+                grammarForm.person,
+                grammarForm.number,
+                sentenceType
+            )
+            tasks.add(TaskItem(
+                description,
+                listOf("${sentenceStart}${subjectPart}${phrasal.raw}")
+            ))
         }
         return GetTasks(tasks)
     }
@@ -439,7 +477,8 @@ class TaskGenerator {
             TaskTopic.CONJ_CAN_CLAUSE_EASY -> genCanClauseEasy()
             TaskTopic.CONJ_CAN_CLAUSE -> genCanClause()
             TaskTopic.CONJ_CAN_CLAUSE_PAST -> genCanClausePastTense()
-            TaskTopic.CONJ_UNAU_CLAUSE -> getUnauClause()
+            TaskTopic.CONJ_UNAU_CLAUSE -> genUnauClause()
+            TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
             else -> null
         }
     }
