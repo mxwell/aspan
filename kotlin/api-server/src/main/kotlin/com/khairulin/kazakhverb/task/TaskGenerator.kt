@@ -1,8 +1,6 @@
 package com.khairulin.kazakhverb.task
 
-import com.khairulin.kazakhverb.grammar.GrammarForm
-import com.khairulin.kazakhverb.grammar.SentenceType
-import com.khairulin.kazakhverb.grammar.VerbBuilder
+import com.khairulin.kazakhverb.grammar.*
 import com.khairulin.kazakhverb.response.GetTasks
 import com.khairulin.kazakhverb.response.TaskItem
 import kotlin.random.Random
@@ -504,6 +502,62 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
+        val sb = StringBuilder()
+        sb.append("(${septik})\n")
+        sb.append("`${sentenceStart}[${objectWord}] ${verbForm}`")
+        return sb.toString()
+    }
+
+    private fun genTabysEasy(): GetTasks {
+        val tasks = mutableListOf<TaskItem>()
+        val combos = listOf<Pair<String, String>>(
+            Pair("терезе", "жабу"),
+            Pair("дос", "шақыру"),
+            Pair("көше", "жөндеу"),
+            // FIXME support alternative declension
+            // Pair("дауыс", "есту"),
+            Pair("есік", "ашу"),
+            Pair("есік", "тауып алу"),
+            Pair("мектеп", "көрсету"),
+            Pair("доп", "қою"),
+            Pair("жұмыс", "тексеру"),
+            Pair("көктем", "жақсы көру"),
+            Pair("мысық", "көру"),
+            Pair("қызыл түс", "ұнату"),
+            Pair("бұл әдет", "білу"),
+            Pair("тұзсыз тамақ", "жек көру"),
+            Pair("кофе", "жақсы көру"),
+            Pair("кітап", "беру"),
+            Pair("ботқа", "пісіру"),
+            Pair("алма", "апару"),
+            Pair("осы қалам", "алу"),
+            Pair("бүгінгі газет", "оқу"),
+        )
+        for (taskId in 1..kTaskCount) {
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
+            val verbBuilder = VerbBuilder(combo.second, forceExceptional = false)
+            val sentenceType = if (Random.nextInt() % 4 == 0) SentenceType.Negative else SentenceType.Statement
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
+            }
+            val description = buildSeptikDescription(sentenceStart, "винительный падеж", combo.first, verbForm)
+            val nounBuilder = NounBuilder.ofNoun(combo.first)
+            val nounForm = nounBuilder.septikForm(Septik.Tabys).raw
+            tasks.add(TaskItem(
+                description,
+                listOf(
+                    "${sentenceStart}${nounForm} ${verbForm}"
+                )
+            ))
+        }
+        return GetTasks(tasks)
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -523,6 +577,7 @@ class TaskGenerator {
             TaskTopic.CONJ_UNAU_CLAUSE -> genUnauClause()
             TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
+            TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             else -> null
         }
     }
