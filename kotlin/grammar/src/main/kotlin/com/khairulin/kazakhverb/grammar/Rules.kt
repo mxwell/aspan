@@ -31,6 +31,12 @@ object Rules {
         'ю',
         'я'
     )
+
+    val VOWELS_GROUP1 = setOf(
+        'и',
+        'ю'
+    )
+
     val CONS_GROUP1 = setOf(
         'р',
         'у',
@@ -73,6 +79,22 @@ object Rules {
         'н',
         'ң'
     )
+    val CONS_GROUP7 = setOf(
+        'р',
+        'у',
+        'й'
+    )
+    val CONS_GROUP8 = setOf(
+        'ж',
+        'з',
+        'л',
+        'м',
+        'н',
+        'ң'
+    )
+    val CONS_GROUP1_2 = CONS_GROUP1.union(CONS_GROUP2)
+    val CONS_GROUP1_3 = CONS_GROUP1.union(CONS_GROUP3)
+    val CONS_GROUP1_6 = CONS_GROUP1.union(CONS_GROUP6)
 
     val VERB_PERS_AFFIXES1: Map<GrammarPerson, Map<GrammarNumber, List<String>>> = mapOf(
         GrammarPerson.First to mapOf(
@@ -188,6 +210,12 @@ object Rules {
     val TYTI = listOf("ты", "ті")
     val YPIP = listOf("ып", "іп")
     val SASE = listOf("са", "се")
+
+    val LARLER = listOf("лар", "лер")
+    val TARTER = listOf("тар", "тер")
+    val DARDER = listOf("дар", "дер")
+
+    val NYNI = listOf("ны", "ні")
 
     val OPT_EXCEPT_VERB_MEANINGS: Map<String, List<List<String>>> = mapOf(
         "ашу" to listOf(listOf("открывать", "выявлять"), listOf("киснуть", "сквашиваться")),
@@ -787,5 +815,47 @@ object Rules {
         "ытқу",
         "ілбу",
         "іру"
+    )
+
+    val kDropLastVowelNouns = setOf(
+        "әріп",
+        "бөрік",
+        "ғұрып",
+        "дәріп",
+        "ерік",
+        "ерін",
+        "зауық",
+        "кейіп",
+        "қаріп",
+        "қауіп",
+        "құлық",
+        "құлып",
+        "мойын",
+        "мүлік",
+        "мұрын",
+        "орын",
+        "парық",
+        "сиық",
+        "сұрық",
+        "халық",
+        "шырық",
+        "ырық",
+    )
+
+    val kOptionallyDropLastVowelNouns = setOf(
+        "ауыз",
+        "дауыс",
+        "көрік",
+        "қалып",
+        "қарын",
+        "қойын",
+        "нарық",
+        "тұрық",
+    )
+
+    val kBaseReplacementPKKh = mapOf<Char, Char>(
+        'п' to 'б',
+        'к' to 'г',
+        'қ' to 'ғ'
     )
 }

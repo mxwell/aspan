@@ -1,6 +1,10 @@
 package com.khairulin.kazakhverb.grammar
 
 object Phonetics {
+    fun isVowel(char: Char): Boolean {
+        return Rules.VOWELS.contains(char)
+    }
+
     fun genuineVowel(char: Char): Boolean {
         return Rules.VOWELS_EXCEPT_U_I.contains(char)
     }
@@ -49,5 +53,9 @@ object Phonetics {
         }
 
         return false
+    }
+
+    fun softToOffset(soft: Boolean): Int {
+        return if (soft) 1 else 0
     }
 }

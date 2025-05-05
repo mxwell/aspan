@@ -3,10 +3,6 @@ package com.khairulin.kazakhverb.grammar
 class VerbBuilder(private val verbDictForm: String, private val forceExceptional: Boolean = false) {
 
     companion object {
-        fun softToOffset(soft: Boolean): Int {
-            return if (soft) 1 else 0
-        }
-
         fun validateVerb(verbDictForm: String): Boolean {
             var count = 0
             for (char in verbDictForm) {
@@ -75,7 +71,7 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
 
         regularVerbBase = base
         soft = Phonetics.wordIsSoft(verbLastWord)
-        softOffset = softToOffset(soft)
+        softOffset = Phonetics.softToOffset(soft)
 
         var needsYaSuffix = false
 
@@ -164,7 +160,7 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
 
     private fun buildQuestionFormGeneric(builder: PhrasalBuilder, questionSoft: Boolean): PhrasalBuilder {
         val last = builder.getLastItem()
-        val particle = Question.getQuestionParticle(last, softToOffset(questionSoft))
+        val particle = Question.getQuestionParticle(last, Phonetics.softToOffset(questionSoft))
         return builder.space().questionParticle(particle).punctuation("?")
     }
 

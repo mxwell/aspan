@@ -1,0 +1,22 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'application'
+
+    alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
+}
+
+application {
+    mainClass = "com.khairulin.kazakhverb.grammar.tester.TesterKt"
+}
+
+sourceSets {
+    main.kotlin.srcDirs = [ 'src/main/kotlin' ]
+    main.resources.srcDirs = [ 'src/main/resources' ]
+}
+
+dependencies {
+    implementation libs.org.jetbrains.kotlinx.serialization.json
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    implementation project(':grammar')
+}

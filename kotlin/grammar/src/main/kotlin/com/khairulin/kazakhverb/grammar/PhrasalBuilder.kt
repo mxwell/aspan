@@ -12,6 +12,15 @@ class PhrasalBuilder {
     val isEmpty: Boolean
         get() = parts.isEmpty()
 
+    fun copy(): PhrasalBuilder {
+        val copy = PhrasalBuilder()
+        for (part in parts) {
+            copy.parts.add(part)
+        }
+        copy.forbidden = forbidden
+        return copy
+    }
+
     private fun addPart(part: PhrasalPart, allowEmpty: Boolean = false): PhrasalBuilder {
         if (!part.content.isEmpty() || allowEmpty) {
             parts.add(part)
@@ -63,6 +72,18 @@ class PhrasalBuilder {
         return result
     }
 
+    fun nounBase(nounBase: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.NounBase, nounBase)
+    }
+
+    fun pluralAffix(affix: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.PluralAffix, affix)
+    }
+
+    fun septikAffix(affix: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.SeptikAffix, affix)
+    }
+
     fun setForbidden(forbidden: Boolean): PhrasalBuilder {
         this.forbidden = forbidden
         return this
@@ -76,9 +97,32 @@ class PhrasalBuilder {
         return index
     }
 
-    fun getLastItem(): Char {
+    fun getFirstPart() = parts[0]
+
+    fun getLastPart(): PhrasalPart {
         val index = getLastNonemptyIndex()
-        return parts[index].content.last()
+        return parts[index]
+    }
+
+    fun getLastItem(): Char {
+        return getLastPart().content.last().lowercaseChar()
+    }
+
+    private fun replacePartAt(index: Int, part: PhrasalPart): PhrasalBuilder {
+        parts[index] = part
+        return this
+    }
+
+    fun replaceLast(replacement: Char): PhrasalBuilder {
+        val index = getLastNonemptyIndex()
+        val lastPart = parts[index]
+        val replaced = StrManip.replaceLast(lastPart.content, replacement)
+        return replacePartAt(index, lastPart.copy(replaced))
+    }
+
+    fun replaceLastPart(part: PhrasalPart): PhrasalBuilder {
+        val index = getLastNonemptyIndex()
+        return replacePartAt(index, part)
     }
 
     fun build(): Phrasal {

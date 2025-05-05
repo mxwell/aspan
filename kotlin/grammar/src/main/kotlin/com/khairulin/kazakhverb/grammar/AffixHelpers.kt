@@ -18,4 +18,14 @@ object AffixHelpers {
         }
         return pAffixes[softOffset]
     }
+
+    fun chooseLDT(char: Char, softOffset: Int, lAffixes: List<String>, dAffixes: List<String>, tAffixes: List<String>): String {
+        if (Phonetics.isVowel(char) || Rules.CONS_GROUP7.contains(char)) {
+            return lAffixes[softOffset]
+        }
+        if (Rules.CONS_GROUP8.contains(char)) {
+            return dAffixes[softOffset]
+        }
+        return tAffixes[softOffset]
+    }
 }
