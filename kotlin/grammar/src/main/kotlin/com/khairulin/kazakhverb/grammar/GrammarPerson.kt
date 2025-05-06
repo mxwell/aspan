@@ -6,4 +6,10 @@ enum class GrammarPerson {
     SecondPolite,
     Third,
     ;
+
+    companion object {
+        fun ofIndex(index: Int): GrammarPerson {
+            return entries[index]
+        }
+    }
 }

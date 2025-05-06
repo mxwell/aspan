@@ -8,6 +8,7 @@ class PhrasalBuilder {
 
     var parts: MutableList<PhrasalPart> = mutableListOf()
     var forbidden: Boolean = false
+    private var alternative: PhrasalBuilder? = null
 
     val isEmpty: Boolean
         get() = parts.isEmpty()
@@ -80,12 +81,21 @@ class PhrasalBuilder {
         return addPart(type = PhrasalPartType.PluralAffix, affix)
     }
 
+    fun possessiveAffix(affix: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.PossessiveAffix, affix)
+    }
+
     fun septikAffix(affix: String): PhrasalBuilder {
         return addPart(type = PhrasalPartType.SeptikAffix, affix)
     }
 
     fun setForbidden(forbidden: Boolean): PhrasalBuilder {
         this.forbidden = forbidden
+        return this
+    }
+
+    fun addAlternative(alternative: PhrasalBuilder): PhrasalBuilder {
+        this.alternative = alternative
         return this
     }
 

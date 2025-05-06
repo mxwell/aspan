@@ -197,6 +197,25 @@ object Rules {
         )
     )
 
+    val NOUN_POSSESSIVE_AFFIXES: Map<GrammarPerson, Map<GrammarNumber, List<String>>> = mapOf(
+        GrammarPerson.First to mapOf(
+            GrammarNumber.Singular to listOf("м", "м"),
+            GrammarNumber.Plural to listOf("мыз", "міз"),
+        ),
+        GrammarPerson.Second to mapOf(
+            GrammarNumber.Singular to listOf("ң", "ң"),
+            GrammarNumber.Plural to listOf("ң", "ң"),
+        ),
+        GrammarPerson.SecondPolite to mapOf(
+            GrammarNumber.Singular to listOf("ңыз", "ңіз"),
+            GrammarNumber.Plural to listOf("ңыз", "ңіз"),
+        ),
+        GrammarPerson.Third to mapOf(
+            GrammarNumber.Singular to listOf("ы", "і"),
+            GrammarNumber.Plural to listOf("ы", "і"),
+        ),
+    )
+
     val AE = listOf("а", "е")
     val YI = listOf("ы", "і")
     val MAME = listOf("ма", "ме")

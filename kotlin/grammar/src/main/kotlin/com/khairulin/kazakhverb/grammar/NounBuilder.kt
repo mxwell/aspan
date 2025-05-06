@@ -120,6 +120,60 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
         }
     }
 
+    private fun singlePossessiveBuilder(base: ModifiedBase, person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        val extra = if (person == GrammarPerson.Third) {
+            if (base.endsWithVowel) {
+                "с"
+            } else {
+                ""
+            }
+        } else if (!base.endsWithVowel) {
+            Rules.YI[softOffset]
+        } else {
+            ""
+        }
+        val affix = Rules.NOUN_POSSESSIVE_AFFIXES[person]!![number]!![softOffset]
+        return base.base.copy()
+            .possessiveAffix("${extra}${affix}")
+    }
+
+    private fun buildPossessiveWithAlternative(bases: List<ModifiedBase>, person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        var mainBuilder = singlePossessiveBuilder(bases[0], person, number)
+        if (bases.size > 1) {
+            val alternative = singlePossessiveBuilder(bases[1], person, number)
+            mainBuilder = mainBuilder.addAlternative(alternative)
+        }
+        return mainBuilder
+    }
+
+    private fun possessiveBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        if (person == GrammarPerson.First) {
+            val bases = modifyBaseForPossessive()
+            return buildPossessiveWithAlternative(bases, person, number)
+        } else if (person == GrammarPerson.Second || person == GrammarPerson.SecondPolite) {
+            if (number == GrammarNumber.Singular) {
+                val bases = modifyBaseForPossessive()
+                return buildPossessiveWithAlternative(bases, person, number)
+            } else {
+                val baseWithNumber = pluralBuilder()
+                val extraVowel = Rules.YI[softOffset]
+                val affix = Rules.NOUN_POSSESSIVE_AFFIXES[person]!![number]!![softOffset]
+                return baseWithNumber.possessiveAffix("${extraVowel}${affix}")
+            }
+        } else if (person == GrammarPerson.Third) {
+            if (number == GrammarNumber.Singular) {
+                val bases = modifyBaseForPossessive()
+                return buildPossessiveWithAlternative(bases, person, number)
+            } else {
+                val baseWithNumber = pluralBuilder()
+                val affix = Rules.NOUN_POSSESSIVE_AFFIXES[person]!![number]!![softOffset]
+                return baseWithNumber
+                    .possessiveAffix(affix)
+            }
+        }
+        return PhrasalBuilder()
+    }
+
     private fun getTabysAffix(last: Char, thirdPersonPoss: Boolean): String {
         if (thirdPersonPoss) {
             return "н"
@@ -149,4 +203,40 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
         return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
     }
 
+    fun pluralSeptikForm(septik: Septik): Phrasal {
+        val builder = pluralBuilder()
+
+        if (septik == Septik.Tabys) {
+            val affix = Rules.DYDI[softOffset]
+            return builder
+                .septikAffix(affix)
+                .build()
+        }
+
+        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+    }
+
+    fun possessiveSeptikForm(person: GrammarPerson, number: GrammarNumber, septik: Septik): Phrasal {
+        val builder = possessiveBuilder(person, number)
+
+        if (builder.isEmpty) {
+            return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        }
+
+        if (septik == Septik.Atau) {
+            return builder
+                .build()
+        }
+
+        val lastBase = builder.getLastItem()
+
+        if (septik == Septik.Tabys) {
+            val affix = getTabysAffix(lastBase, person == GrammarPerson.Third)
+            return builder
+                .septikAffix(affix)
+                .build()
+        }
+
+        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+    }
 }

@@ -7,5 +7,12 @@ enum class Septik {
     Tabys,
     Jatys,
     Shygys,
-    Komektes
+    Komektes,
+    ;
+
+    companion object {
+        fun ofIndex(index: Int): Septik {
+            return entries[index]
+        }
+    }
 }
