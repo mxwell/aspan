@@ -50,7 +50,11 @@ class DeclensionTest(val resourcePath: String) {
                 if (form.septik == null) continue
                 val septik = Septik.ofIndex(form.septik)
                 if (septik == Septik.Tabys) {
-                    if (form.number == 0) { // singular
+                    if (form.number == null) {
+                        continue
+                    }
+                    val grammarNumber = GrammarNumber.ofIndex(form.number)
+                    if (grammarNumber == GrammarNumber.Singular) {
                         if (form.possPerson != null) {
                             val possPerson = GrammarPerson.ofIndex(form.possPerson)
                             if (form.possNumber != null) {
@@ -64,6 +68,11 @@ class DeclensionTest(val resourcePath: String) {
                             }
                         } else if (form.possNumber == null) {
                             val phrasal = builder.septikForm(Septik.Tabys)
+                            checkMatch(form, phrasal)
+                        }
+                    } else {
+                        if (form.possPerson == null && form.possNumber == null) {
+                            val phrasal = builder.pluralSeptikForm(septik)
                             checkMatch(form, phrasal)
                         }
                     }
