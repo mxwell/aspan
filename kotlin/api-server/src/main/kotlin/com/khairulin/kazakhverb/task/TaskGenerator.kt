@@ -558,6 +558,59 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    private fun genTabys(): GetTasks {
+        val tasks = mutableListOf<TaskItem>()
+        val combos = listOf<Pair<String, String>>(
+            Pair("терезе", "жабу"),
+            Pair("дос", "шақыру"),
+            Pair("көше", "жөндеу"),
+            Pair("есік", "ашу"),
+            Pair("мектеп", "көрсету"),
+            Pair("доп", "қою"),
+            Pair("жұмыс", "тексеру"),
+            Pair("мысық", "көру"),
+            Pair("кітап", "беру"),
+            Pair("алма", "апару"),
+            Pair("қалам", "алу"),
+            Pair("газет", "оқу"),
+            Pair("шабдалы", "әкеліп беру")
+        )
+        for (taskId in 1..kTaskCount) {
+            val grammarForm = usedForms.random()
+            val possForm = usedForms.random()
+            // TODO support plural
+            val objectNumber = if (false) GrammarNumber.Plural else GrammarNumber.Singular
+            val combo = combos.random()
+            val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
+            val verbBuilder = VerbBuilder(combo.second, forceExceptional = false)
+            val sentenceType = if (Random.nextInt() % 4 == 0) SentenceType.Negative else SentenceType.Statement
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
+            }
+            val formHintSb = StringBuilder()
+            formHintSb.append("винительный падеж")
+            if (objectNumber == GrammarNumber.Plural) {
+                formHintSb.append(", множественное число")
+            }
+            formHintSb.append(", притяжательная форма для ")
+            formHintSb.append(possForm.ruShort)
+            val objectHint = "${combo.first} ∈ ${possForm.pronoun}"
+            val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHint, verbForm)
+            val nounBuilder = NounBuilder.ofNoun(combo.first)
+            val nounForm = nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Tabys).raw
+            tasks.add(TaskItem(
+                description,
+                listOf(
+                    "${sentenceStart}${nounForm} ${verbForm}"
+                )
+            ))
+        }
+
+        return GetTasks(tasks)
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -578,6 +631,7 @@ class TaskGenerator {
             TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
+            TaskTopic.DECL_TABYS -> genTabys()
             else -> null
         }
     }
