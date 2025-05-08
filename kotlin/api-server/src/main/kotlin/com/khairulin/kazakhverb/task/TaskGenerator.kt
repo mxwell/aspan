@@ -578,8 +578,7 @@ class TaskGenerator {
         for (taskId in 1..kTaskCount) {
             val grammarForm = usedForms.random()
             val possForm = usedForms.random()
-            // TODO support plural
-            val objectNumber = if (false) GrammarNumber.Plural else GrammarNumber.Singular
+            val objectNumber = if (Random.nextInt() % 5 == 0) GrammarNumber.Plural else GrammarNumber.Singular
             val combo = combos.random()
             val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
             val verbBuilder = VerbBuilder(combo.second, forceExceptional = false)
@@ -591,15 +590,23 @@ class TaskGenerator {
             }
             val formHintSb = StringBuilder()
             formHintSb.append("винительный падеж")
+            val objectHintSb = StringBuilder()
+            objectHintSb.append(combo.first)
             if (objectNumber == GrammarNumber.Plural) {
                 formHintSb.append(", множественное число")
+                objectHintSb.append(" ++")
+            } else {
+                formHintSb.append(", притяжательная форма для ")
+                formHintSb.append(possForm.ruShort)
+                objectHintSb.append(" ∈ ${possForm.pronoun}")
             }
-            formHintSb.append(", притяжательная форма для ")
-            formHintSb.append(possForm.ruShort)
-            val objectHint = "${combo.first} ∈ ${possForm.pronoun}"
-            val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHint, verbForm)
+            val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHintSb.toString(), verbForm)
             val nounBuilder = NounBuilder.ofNoun(combo.first)
-            val nounForm = nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Tabys).raw
+            val nounForm = if (objectNumber == GrammarNumber.Plural) {
+                nounBuilder.pluralSeptikForm(Septik.Tabys).raw
+            } else {
+                nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Tabys).raw
+            }
             tasks.add(TaskItem(
                 description,
                 listOf(
