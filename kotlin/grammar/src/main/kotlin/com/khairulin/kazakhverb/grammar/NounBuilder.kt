@@ -174,6 +174,20 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
         return PhrasalBuilder()
     }
 
+    private fun getBarysAffix(last: Char, person: GrammarPerson?, number: GrammarNumber?): String {
+        if ((person == GrammarPerson.First && number == GrammarNumber.Singular) || person == GrammarPerson.Second) {
+            return Rules.AE[softOffset]
+        } else if (person == GrammarPerson.Third) {
+            return Rules.NANE[softOffset]
+        } else {
+            if (Phonetics.isVowel(last) || Rules.CONS_GROUP1_2.contains(last)) {
+                return Rules.GAGE[softOffset]
+            } else {
+                return Rules.KAKE[softOffset]
+            }
+        }
+    }
+
     private fun getTabysAffix(last: Char, thirdPersonPoss: Boolean): String {
         if (thirdPersonPoss) {
             return "н"
@@ -193,7 +207,12 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
 
         val lastBase = baseBuilder.getLastItem()
 
-        if (septik == Septik.Tabys) {
+        if (septik == Septik.Barys) {
+            val affix = getBarysAffix(lastBase, null, null)
+            return copyBase()
+                .septikAffix(affix)
+                .build()
+        } else if (septik == Septik.Tabys) {
             val affix = getTabysAffix(lastBase, false)
             return copyBase()
                 .septikAffix(affix)

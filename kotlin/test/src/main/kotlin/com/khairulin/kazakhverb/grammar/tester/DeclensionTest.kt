@@ -49,7 +49,18 @@ class DeclensionTest(val resourcePath: String) {
             for (form in row.forms) {
                 if (form.septik == null) continue
                 val septik = Septik.ofIndex(form.septik)
-                if (septik == Septik.Tabys) {
+                if (septik == Septik.Barys) {
+                    if (form.number == null) {
+                        continue
+                    }
+                    val grammarNumber = GrammarNumber.ofIndex(form.number)
+                    if (grammarNumber == GrammarNumber.Singular) {
+                        if (form.possPerson == null && form.possNumber == null) {
+                            val phrasal = builder.septikForm(Septik.Barys)
+                            checkMatch(form, phrasal)
+                        }
+                    }
+                } else if (septik == Septik.Tabys) {
                     if (form.number == null) {
                         continue
                     }

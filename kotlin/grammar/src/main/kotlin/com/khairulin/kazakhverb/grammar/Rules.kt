@@ -234,6 +234,9 @@ object Rules {
     val TARTER = listOf("тар", "тер")
     val DARDER = listOf("дар", "дер")
 
+    val NANE = listOf("на", "не")
+    val GAGE = listOf("ға", "ге")
+    val KAKE = listOf("қа", "ке")
     val NYNI = listOf("ны", "ні")
 
     val OPT_EXCEPT_VERB_MEANINGS: Map<String, List<List<String>>> = mapOf(
