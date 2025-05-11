@@ -83,6 +83,14 @@ class TaskGenerator {
         val sentenceType: SentenceType,
     )
 
+    private fun collectTasks(generator: (taskId: Int) -> TaskItem): GetTasks {
+        val tasks = mutableListOf<TaskItem>()
+        for (taskId in 1..kTaskCount) {
+            tasks.add(generator(taskId))
+        }
+        return GetTasks(tasks)
+    }
+
     private fun generateCombos(easy: Boolean, taskCount: Int): List<Combo> {
         val used = mutableSetOf<String>()
         val result = mutableListOf<Combo>()
@@ -111,12 +119,10 @@ class TaskGenerator {
     }
 
     private fun genCommon(easy: Boolean, generator: (combo: Combo) -> TaskItem): GetTasks {
-        val tasks = mutableListOf<TaskItem>()
         val combos = generateCombos(easy, kTaskCount)
-        for (combo in combos) {
-            tasks.add(generator(combo))
+        return collectTasks { taskId ->
+            generator(combos[taskId - 1])
         }
-        return GetTasks(tasks)
     }
 
     private fun genEasy(generator: (combo: Combo) -> TaskItem) = genCommon(true, generator)
@@ -580,6 +586,7 @@ class TaskGenerator {
         val tasks = mutableListOf<TaskItem>()
         val combos = listOf<Pair<String, String>>(
             Pair("терезе", "жабу"),
+            Pair("даяшы", "шақыру"),
             Pair("дос", "шақыру"),
             Pair("көше", "жөндеу"),
             Pair("есік", "ашу"),
@@ -635,6 +642,288 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    private val kIlikVerbs = listOf(
+        "жатқан сияқты",
+        "жатыр",
+        "болған",
+        "болған сияқты",
+        "болыпты",
+    )
+
+    private val kIlikSubjects = listOf(
+        Pair("арқан", "верёвка"),
+        Pair("балта", "топор"),
+        Pair("жастық", "подушка"),
+        Pair("зат", "вещь"),
+        Pair("кітап", "книга"),
+        Pair("қасық", "ложка"),
+        Pair("сабын", "мыло"),
+        Pair("сөздік", "словарь"),
+        Pair("түйме", "пуговица"),
+        Pair("ұялы телефон", "сотовый телефон"),
+    )
+
+    private val kIlikPlaces = listOf(
+        Pair("бөлме", "комната"),
+        Pair("бұрыш", "угол"),
+        Pair("жуынатын бөлме", "ванная"),
+        Pair("пәтер", "квартира"),
+        Pair("сөре", "полка"),
+        Pair("төсек", "постель"),
+        Pair("үстел", "стол"),
+        Pair("шелек", "ведро"),
+        Pair("шкаф", "шкаф"),
+        Pair("еден", "пол"),
+    )
+
+    fun genIlikEasy(): GetTasks {
+        val properNames = listOf(
+            "Абай",
+            "Ажар",
+            "Айсылу",
+            "Әлия",
+            "Аружан",
+            "Асель",
+            "Ерлан",
+            "Жібек",
+            "Перизат",
+            "Феруза",
+        )
+
+        return collectTasks { taskId ->
+            val properName = properNames.random()
+            val subject = kIlikSubjects.random()
+            val place = kIlikPlaces.random()
+            val verb = kIlikVerbs.random()
+
+            val properNameForm = NounBuilder.ofNoun(properName).septikForm(Septik.Ilik)
+            val subjectForm = NounBuilder.ofNoun(subject.first).possessiveSeptikForm(GrammarPerson.Third, GrammarNumber.Singular, Septik.Atau)
+            val placeForm = NounBuilder.ofNoun(place.first).septikForm(Septik.Jatys)
+
+            val sentenceEnd = "${subjectForm.raw} ${placeForm.raw} ${verb}"
+
+            val description = buildSeptikDescription(
+                "",
+                "родительный падеж",
+                properName,
+                sentenceEnd,
+            )
+            TaskItem(
+                description,
+                buildAnswers("", " ${sentenceEnd}", properNameForm),
+                translations = listOf(
+                    subject,
+                    place
+                )
+            )
+        }
+    }
+
+    data class OwnerInfo(
+        val noun: String,
+        val pluralPossible: Boolean,
+        val translation: String,
+    ) {
+        fun getTranslation() = Pair(noun, translation)
+    }
+
+    private val kOwners = listOf(
+        OwnerInfo("ата", false, "дед"),
+        OwnerInfo("әке", false, "отец"),
+        OwnerInfo("әріптес", true, "коллега"),
+        OwnerInfo("бастық", false, "начальник"),
+        OwnerInfo("дос", true, "друг"),
+        OwnerInfo("көрші", true, "сосед"),
+        OwnerInfo("қонақ", true, "гость"),
+        OwnerInfo("қыз", true, "девочка"),
+        OwnerInfo("маман", true, "специалист"),
+        OwnerInfo("мұғалім", true, "учитель"),
+        OwnerInfo("оқушы", true, "ученик"),
+        OwnerInfo("студент", true, "студент"),
+    )
+
+    fun genIlik(): GetTasks {
+        return collectTasks { taskId ->
+            val owner = kOwners.random()
+            val subject = kIlikSubjects.random()
+            val place = kIlikPlaces.random()
+            val verb = kIlikVerbs.random()
+
+            val ownerNumber = if (owner.pluralPossible && Random.nextBoolean()) GrammarNumber.Plural else GrammarNumber.Singular
+            val ownerPossForm = usedForms.random()
+            val ownerBuilder = NounBuilder.ofNoun(owner.noun)
+
+            val ownerForm = if (ownerNumber == GrammarNumber.Plural) {
+                ownerBuilder.pluralSeptikForm(Septik.Ilik)
+            } else {
+                ownerBuilder.possessiveSeptikForm(ownerPossForm.person, ownerPossForm.number, Septik.Ilik)
+            }
+
+            val subjectForm = NounBuilder.ofNoun(subject.first).possessiveSeptikForm(GrammarPerson.Third, GrammarNumber.Singular, Septik.Atau)
+            val placeForm = NounBuilder.ofNoun(place.first).septikForm(Septik.Jatys)
+
+            val sentenceEnd = "${subjectForm.raw} ${placeForm.raw} ${verb}"
+
+            val formDescriptionSb = StringBuilder("родительный падеж")
+            val formHintSb = StringBuilder(owner.noun)
+            if (ownerNumber == GrammarNumber.Plural) {
+                formDescriptionSb.append(", множественное число")
+                formHintSb.append(" ++")
+            } else {
+                formDescriptionSb.append(", притяжательная форма для ")
+                formDescriptionSb.append(ownerPossForm.ruShort)
+                formHintSb.append(" ∈ ${ownerPossForm.pronoun}")
+            }
+
+            val description = buildSeptikDescription(
+                "",
+                formDescriptionSb.toString(),
+                formHintSb.toString(),
+                sentenceEnd,
+            )
+            TaskItem(
+                description,
+                buildAnswers("", " ${sentenceEnd}", ownerForm),
+                translations = listOf(
+                    owner.getTranslation(),
+                    subject,
+                    place
+                )
+            )
+        }
+    }
+
+    data class VerbInfo(
+        val verb: String,
+        val forceExceptional: Boolean = false,
+    )
+
+    private fun makeVerbList(vararg verbs: String): List<VerbInfo> {
+        return verbs.map {
+            VerbInfo(it, forceExceptional = false)
+        }
+    }
+
+    data class BarysCombo(
+        val dst: String,
+        val dstTranslation: String,
+        val verbs: List<VerbInfo>,
+    )
+
+    fun genBarysEasy(): GetTasks {
+        val regularVerbs = makeVerbList(
+            "бару", "келу", "барып келу", "кету", "жету",
+        )
+        val kiruVerbs = makeVerbList(
+            "қайта кіру", "кіру"
+        )
+        val combos = listOf(
+            BarysCombo("ауыл", "аул", regularVerbs),
+            BarysCombo("қала", "город", regularVerbs),
+            BarysCombo("дүкен", "магазин", regularVerbs + kiruVerbs),
+            BarysCombo("үй", "дом", kiruVerbs),
+            BarysCombo("жатақхана", "общежитие", regularVerbs + kiruVerbs),
+            BarysCombo("бекет", "станция", kiruVerbs),
+            BarysCombo("шаштараз", "парикмахерская", regularVerbs + kiruVerbs),
+            BarysCombo("дос", "друг", makeVerbList("беру")),
+            BarysCombo("тау", "гора", makeVerbList("шығу")),
+            BarysCombo("жаттықтырушы", "тренер", makeVerbList("жүру")),
+            BarysCombo("мақсат", "цель", makeVerbList("жету")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.dst
+            val verb = combo.verbs.random()
+
+            val nounForm = NounBuilder.ofNoun(noun).septikForm(Septik.Barys)
+            val verbBuilder = VerbBuilder(verb.verb, verb.forceExceptional)
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} "
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                "дательный падеж",
+                noun,
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = listOf(
+                    Pair(noun, combo.dstTranslation)
+                )
+            )
+        }
+    }
+
+    fun genBarys(): GetTasks {
+        val regularVerbs = makeVerbList(
+            "бару", "келу", "барып келу", "кету", "жету",
+        )
+        val kiruVerbs = makeVerbList(
+            "қайта кіру", "кіру"
+        )
+        val combos = listOf(
+            BarysCombo("ауыл", "аул", regularVerbs),
+            BarysCombo("қала", "город", regularVerbs),
+            BarysCombo("дүкен", "магазин", regularVerbs + kiruVerbs),
+            BarysCombo("үй", "дом", kiruVerbs),
+            BarysCombo("жатақхана", "общежитие", regularVerbs + kiruVerbs),
+            BarysCombo("бекет", "станция", kiruVerbs),
+            BarysCombo("шаштараз", "парикмахерская", regularVerbs + kiruVerbs),
+            BarysCombo("дос", "друг", makeVerbList("беру")),
+            BarysCombo("жаттықтырушы", "тренер", makeVerbList("жүру")),
+            BarysCombo("мақсат", "цель", makeVerbList("жету")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.dst
+            val verb = combo.verbs.random()
+            val possForm = grammarForm
+
+            val nounBuilder = NounBuilder.ofNoun(noun)
+            val nounForm = nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Barys)
+            val verbBuilder = VerbBuilder(verb.verb, verb.forceExceptional)
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} "
+
+            val formDescriptionSb = StringBuilder("дательный падеж для ")
+            formDescriptionSb.append(possForm.ruShort)
+            val formHintSb = StringBuilder(noun)
+            formHintSb.append(" ∈ ${possForm.pronoun}")
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                formDescriptionSb.toString(),
+                formHintSb.toString(),
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = listOf(
+                    Pair(noun, combo.dstTranslation)
+                )
+            )
+        }
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -656,6 +945,10 @@ class TaskGenerator {
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
+            TaskTopic.DECL_ILIK_EASY -> genIlikEasy()
+            TaskTopic.DECL_ILIK -> genIlik()
+            TaskTopic.DECL_BARYS_EASY -> genBarysEasy()
+            TaskTopic.DECL_BARYS -> genBarys()
             else -> null
         }
     }

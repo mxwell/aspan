@@ -23,6 +23,10 @@ enum class TaskTopic(val ruTitle: String) {
     CONJ_KORU_CLAUSE("Конструкция с жақсы, жек көру"),
     DECL_TABYS_EASY("Винительный падеж - 1"),
     DECL_TABYS("Винительный падеж - 2"),
+    DECL_ILIK_EASY("Родительный падеж - 1"),
+    DECL_ILIK("Родительный падеж - 2"),
+    DECL_BARYS_EASY("Дательный падеж - 1"),
+    DECL_BARYS("Дательный падеж - 2"),
     ;
 
     companion object {
@@ -47,6 +51,10 @@ enum class TaskTopic(val ruTitle: String) {
                 CONJ_KORU_CLAUSE.name -> CONJ_KORU_CLAUSE
                 DECL_TABYS_EASY.name -> DECL_TABYS_EASY
                 DECL_TABYS.name -> DECL_TABYS
+                DECL_ILIK_EASY.name -> DECL_ILIK_EASY
+                DECL_ILIK.name -> DECL_ILIK
+                DECL_BARYS_EASY.name -> DECL_BARYS_EASY
+                DECL_BARYS.name -> DECL_BARYS
                 else -> null
             }
         }

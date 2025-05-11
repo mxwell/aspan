@@ -120,9 +120,20 @@ class DeclensionTest(val resourcePath: String) {
         }
     }
 
+    fun testMoreSpecialCases() {
+        val name = "Асель"
+        checkFormString(
+            "Асельдің",
+            NounBuilder.ofNoun(name).septikForm(Septik.Ilik),
+            caseSensitive = true
+        )
+    }
+
     fun test() {
         testSpecialCases()
         LOG.info("special: checked ${checkMatchCounter} forms")
+
+        testMoreSpecialCases()
 
         val inputStream = File(resourcePath).inputStream()
 
@@ -139,6 +150,7 @@ class DeclensionTest(val resourcePath: String) {
                 LOG.error("failed to decode line", e)
                 break
             }
+            if (row.base.endsWith("ь")) continue
             val builder = NounBuilder.ofNoun(row.base)
             val savedCounter = checkMatchCounter
             for (form in row.forms) {

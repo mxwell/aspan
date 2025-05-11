@@ -119,7 +119,12 @@ class PhrasalBuilder {
     }
 
     fun getLastItem(): Char {
-        return getLastPart().content.last().lowercaseChar()
+        for (char in getLastPart().content.reversed()) {
+            if (char != 'ь') {
+                return char.lowercaseChar()
+            }
+        }
+        throw IllegalArgumentException("getLastItem error: last part has no allowed chars - ${getLastPart().content}")
     }
 
     private fun replacePartAt(index: Int, part: PhrasalPart): PhrasalBuilder {
