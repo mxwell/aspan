@@ -924,6 +924,177 @@ class TaskGenerator {
         }
     }
 
+    private fun genJatysEasy(): GetTasks {
+        return collectTasks { taskId ->
+            val subject = kIlikSubjects.random()
+            val place = kIlikPlaces.random()
+            val verb = kIlikVerbs.random()
+
+            val placeForm = NounBuilder.ofNoun(place.first).septikForm(Septik.Jatys)
+
+            val sentenceStart = "${subject.first} "
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                "местный падеж",
+                place.first,
+                verb,
+            )
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verb}", placeForm),
+                translations = listOf(
+                    subject,
+                    place
+                )
+            )
+        }
+    }
+
+    private fun genJatys(): GetTasks {
+        return collectTasks { taskId ->
+            val subject = kIlikSubjects.random()
+
+            val possForm = usedForms.random()
+            val place = kIlikPlaces.random()
+            val verb = kIlikVerbs.random()
+
+            val placeForm = NounBuilder.ofNoun(place.first).possessiveSeptikForm(possForm.person, possForm.number, Septik.Jatys)
+
+            val sentenceStart = "${subject.first} "
+            val formDescription = "местный падеж для ${possForm.ruShort}"
+            val formHint = "${place.first} ∈ ${possForm.pronoun}"
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                formDescription,
+                formHint,
+                verb,
+            )
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verb}", placeForm),
+                translations = listOf(
+                    subject,
+                    place
+                )
+            )
+        }
+    }
+
+    fun genShygysEasy(): GetTasks {
+        val regularVerbs = makeVerbList(
+            "бару", "келу", "кету", "жету",
+        )
+        val combos = listOf(
+            BarysCombo("ауыл", "аул", regularVerbs),
+            BarysCombo("қала", "город", regularVerbs),
+            BarysCombo("дүкен", "магазин", regularVerbs + makeVerbList("сатып алу")),
+            BarysCombo("үй", "дом", regularVerbs),
+            BarysCombo("жатақхана", "общежитие", regularVerbs),
+            BarysCombo("бекет", "станция", regularVerbs),
+            BarysCombo("шаштараз", "парикмахерская", regularVerbs),
+            BarysCombo("дос", "друг", regularVerbs),
+            BarysCombo("тау", "гора", regularVerbs),
+            BarysCombo("базар", "базар", regularVerbs + makeVerbList("сатып алу")),
+            BarysCombo("мұғалім", "учитель", makeVerbList("сұрау")),
+            BarysCombo("бөлме", "комната", makeVerbList("шығу")),
+            BarysCombo("жібек", "шёлк", makeVerbList("белдемше тігу")),
+            BarysCombo("ит", "собака", makeVerbList("қорқу")),
+            BarysCombo("тышқан", "мышь", makeVerbList("қорқу")),
+            BarysCombo("дәптер", "тетрадь", makeVerbList("көшіру")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.dst
+            val verb = combo.verbs.random()
+
+            val nounForm = NounBuilder.ofNoun(noun).septikForm(Septik.Shygys)
+            val verbBuilder = VerbBuilder(verb.verb, verb.forceExceptional)
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, SentenceType.Statement).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} "
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                "исходный падеж",
+                noun,
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = listOf(
+                    Pair(noun, combo.dstTranslation)
+                )
+            )
+        }
+    }
+
+    fun genShygys(): GetTasks {
+        val regularVerbs = makeVerbList(
+            "бару", "келу", "кету", "жету",
+        )
+        val combos = listOf(
+            BarysCombo("ауыл", "аул", regularVerbs),
+            BarysCombo("қала", "город", regularVerbs),
+            BarysCombo("дүкен", "магазин", regularVerbs),
+            BarysCombo("үй", "дом", regularVerbs),
+            BarysCombo("жатақхана", "общежитие", regularVerbs),
+            BarysCombo("бекет", "станция", regularVerbs),
+            BarysCombo("шаштараз", "парикмахерская", regularVerbs),
+            BarysCombo("дос", "друг", regularVerbs),
+            BarysCombo("мұғалім", "учитель", makeVerbList("сұрау")),
+            BarysCombo("бөлме", "комната", makeVerbList("шығу")),
+            BarysCombo("ит", "собака", makeVerbList("қорқу")),
+            BarysCombo("тышқан", "мышь", makeVerbList("қорқу")),
+            BarysCombo("дәптер", "тетрадь", makeVerbList("көшіру")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.dst
+            val verb = combo.verbs.random()
+            val possForm = grammarForm
+
+            val nounForm = NounBuilder.ofNoun(noun).possessiveSeptikForm(possForm.person, possForm.number, Septik.Shygys)
+            val verbBuilder = VerbBuilder(verb.verb, verb.forceExceptional)
+            val sentenceType = if (Random.nextInt() % 4 == 0) SentenceType.Negative else SentenceType.Statement
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} "
+            val formDescription = "исходный падеж для ${possForm.ruShort}"
+            val formHint = "${noun} ∈ ${possForm.pronoun}"
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                formDescription,
+                formHint,
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = listOf(
+                    Pair(noun, combo.dstTranslation)
+                )
+            )
+        }
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -949,6 +1120,10 @@ class TaskGenerator {
             TaskTopic.DECL_ILIK -> genIlik()
             TaskTopic.DECL_BARYS_EASY -> genBarysEasy()
             TaskTopic.DECL_BARYS -> genBarys()
+            TaskTopic.DECL_JATYS_EASY -> genJatysEasy()
+            TaskTopic.DECL_JATYS -> genJatys()
+            TaskTopic.DECL_SHYGYS_EASY -> genShygysEasy()
+            TaskTopic.DECL_SHYGYS -> genShygys()
             else -> null
         }
     }

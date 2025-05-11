@@ -27,6 +27,10 @@ enum class TaskTopic(val ruTitle: String) {
     DECL_ILIK("Родительный падеж - 2"),
     DECL_BARYS_EASY("Дательный падеж - 1"),
     DECL_BARYS("Дательный падеж - 2"),
+    DECL_JATYS_EASY("Местный падеж - 1"),
+    DECL_JATYS("Местный падеж - 2"),
+    DECL_SHYGYS_EASY("Исходный падеж - 1"),
+    DECL_SHYGYS("Исходный падеж - 2"),
     ;
 
     companion object {
@@ -55,6 +59,10 @@ enum class TaskTopic(val ruTitle: String) {
                 DECL_ILIK.name -> DECL_ILIK
                 DECL_BARYS_EASY.name -> DECL_BARYS_EASY
                 DECL_BARYS.name -> DECL_BARYS
+                DECL_JATYS_EASY.name -> DECL_JATYS_EASY
+                DECL_JATYS.name -> DECL_JATYS
+                DECL_SHYGYS_EASY.name -> DECL_SHYGYS_EASY
+                DECL_SHYGYS.name -> DECL_SHYGYS
                 else -> null
             }
         }
