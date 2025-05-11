@@ -234,9 +234,22 @@ object Rules {
     val TARTER = listOf("тар", "тер")
     val DARDER = listOf("дар", "дер")
 
+    val DANDEN = listOf("дан", "ден")
+    val TANTEN = listOf("тан", "тен")
+    val NANNEN = listOf("нан", "нен")
+
+    val DADE = listOf("да", "де")
+    val TATE = listOf("та", "те")
+    val NDANDE = listOf("нда", "нде")
+
     val NANE = listOf("на", "не")
     val GAGE = listOf("ға", "ге")
     val KAKE = listOf("қа", "ке")
+
+    val DYNGDING = listOf("дың", "дің")
+    val TYNGTING = listOf("тың", "тің")
+    val NYNGNING = listOf("ның", "нің")
+
     val NYNI = listOf("ны", "ні")
 
     val OPT_EXCEPT_VERB_MEANINGS: Map<String, List<List<String>>> = mapOf(

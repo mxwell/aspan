@@ -174,6 +174,26 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
         return PhrasalBuilder()
     }
 
+    private fun getShygysAffix(last: Char, thirdPersonPoss: Boolean): String {
+        if (thirdPersonPoss || Rules.CONS_GROUP6.contains(last)) {
+            return Rules.NANNEN[softOffset]
+        } else if (Phonetics.isVowel(last) || Rules.CONS_GROUP1_3.contains(last)) {
+            return Rules.DANDEN[softOffset]
+        } else {
+            return Rules.TANTEN[softOffset]
+        }
+    }
+
+    private fun getJatysAffix(last: Char, thirdPersonPoss: Boolean): String {
+        if (thirdPersonPoss) {
+            return Rules.NDANDE[softOffset]
+        } else if (Phonetics.isVowel(last) || Rules.CONS_GROUP1_2.contains(last)) {
+            return Rules.DADE[softOffset]
+        } else {
+            return Rules.TATE[softOffset]
+        }
+    }
+
     private fun getBarysAffix(last: Char, person: GrammarPerson?, number: GrammarNumber?): String {
         if ((person == GrammarPerson.First && number == GrammarNumber.Singular) || person == GrammarPerson.Second) {
             return Rules.AE[softOffset]
@@ -185,6 +205,16 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
             } else {
                 return Rules.KAKE[softOffset]
             }
+        }
+    }
+
+    private fun getIlikAffix(last: Char, thirdPersonPoss: Boolean): String {
+        if (Rules.VOWELS_GROUP1.contains(last) || Rules.CONS_GROUP1_3.contains(last)) {
+            return Rules.DYNGDING[softOffset]
+        } else if (Phonetics.isVowel(last) || Rules.CONS_GROUP6.contains(last) || thirdPersonPoss) {
+            return Rules.NYNGNING[softOffset]
+        } else {
+            return Rules.TYNGTING[softOffset]
         }
     }
 
@@ -200,39 +230,53 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
         }
     }
 
-    fun septikForm(septik: Septik): Phrasal {
-        if (septik == Septik.Atau) {
-            return copyBase().build()
+    private fun getKomektesAffix(last: Char, thirdPersonPoss: Boolean): String {
+        if (thirdPersonPoss || Phonetics.isVowel(last) || Rules.CONS_GROUP1_6.contains(last)) {
+            return "мен"
+        } else if (Rules.CONS_GROUP3.contains(last)) {
+            return "бен"
+        } else {
+            return "пен"
         }
+    }
 
+    fun septikForm(septik: Septik): Phrasal {
         val lastBase = baseBuilder.getLastItem()
 
-        if (septik == Septik.Barys) {
-            val affix = getBarysAffix(lastBase, null, null)
-            return copyBase()
-                .septikAffix(affix)
-                .build()
-        } else if (septik == Septik.Tabys) {
-            val affix = getTabysAffix(lastBase, false)
-            return copyBase()
-                .septikAffix(affix)
-                .build()
+        val affix = when (septik) {
+            Septik.Atau -> {
+                return copyBase().build()
+            }
+            Septik.Ilik -> getIlikAffix(lastBase, false)
+            Septik.Barys -> getBarysAffix(lastBase, null, null)
+            Septik.Tabys -> getTabysAffix(lastBase, false)
+            Septik.Jatys -> getJatysAffix(lastBase, false)
+            Septik.Shygys -> getShygysAffix(lastBase, false)
+            Septik.Komektes -> getKomektesAffix(lastBase, false)
         }
-
-        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        return copyBase()
+            .septikAffix(affix)
+            .build()
     }
 
     fun pluralSeptikForm(septik: Septik): Phrasal {
         val builder = pluralBuilder()
 
-        if (septik == Septik.Tabys) {
-            val affix = Rules.DYDI[softOffset]
-            return builder
-                .septikAffix(affix)
-                .build()
+        val affix = when (septik) {
+            Septik.Atau -> {
+                return builder.build()
+            }
+            Septik.Ilik -> Rules.DYNGDING[softOffset]
+            Septik.Barys -> Rules.GAGE[softOffset]
+            Septik.Tabys -> Rules.DYDI[softOffset]
+            Septik.Jatys -> Rules.DADE[softOffset]
+            Septik.Shygys -> Rules.DANDEN[softOffset]
+            Septik.Komektes -> "мен"
         }
 
-        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        return builder
+            .septikAffix(affix)
+            .build()
     }
 
     fun possessiveSeptikForm(person: GrammarPerson, number: GrammarNumber, septik: Septik): Phrasal {
@@ -242,20 +286,22 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
             return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
         }
 
-        if (septik == Septik.Atau) {
-            return builder
-                .build()
-        }
-
         val lastBase = builder.getLastItem()
+        val thirdPerson = person == GrammarPerson.Third
 
-        if (septik == Septik.Tabys) {
-            val affix = getTabysAffix(lastBase, person == GrammarPerson.Third)
-            return builder
-                .septikAffix(affix)
-                .build()
+        val affix = when (septik) {
+            Septik.Atau -> {
+                return builder.build()
+            }
+            Septik.Ilik -> getIlikAffix(lastBase, thirdPerson)
+            Septik.Barys -> getBarysAffix(lastBase, person, number)
+            Septik.Tabys -> getTabysAffix(lastBase, thirdPerson)
+            Septik.Jatys -> getJatysAffix(lastBase, thirdPerson)
+            Septik.Shygys -> getShygysAffix(lastBase, thirdPerson)
+            Septik.Komektes -> getKomektesAffix(lastBase, thirdPerson)
         }
-
-        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+        return builder
+            .septikAffix(affix)
+            .build()
     }
 }

@@ -19,6 +19,9 @@ class PhrasalBuilder {
             copy.parts.add(part)
         }
         copy.forbidden = forbidden
+        alternative?.let { alt ->
+            copy.alternative = alt.copy()
+        }
         return copy
     }
 
@@ -86,6 +89,7 @@ class PhrasalBuilder {
     }
 
     fun septikAffix(affix: String): PhrasalBuilder {
+        alternative?.septikAffix(affix)
         return addPart(type = PhrasalPartType.SeptikAffix, affix)
     }
 
@@ -140,6 +144,12 @@ class PhrasalBuilder {
         for (part in parts) {
             partStrings.add(part.content)
         }
-        return Phrasal(parts = parts, raw = partStrings.joinToString(separator = ""), forbidden = forbidden)
+        val builtAlternative = alternative?.build()
+        return Phrasal(
+            parts = parts,
+            raw = partStrings.joinToString(separator = ""),
+            forbidden = forbidden,
+            alternative = builtAlternative,
+        )
     }
 }

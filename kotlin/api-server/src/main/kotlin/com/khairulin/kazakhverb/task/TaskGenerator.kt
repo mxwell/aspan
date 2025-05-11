@@ -558,6 +558,24 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    /**
+     * Return:
+     * - two strings if phrasal has an alternative variant,
+     * - one string otherwise
+     */
+    private fun buildAnswers(prefix: String, suffix: String, phrasal: Phrasal): List<String> {
+        val result = mutableListOf<String>(
+            "${prefix}${phrasal.raw}${suffix}"
+        )
+        val alternative = phrasal.alternative
+        if (alternative != null) {
+            result.add(
+                "${prefix}${alternative.raw}${suffix}"
+            )
+        }
+        return result
+    }
+
     private fun genTabys(): GetTasks {
         val tasks = mutableListOf<TaskItem>()
         val combos = listOf<Pair<String, String>>(
@@ -565,6 +583,7 @@ class TaskGenerator {
             Pair("дос", "шақыру"),
             Pair("көше", "жөндеу"),
             Pair("есік", "ашу"),
+            Pair("ауыз", "ашу"),
             Pair("мектеп", "көрсету"),
             Pair("доп", "қою"),
             Pair("жұмыс", "тексеру"),
@@ -603,15 +622,13 @@ class TaskGenerator {
             val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHintSb.toString(), verbForm)
             val nounBuilder = NounBuilder.ofNoun(combo.first)
             val nounForm = if (objectNumber == GrammarNumber.Plural) {
-                nounBuilder.pluralSeptikForm(Septik.Tabys).raw
+                nounBuilder.pluralSeptikForm(Septik.Tabys)
             } else {
-                nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Tabys).raw
+                nounBuilder.possessiveSeptikForm(possForm.person, possForm.number, Septik.Tabys)
             }
             tasks.add(TaskItem(
                 description,
-                listOf(
-                    "${sentenceStart}${nounForm} ${verbForm}"
-                )
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm)
             ))
         }
 
