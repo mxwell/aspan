@@ -31,6 +31,8 @@ enum class TaskTopic(val ruTitle: String) {
     DECL_JATYS("Местный падеж - 2"),
     DECL_SHYGYS_EASY("Исходный падеж - 1"),
     DECL_SHYGYS("Исходный падеж - 2"),
+    DECL_KOMEKTES_EASY("Творительный падеж - 1"),
+    DECL_KOMEKTES("Творительный падеж - 2"),
     ;
 
     companion object {
@@ -63,6 +65,8 @@ enum class TaskTopic(val ruTitle: String) {
                 DECL_JATYS.name -> DECL_JATYS
                 DECL_SHYGYS_EASY.name -> DECL_SHYGYS_EASY
                 DECL_SHYGYS.name -> DECL_SHYGYS
+                DECL_KOMEKTES_EASY.name -> DECL_KOMEKTES_EASY
+                DECL_KOMEKTES.name -> DECL_KOMEKTES
                 else -> null
             }
         }

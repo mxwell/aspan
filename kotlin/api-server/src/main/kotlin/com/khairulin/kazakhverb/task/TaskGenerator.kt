@@ -793,10 +793,30 @@ class TaskGenerator {
         }
     }
 
+    data class NounInfo(
+        val noun: String,
+        val translation: String,
+    ) {
+        fun builder() = NounBuilder.ofNoun(noun)
+        fun asPair() = Pair(noun, translation)
+    }
+
+    private fun makeNounList(vararg nounsAndTranslations: String): List<NounInfo> {
+        val result = mutableListOf<NounInfo>()
+        for ((noun, translation) in nounsAndTranslations.toList().windowed(2, 2, partialWindows = false)) {
+            result.add(NounInfo(noun, translation))
+        }
+        return result
+    }
+
     data class VerbInfo(
         val verb: String,
         val forceExceptional: Boolean = false,
-    )
+        val translation: String? = null,
+    ) {
+        fun builder() = VerbBuilder(verb, forceExceptional)
+        fun asPair() = translation?.let { Pair(verb, it) }
+    }
 
     private fun makeVerbList(vararg verbs: String): List<VerbInfo> {
         return verbs.map {
@@ -1095,6 +1115,61 @@ class TaskGenerator {
         }
     }
 
+    data class KomektesCombo(
+        val tools: List<NounInfo>,
+        val verb: VerbInfo,
+    )
+
+    private fun collectTranslations(noun: NounInfo, verb: VerbInfo): List<Pair<String, String>> {
+        val result = mutableListOf<Pair<String, String>>()
+        result.add(noun.asPair())
+        verb.asPair()?.let {
+            result.add(it)
+        }
+        return result
+    }
+
+    fun genKomektesEasy(): GetTasks {
+        val combos = listOf(
+            KomektesCombo(makeNounList("пышақ", "нож"), VerbInfo("кесу")),
+            KomektesCombo(makeNounList("машина", "автомобиль", "пойыз", "поезд", "автобус", "автобус"), VerbInfo("келу")),
+            KomektesCombo(makeNounList("қасық", "ложка", "шанышқы", "вилка"), VerbInfo("жеу")),
+            KomektesCombo(makeNounList("қалам", "ручка", "қарындаш", "карандаш"), VerbInfo("жазу")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.tools.random()
+            val verbBuilder = combo.verb.builder()
+            val sentenceType = SentenceType.Statement
+
+            val nounForm = noun.builder().septikForm(Septik.Komektes)
+
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} "
+            val formDescription = "творительный падеж"
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                formDescription,
+                noun.noun,
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = collectTranslations(noun, combo.verb)
+            )
+        }
+    }
+
     fun generateTopicTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -1124,6 +1199,7 @@ class TaskGenerator {
             TaskTopic.DECL_JATYS -> genJatys()
             TaskTopic.DECL_SHYGYS_EASY -> genShygysEasy()
             TaskTopic.DECL_SHYGYS -> genShygys()
+            TaskTopic.DECL_KOMEKTES_EASY -> genKomektesEasy()
             else -> null
         }
     }
