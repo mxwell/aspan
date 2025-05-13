@@ -802,6 +802,8 @@ class TaskGenerator {
     }
 
     private fun makeNounList(vararg nounsAndTranslations: String): List<NounInfo> {
+        assert(nounsAndTranslations.size % 2 == 0)
+
         val result = mutableListOf<NounInfo>()
         for ((noun, translation) in nounsAndTranslations.toList().windowed(2, 2, partialWindows = false)) {
             result.add(NounInfo(noun, translation))
@@ -822,6 +824,16 @@ class TaskGenerator {
         return verbs.map {
             VerbInfo(it, forceExceptional = false)
         }
+    }
+
+    private fun makeVerbListWithTranslation(vararg verbsAndTranslations: String): List<VerbInfo> {
+        assert(verbsAndTranslations.size % 2 == 0)
+
+        val result = mutableListOf<VerbInfo>()
+        for ((noun, translation) in verbsAndTranslations.toList().windowed(2, 2, partialWindows = false)) {
+            result.add(VerbInfo(noun, translation = translation))
+        }
+        return result
     }
 
     data class BarysCombo(
@@ -1115,34 +1127,56 @@ class TaskGenerator {
         }
     }
 
+    data class SupplementNoun(
+        val noun: String,
+        val translation: String,
+        val septik: Septik,
+    ) {
+        fun asPair() = Pair(noun, translation)
+    }
+
     data class KomektesCombo(
         val tools: List<NounInfo>,
-        val verb: VerbInfo,
+        val verbs: List<VerbInfo>,
+        val supplementNoun: SupplementNoun? = null,  // word that goes before tool
     )
 
-    private fun collectTranslations(noun: NounInfo, verb: VerbInfo): List<Pair<String, String>> {
-        val result = mutableListOf<Pair<String, String>>()
-        result.add(noun.asPair())
-        verb.asPair()?.let {
-            result.add(it)
-        }
-        return result
+    private fun collectTranslations(vararg pairs: Pair<String, String>?): List<Pair<String, String>> {
+        return pairs.filterNotNull()
     }
 
     fun genKomektesEasy(): GetTasks {
         val combos = listOf(
-            KomektesCombo(makeNounList("пышақ", "нож"), VerbInfo("кесу")),
-            KomektesCombo(makeNounList("машина", "автомобиль", "пойыз", "поезд", "автобус", "автобус"), VerbInfo("келу")),
-            KomektesCombo(makeNounList("қасық", "ложка", "шанышқы", "вилка"), VerbInfo("жеу")),
-            KomektesCombo(makeNounList("қалам", "ручка", "қарындаш", "карандаш"), VerbInfo("жазу")),
+            KomektesCombo(makeNounList("пышақ", "нож"), makeVerbListWithTranslation("кесу", "резать"), SupplementNoun("нан", "хлеб", Septik.Tabys)),
+            KomektesCombo(makeNounList("балта", "топор"), makeVerbListWithTranslation("жару", "колоть"), SupplementNoun("отын", "дрова", Septik.Tabys)),
+            KomektesCombo(makeNounList("машина", "автомобиль", "пойыз", "поезд", "автобус", "автобус", "ат", "лошадь"), makeVerbListWithTranslation("келу", "приезжать", "бару", "ехать"), SupplementNoun("қала", "город", Septik.Barys)),
+            KomektesCombo(makeNounList("ұшақ", "самолёт"), makeVerbListWithTranslation("ұшу", "лететь"), SupplementNoun("астана", "столица", Septik.Barys)),
+            KomektesCombo(makeNounList("қасық", "ложка", "шанышқы", "вилка"), makeVerbListWithTranslation("жеу", "кушать"), SupplementNoun("ботқа", "каша", Septik.Tabys)),
+            KomektesCombo(makeNounList("қалам", "ручка", "қарындаш", "карандаш", "бор", "мел"), makeVerbListWithTranslation("жазу", "писать")),
+            KomektesCombo(makeNounList("көпір", "мост", "жол", "дорога"), makeVerbListWithTranslation("жүру", "идти", "келу", "приходить", "бару", "идти")),
+            KomektesCombo(makeNounList("телефон", "телефон"), makeVerbListWithTranslation("сөйлесу", "разговаривать")),
+            KomektesCombo(makeNounList("сабын", "мыло"), makeVerbListWithTranslation("жуу", "мыть"), SupplementNoun("қол", "рука", Septik.Tabys)),
+            KomektesCombo(makeNounList("сүрткіш", "тряпка"), makeVerbListWithTranslation("сүрту", "вытирать"), SupplementNoun("тақта", "доска", Septik.Tabys)),
+            KomektesCombo(makeNounList("лимон", "лимон", "сүт", "молоко", "кесе", "пиала"), makeVerbListWithTranslation("ішу", "пить"), SupplementNoun("шай", "чай", Septik.Tabys)),
+            KomektesCombo(makeNounList("лимон", "лимон", "сүт", "молоко"), makeVerbListWithTranslation("шай ішу", "пить чай")),
         )
 
         return collectTasks { taskId ->
             val grammarForm = usedForms.random()
             val combo = combos.random()
             val noun = combo.tools.random()
-            val verbBuilder = combo.verb.builder()
+            val verb = combo.verbs.random()
+            val verbBuilder = verb.builder()
             val sentenceType = SentenceType.Statement
+
+            val supplementNoun = combo.supplementNoun
+            val supplement = if (supplementNoun != null) {
+                val supBuilder = NounBuilder.ofNoun(supplementNoun.noun)
+                val supForm = supBuilder.septikForm(supplementNoun.septik).raw
+                "${supForm} "
+            } else {
+                ""
+            }
 
             val nounForm = noun.builder().septikForm(Septik.Komektes)
 
@@ -1152,7 +1186,7 @@ class TaskGenerator {
                 verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
             }
 
-            val sentenceStart = "${grammarForm.pronoun} "
+            val sentenceStart = "${grammarForm.pronoun} ${supplement}"
             val formDescription = "творительный падеж"
 
             val description = buildSeptikDescription(
@@ -1165,7 +1199,76 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verbForm}", nounForm),
-                translations = collectTranslations(noun, combo.verb)
+                translations = collectTranslations(
+                    supplementNoun?.asPair(),
+                    noun.asPair(),
+                    verb.asPair(),
+                )
+            )
+        }
+    }
+
+    fun genKomektes(): GetTasks {
+        val combos = listOf(
+            KomektesCombo(makeNounList("пышақ", "нож"), makeVerbListWithTranslation("кесу", "резать"), SupplementNoun("нан", "хлеб", Septik.Tabys)),
+            KomektesCombo(makeNounList("балта", "топор"), makeVerbListWithTranslation("жару", "колоть"), SupplementNoun("отын", "дрова", Septik.Tabys)),
+            KomektesCombo(makeNounList("машина", "автомобиль", "ат", "лошадь"), makeVerbListWithTranslation("келу", "приезжать", "бару", "ехать"), SupplementNoun("қала", "город", Septik.Barys)),
+            KomektesCombo(makeNounList("қасық", "ложка", "шанышқы", "вилка"), makeVerbListWithTranslation("жеу", "кушать"), SupplementNoun("ботқа", "каша", Septik.Tabys)),
+            KomektesCombo(makeNounList("қалам", "ручка", "қарындаш", "карандаш", "бор", "мел"), makeVerbListWithTranslation("жазу", "писать")),
+            KomektesCombo(makeNounList("сабын", "мыло"), makeVerbListWithTranslation("жуу", "мыть"), SupplementNoun("қол", "рука", Septik.Tabys)),
+            KomektesCombo(makeNounList("сүрткіш", "тряпка"), makeVerbListWithTranslation("сүрту", "вытирать"), SupplementNoun("тақта", "доска", Septik.Tabys)),
+            KomektesCombo(makeNounList("кесе", "пиала"), makeVerbListWithTranslation("ішу", "пить"), SupplementNoun("шай", "чай", Septik.Tabys)),
+            KomektesCombo(makeNounList("жолдас", "товарищ"), makeVerbListWithTranslation("бару", "идти"), SupplementNoun("театр", "театр", Septik.Barys)),
+            KomektesCombo(makeNounList("дәрігер", "врач"), makeVerbListWithTranslation("ақылдасу", "советоваться")),
+        )
+
+        return collectTasks { taskId ->
+            val grammarForm = usedForms.random()
+            val possForm = usedForms.random()
+            val combo = combos.random()
+            val noun = combo.tools.random()
+            val verb = combo.verbs.random()
+            val verbBuilder = verb.builder()
+            val sentenceType = SentenceType.Statement
+
+            val supplementNoun = combo.supplementNoun
+            val supplement = if (supplementNoun != null) {
+                val supBuilder = NounBuilder.ofNoun(supplementNoun.noun)
+                val supForm = supBuilder.septikForm(supplementNoun.septik).raw
+                "${supForm} "
+            } else {
+                ""
+            }
+
+            val nounForm = noun.builder().possessiveSeptikForm(possForm.person, possForm.number, Septik.Komektes)
+
+            val verbForm = if (Random.nextBoolean()) {
+                verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
+            } else {
+                verbBuilder.past(grammarForm.person, grammarForm.number, sentenceType).raw
+            }
+
+            val sentenceStart = "${grammarForm.pronoun} ${supplement}"
+            val formDescriptionSb = StringBuilder("творительный падеж для ")
+            val formHintSb = StringBuilder(noun.noun)
+            formDescriptionSb.append(possForm.ruShort)
+            formHintSb.append(" ∈ ${possForm.pronoun}")
+
+            val description = buildSeptikDescription(
+                sentenceStart,
+                formDescriptionSb.toString(),
+                formHintSb.toString(),
+                verbForm,
+            )
+
+            TaskItem(
+                description,
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = collectTranslations(
+                    supplementNoun?.asPair(),
+                    noun.asPair(),
+                    verb.asPair(),
+                )
             )
         }
     }
@@ -1200,6 +1303,7 @@ class TaskGenerator {
             TaskTopic.DECL_SHYGYS_EASY -> genShygysEasy()
             TaskTopic.DECL_SHYGYS -> genShygys()
             TaskTopic.DECL_KOMEKTES_EASY -> genKomektesEasy()
+            TaskTopic.DECL_KOMEKTES -> genKomektes()
             else -> null
         }
     }
