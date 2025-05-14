@@ -1273,7 +1273,7 @@ class TaskGenerator {
         }
     }
 
-    fun generateTopicTasks(topic: TaskTopic): GetTasks? {
+    private fun generateTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
             TaskTopic.CONJ_PRESENT_TRANSITIVE -> genPresentTransitive()
@@ -1306,5 +1306,12 @@ class TaskGenerator {
             TaskTopic.DECL_KOMEKTES -> genKomektes()
             else -> null
         }
+    }
+
+    fun generateTopicTasks(topic: TaskTopic): GetTasks? {
+        val tasks = generateTasks(topic) ?: return null
+        return tasks.copy(
+            references = TheoryReferenceProvider.provide(topic)
+        )
     }
 }
