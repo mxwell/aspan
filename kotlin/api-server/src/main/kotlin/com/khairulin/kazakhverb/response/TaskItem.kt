@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class TaskItem(
     val question: String,
     val answers: List<String>,
-    val translations: List<Pair<String, String>> = emptyList(),
+    val translations: List<List<String>> = emptyList(),
 )

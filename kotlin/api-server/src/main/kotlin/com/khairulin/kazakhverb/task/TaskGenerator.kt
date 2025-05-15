@@ -155,6 +155,9 @@ class TaskGenerator {
     }
 
     private fun buildSupplementForm(grammarForm: GrammarForm, supplementNouns: List<SupplementNoun>): Pair<SupplementNoun, String>? {
+        if (supplementNouns.isEmpty()) {
+            return null
+        }
         for (i in 0..2) {
             val supplement = supplementNouns.random()
             val form = supplement.form(grammarForm)
@@ -773,7 +776,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers("", " ${sentenceEnd}", properNameForm),
-                translations = listOf(
+                translations = collectTranslations(
                     subject,
                     place
                 )
@@ -846,7 +849,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers("", " ${sentenceEnd}", ownerForm),
-                translations = listOf(
+                translations = collectTranslations(
                     owner.getTranslation(),
                     subject,
                     place
@@ -942,7 +945,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verbForm}", nounForm),
-                translations = listOf(
+                translations = collectTranslations(
                     Pair(noun, combo.dstTranslation)
                 )
             )
@@ -1002,7 +1005,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verbForm}", nounForm),
-                translations = listOf(
+                translations = collectTranslations(
                     Pair(noun, combo.dstTranslation)
                 )
             )
@@ -1028,7 +1031,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verb}", placeForm),
-                translations = listOf(
+                translations = collectTranslations(
                     subject,
                     place
                 )
@@ -1059,7 +1062,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verb}", placeForm),
-                translations = listOf(
+                translations = collectTranslations(
                     subject,
                     place
                 )
@@ -1116,7 +1119,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verbForm}", nounForm),
-                translations = listOf(
+                translations = collectTranslations(
                     Pair(noun, combo.dstTranslation)
                 )
             )
@@ -1173,7 +1176,7 @@ class TaskGenerator {
             TaskItem(
                 description,
                 buildAnswers(sentenceStart, " ${verbForm}", nounForm),
-                translations = listOf(
+                translations = collectTranslations(
                     Pair(noun, combo.dstTranslation)
                 )
             )
@@ -1186,7 +1189,11 @@ class TaskGenerator {
         val supplementNoun: SupplementNoun? = null,  // word that goes before tool
     )
 
-    private fun collectTranslations(vararg pairs: Pair<String, String>?) = pairs.filterNotNull()
+    private fun collectTranslations(vararg pairs: Pair<String, String>?): List<List<String>> {
+        return pairs.filterNotNull().map {
+            listOf(it.first, it.second)
+        }
+    }
 
     fun genKomektesEasy(): GetTasks {
         val combos = listOf(

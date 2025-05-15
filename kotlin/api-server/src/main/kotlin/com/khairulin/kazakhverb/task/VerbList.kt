@@ -23,7 +23,9 @@ object VerbList {
             SupplementNoun("ақиқат", "правда", Septik.Tabys),
             SupplementNoun("бала", "ребёнок", Septik.Barys),
         )),
-        Entry(verbTr("ән айту", "петь"), emptyList()),
+        Entry(verbTr("ән айту", "петь"), listOf(
+            SupplementNoun("қатты", "громко", null),
+        )),
         Entry(verbTr("істеу", "делать"), listOf(
             SupplementNoun("тапсырма", "задание", Septik.Tabys),
             SupplementNoun("жұмыс", "работа", Septik.Tabys),
