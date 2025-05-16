@@ -649,22 +649,22 @@ class TaskGenerator {
 
     private fun genTabys(): GetTasks {
         val tasks = mutableListOf<TaskItem>()
-        val combos = listOf<Pair<String, String>>(
-            Pair("терезе", "жабу"),
-            Pair("даяшы", "шақыру"),
-            Pair("дос", "шақыру"),
-            Pair("көше", "жөндеу"),
-            Pair("есік", "ашу"),
-            Pair("ауыз", "ашу"),
-            Pair("мектеп", "көрсету"),
-            Pair("доп", "қою"),
-            Pair("жұмыс", "тексеру"),
-            Pair("мысық", "көру"),
-            Pair("кітап", "беру"),
-            Pair("алма", "апару"),
-            Pair("қалам", "алу"),
-            Pair("газет", "оқу"),
-            Pair("шабдалы", "әкеліп беру")
+        val combos = listOf<Pair<SupplementNoun, VerbInfo>>(
+            Pair(SupplementNoun("терезе", "окно", null), VerbInfo("жабу", translation = "закрывать")),
+            Pair(SupplementNoun("даяшы", "официант", null), VerbInfo("шақыру", translation = "звать")),
+            Pair(SupplementNoun("дос", "друг", null), VerbInfo("шақыру", translation = "звать")),
+            Pair(SupplementNoun("көше", "улица", null), VerbInfo("жөндеу", translation = "ремонтировать")),
+            Pair(SupplementNoun("есік", "дверь", null), VerbInfo("ашу", translation = "открывать")),
+            Pair(SupplementNoun("ауыз", "рот", null), VerbInfo("ашу", translation = "открывать")),
+            Pair(SupplementNoun("мектеп", "школа", null), VerbInfo("көрсету", translation = "показывать")),
+            Pair(SupplementNoun("доп", "мяч", null), VerbInfo("қою", translation = "класть")),
+            Pair(SupplementNoun("жұмыс", "работа", null), VerbInfo("тексеру", translation = "проверять")),
+            Pair(SupplementNoun("мысық", "кошка", null), VerbInfo("көру", translation = "видеть")),
+            Pair(SupplementNoun("кітап", "книга", null), VerbInfo("беру", translation = "давать")),
+            Pair(SupplementNoun("алма", "яблоко", null), VerbInfo("апару", translation = "относить")),
+            Pair(SupplementNoun("қалам", "ручка", null), VerbInfo("алу", translation = "брать")),
+            Pair(SupplementNoun("газет", "газета", null), VerbInfo("оқу", translation = "читать")),
+            Pair(SupplementNoun("шабдалы", "персик", null), VerbInfo("әкеліп беру", translation = "приносить")),
         )
         for (taskId in 1..kTaskCount) {
             val grammarForm = usedForms.random()
@@ -672,7 +672,7 @@ class TaskGenerator {
             val objectNumber = if (Random.nextInt() % 5 == 0) GrammarNumber.Plural else GrammarNumber.Singular
             val combo = combos.random()
             val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
-            val verbBuilder = VerbBuilder(combo.second, forceExceptional = false)
+            val verbBuilder = combo.second.builder()
             val sentenceType = if (Random.nextInt() % 4 == 0) SentenceType.Negative else SentenceType.Statement
             val verbForm = if (Random.nextBoolean()) {
                 verbBuilder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType).raw
@@ -682,7 +682,7 @@ class TaskGenerator {
             val formHintSb = StringBuilder()
             formHintSb.append("винительный падеж")
             val objectHintSb = StringBuilder()
-            objectHintSb.append(combo.first)
+            objectHintSb.append(combo.first.noun)
             if (objectNumber == GrammarNumber.Plural) {
                 formHintSb.append(", множественное число")
                 objectHintSb.append(" ++")
@@ -692,7 +692,7 @@ class TaskGenerator {
                 objectHintSb.append(" ∈ ${possForm.pronoun}")
             }
             val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHintSb.toString(), verbForm)
-            val nounBuilder = NounBuilder.ofNoun(combo.first)
+            val nounBuilder = combo.first.builder()
             val nounForm = if (objectNumber == GrammarNumber.Plural) {
                 nounBuilder.pluralSeptikForm(Septik.Tabys)
             } else {
@@ -700,7 +700,11 @@ class TaskGenerator {
             }
             tasks.add(TaskItem(
                 description,
-                buildAnswers(sentenceStart, " ${verbForm}", nounForm)
+                buildAnswers(sentenceStart, " ${verbForm}", nounForm),
+                translations = collectTranslations(
+                    combo.first.asPair(),
+                    combo.second.asPair(),
+                )
             ))
         }
 
