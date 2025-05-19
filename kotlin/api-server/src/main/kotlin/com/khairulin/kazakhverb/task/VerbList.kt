@@ -179,7 +179,7 @@ object VerbList {
             SupplementNoun("көше", "улица", Septik.Jatys),
             SupplementNoun("мектептің алдында", "перед школой", null),
         )),
-        Entry(verbTr("қабылдау", ""), listOf(
+        Entry(verbTr("қабылдау", "принимать"), listOf(
             SupplementNoun("қонақ", "гость", Septik.Tabys),
             SupplementNoun("шешім", "решение", Septik.Atau),
             SupplementNoun("тапсырма", "задание", Septik.Tabys),
@@ -293,8 +293,8 @@ object VerbList {
         )),
         Entry(verbTr("табу", "находить"), listOf(
             SupplementNoun("шешім", "решение", Septik.Atau),
-            SupplementNoun("дос", "", Septik.Atau),
-            SupplementNoun("уақыт", "", Septik.Atau),
+            SupplementNoun("дос", "друг", Septik.Atau),
+            SupplementNoun("уақыт", "время", Septik.Atau),
         )),
         Entry(verbTr("табу", "зарабатывать"), listOf(
             SupplementNoun("ақша", "деньги", Septik.Atau),
@@ -305,7 +305,7 @@ object VerbList {
             SupplementNoun("кездесу", "встреча", Septik.Barys),
         )),
         Entry(verbTr("қуану", "радоваться"), listOf(
-            SupplementNoun("жеңіс", "", Septik.Barys),
+            SupplementNoun("жеңіс", "победа", Septik.Barys),
             SupplementNoun("бұған", "этому", null),
             SupplementNoun("қатты", "сильно", null),
         )),
