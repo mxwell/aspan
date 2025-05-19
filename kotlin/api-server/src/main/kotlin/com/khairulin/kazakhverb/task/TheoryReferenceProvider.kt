@@ -107,7 +107,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_UNAU_CLAUSE -> clauseUnau
             TaskTopic.CONJ_UNATU_CLAUSE -> clauseUnatu
             TaskTopic.CONJ_KORU_CLAUSE -> clauseKoru
-            TaskTopic.CONJ_TRY_CLAUSE_EASY -> clauseTry
+            TaskTopic.CONJ_TRY_CLAUSE_EASY, TaskTopic.CONJ_TRY_CLAUSE -> clauseTry
             TaskTopic.DECL_TABYS_EASY, TaskTopic.DECL_TABYS -> septikTabys
             TaskTopic.DECL_ILIK_EASY, TaskTopic.DECL_ILIK -> septikIlik
             TaskTopic.DECL_BARYS_EASY, TaskTopic.DECL_BARYS -> septikBarys

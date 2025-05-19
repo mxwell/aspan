@@ -527,10 +527,19 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         VerbBuilder("көру")
     }
 
-    fun koruClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+    private fun ofTenseOrThrow(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, tense: VerbTense): Phrasal {
+        return when (tense) {
+            VerbTense.TensePresentTransitive -> presentTransitiveForm(person, number, sentenceType)
+            VerbTense.TensePast -> past(person, number, sentenceType)
+            VerbTense.MoodOptative -> optativeMood(person, number, sentenceType)
+            else -> throw IllegalThreadStateException("tense ${tense} not supported by ofTenseOrThrow()")
+        }
+    }
+
+    fun koruClauseOfTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, tense: VerbTense): Phrasal {
         val contBase = getPresentContinuousBase()
         val affix = getPerfectParticipleAffix()
-        val auxVerbPhrasal = koruAuxBuilder.presentTransitiveForm(person, number, sentenceType)
+        val auxVerbPhrasal = koruAuxBuilder.ofTenseOrThrow(person, number, sentenceType, tense)
         return PhrasalBuilder()
             .verbBase(contBase)
             .tenseAffix(affix)

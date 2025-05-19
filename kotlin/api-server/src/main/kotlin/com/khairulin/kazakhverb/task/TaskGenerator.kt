@@ -110,7 +110,7 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
-    private fun generateCombos(easy: Boolean, taskCount: Int): List<Combo> {
+    private fun generateCombos(pattern: SentenceTypePattern, taskCount: Int): List<Combo> {
         val used = mutableSetOf<String>()
         val result = mutableListOf<Combo>()
         for (taskId in 1..taskCount) {
@@ -127,30 +127,16 @@ class TaskGenerator {
                     break
                 }
             }
-            val sentenceType = if (easy) {
-                SentenceType.Statement
-            } else {
-                getSentenceTypeByTaskId(taskId)
-            }
+            val sentenceType = pattern.getSentenceTypeByTaskId(taskId)
             result.add(Combo(taskId, verbEntry, grammarForm, sentenceType))
         }
         return result
     }
 
-    private fun genCommon(easy: Boolean, generator: (combo: Combo) -> TaskItem): GetTasks {
-        val combos = generateCombos(easy, kTaskCount)
+    private fun genCommon(pattern: SentenceTypePattern, generator: (combo: Combo) -> TaskItem): GetTasks {
+        val combos = generateCombos(pattern, kTaskCount)
         return collectTasks { taskId ->
             generator(combos[taskId - 1])
-        }
-    }
-
-    private fun getSentenceTypeByTaskId(taskId: Int): SentenceType {
-        return if (taskId <= 6) {
-            SentenceType.Statement
-        } else if (taskId <= 8) {
-            SentenceType.Negative
-        } else {
-            SentenceType.Question
         }
     }
 
@@ -197,9 +183,9 @@ class TaskGenerator {
         )
     }
 
-    private fun genPresentTransitiveEasy() = genCommon(easy = true, generator = this::presentTransitiveGenerator)
+    private fun genPresentTransitiveEasy() = genCommon(SentenceTypePattern.S10, generator = this::presentTransitiveGenerator)
 
-    private fun genPresentTransitive() = genCommon(easy = false, generator = this::presentTransitiveGenerator)
+    private fun genPresentTransitive() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::presentTransitiveGenerator)
 
     private fun presentContinuousGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -247,9 +233,9 @@ class TaskGenerator {
         )
     }
 
-    private fun genPresentContinuousEasy() = genCommon(easy = true, generator = this::presentContinuousGenerator)
+    private fun genPresentContinuousEasy() = genCommon(SentenceTypePattern.S10, generator = this::presentContinuousGenerator)
 
-    private fun genPresentContinuous() = genCommon(easy = false, generator = this::presentContinuousGenerator)
+    private fun genPresentContinuous() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::presentContinuousGenerator)
 
     private fun pastGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -278,9 +264,9 @@ class TaskGenerator {
         )
     }
 
-    private fun genPastEasy() = genCommon(easy = true, generator = this::pastGenerator)
+    private fun genPastEasy() = genCommon(SentenceTypePattern.S10, generator = this::pastGenerator)
 
-    private fun genPast() = genCommon(easy = false, generator = this::pastGenerator)
+    private fun genPast() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::pastGenerator)
 
     private fun remotePastGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -325,9 +311,9 @@ class TaskGenerator {
         )
     }
 
-    private fun genRemotePastEasy() = genCommon(easy = true, generator = this::remotePastGenerator)
+    private fun genRemotePastEasy() = genCommon(SentenceTypePattern.S10, generator = this::remotePastGenerator)
 
-    private fun genRemotePast() = genCommon(easy = false, generator = this::remotePastGenerator)
+    private fun genRemotePast() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::remotePastGenerator)
 
     private fun optativeMoodGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -391,11 +377,11 @@ class TaskGenerator {
         )
     }
 
-    private fun genOptativeMoodEasy() = genCommon(easy = true, generator = this::optativeMoodGenerator)
+    private fun genOptativeMoodEasy() = genCommon(SentenceTypePattern.S10, generator = this::optativeMoodGenerator)
 
-    private fun genOptativeMood() = genCommon(easy = false, generator = this::optativeMoodGenerator)
+    private fun genOptativeMood() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::optativeMoodGenerator)
 
-    private fun genOptativeMoodPastTense() = genCommon(easy = true, generator = this::optativeMoodPastTenseGenerator)
+    private fun genOptativeMoodPastTense() = genCommon(SentenceTypePattern.S10, generator = this::optativeMoodPastTenseGenerator)
 
     private fun canClauseGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -459,11 +445,11 @@ class TaskGenerator {
         )
     }
 
-    private fun genCanClauseEasy() = genCommon(easy = true, generator = this::canClauseGenerator)
+    private fun genCanClauseEasy() = genCommon(SentenceTypePattern.S10, generator = this::canClauseGenerator)
 
-    private fun genCanClause() = genCommon(easy = false, generator = this::canClauseGenerator)
+    private fun genCanClause() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::canClauseGenerator)
 
-    private fun genCanClausePastTense() = genCommon(easy = true, generator = this::canClausePastGenerator)
+    private fun genCanClausePastTense() = genCommon(SentenceTypePattern.S10, generator = this::canClausePastGenerator)
 
     private val kLikableSubjects = listOf(
         Pair("кітап", "кітапты"),
@@ -511,7 +497,7 @@ class TaskGenerator {
         for (taskId in 1..kTaskCount) {
             val grammarForm = usedForms.random()
             val subject = kLikableSubjects.random()
-            val sentenceType = getSentenceTypeByTaskId(taskId)
+            val sentenceType = SentenceTypePattern.S6_N2_Q2.getSentenceTypeByTaskId(taskId)
             val sentenceStart = buildSentenceStart(grammarForm.pronoun, "")
             val description = buildTaskDescription(
                 "нравится, переходное время",
@@ -573,16 +559,17 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
-    private fun tryClauseGenerator(combo: Combo): TaskItem {
+    private fun tryClauseEasyGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
         val verb = verbEntry.verb
         val grammarForm = combo.grammarForm
         val sentenceType = combo.sentenceType
 
-        val phrasal = verb.builder().koruClause(
+        val phrasal = verb.builder().koruClauseOfTense(
             grammarForm.person,
             grammarForm.number,
             sentenceType,
+            VerbTense.TensePresentTransitive,
         )
 
         val supPair = buildSupplementForm(grammarForm, verbEntry.supplements)
@@ -604,7 +591,48 @@ class TaskGenerator {
         )
     }
 
-    private fun genTryClauseEasy() = genCommon(easy = true, this::tryClauseGenerator)
+    private fun genTryClauseEasy() = genCommon(SentenceTypePattern.S7_Q3, this::tryClauseEasyGenerator)
+
+    private val kTryClauseTenseVariants = listOf(
+        VerbTense.TensePresentTransitive,
+        VerbTense.TensePast,
+        VerbTense.MoodOptative,
+    )
+
+    private fun tryClauseGenerator(combo: Combo): TaskItem {
+        val verbEntry = combo.verb
+        val verb = verbEntry.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val tense = kTryClauseTenseVariants.random()
+
+        val phrasal = verb.builder().koruClauseOfTense(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+            tense,
+        )
+
+        val supPair = buildSupplementForm(grammarForm, verbEntry.supplements)
+        val sentenceStart = buildSentenceStart(grammarForm.getPronounByTense(tense), supPair?.second ?: "")
+
+        val description = buildTaskDescription(
+            "конструкция с көру - попробовать, ${tense.ruName}",
+            sentenceStart,
+            verb,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}"),
+            collectTranslations(
+                supPair?.first?.asPair(),
+                verb.asPair(),
+            )
+        )
+    }
+
+    private fun genTryClause() = genCommon(SentenceTypePattern.S7_Q3, this::tryClauseGenerator)
 
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
         val sb = StringBuilder()
@@ -1382,6 +1410,7 @@ class TaskGenerator {
             TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
+            TaskTopic.CONJ_TRY_CLAUSE -> genTryClause()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
             TaskTopic.DECL_ILIK_EASY -> genIlikEasy()

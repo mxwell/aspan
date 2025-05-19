@@ -10,4 +10,11 @@ enum class GrammarForm(val person: GrammarPerson, val number: GrammarNumber, val
     OL(GrammarPerson.Third, GrammarNumber.Singular, "ол", "оның", "оған", "3л ед.ч."),
     OLAR(GrammarPerson.Third, GrammarNumber.Plural, "олар", "олардың", "оларға", "3л мн.ч."),
     ;
+
+    fun getPronounByTense(tense: VerbTense): String {
+        if (tense == VerbTense.MoodOptative) {
+            return poss
+        }
+        return pronoun
+    }
 }
