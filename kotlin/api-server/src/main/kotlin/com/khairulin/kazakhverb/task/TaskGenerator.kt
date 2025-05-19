@@ -573,6 +573,39 @@ class TaskGenerator {
         return GetTasks(tasks)
     }
 
+    private fun tryClauseGenerator(combo: Combo): TaskItem {
+        val verbEntry = combo.verb
+        val verb = verbEntry.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+
+        val phrasal = verb.builder().koruClause(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+
+        val supPair = buildSupplementForm(grammarForm, verbEntry.supplements)
+        val sentenceStart = buildSentenceStart(grammarForm.pronoun, supPair?.second ?: "")
+
+        val description = buildTaskDescription(
+            "конструкция с көру - попробовать, переходное время",
+            sentenceStart,
+            verb,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}"),
+            collectTranslations(
+                supPair?.first?.asPair(),
+                verb.asPair(),
+            )
+        )
+    }
+
+    private fun genTryClauseEasy() = genCommon(easy = true, this::tryClauseGenerator)
+
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
         val sb = StringBuilder()
         sb.append("(${septik})\n")
@@ -1348,6 +1381,7 @@ class TaskGenerator {
             TaskTopic.CONJ_UNAU_CLAUSE -> genUnauClause()
             TaskTopic.CONJ_UNATU_CLAUSE -> genUnatuClause()
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
+            TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
             TaskTopic.DECL_ILIK_EASY -> genIlikEasy()

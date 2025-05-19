@@ -117,11 +117,14 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         return verbBase
     }
 
+    private fun getPerfectParticipleAffix(): String =
+        VerbSuffix.getYpip(char = baseLast, softOffset = softOffset)
+
     private fun getPresentContinousAffix(): String {
         return when {
             Rules.VERB_PRESENT_CONT_EXCEPTION_A_SET.contains(verbDictForm) -> "а"
             Rules.VERB_PRESENT_CONT_EXCEPTION_E_SET.contains(verbDictForm) -> "е"
-            else -> VerbSuffix.getYpip(char = baseLast, softOffset = softOffset)
+            else -> getPerfectParticipleAffix()
         }
     }
 
@@ -517,6 +520,22 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         return this.presentTransitiveCommonBuilder()
             .space()
             .auxVerb(phrasal = aux)
+            .build()
+    }
+
+    private val koruAuxBuilder: VerbBuilder by lazy {
+        VerbBuilder("көру")
+    }
+
+    fun koruClause(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val contBase = getPresentContinuousBase()
+        val affix = getPerfectParticipleAffix()
+        val auxVerbPhrasal = koruAuxBuilder.presentTransitiveForm(person, number, sentenceType)
+        return PhrasalBuilder()
+            .verbBase(contBase)
+            .tenseAffix(affix)
+            .space()
+            .auxVerb(phrasal = auxVerbPhrasal)
             .build()
     }
 }
