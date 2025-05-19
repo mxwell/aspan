@@ -22,6 +22,7 @@ object VerbList {
         Entry(verbTr("айту", "сказать"), listOf(
             SupplementNoun("ақиқат", "правда", Septik.Tabys),
             SupplementNoun("бала", "ребёнок", Septik.Barys),
+            SupplementNoun("өтірік", "ложь", Septik.Atau),
         )),
         Entry(verbTr("ән айту", "петь"), listOf(
             SupplementNoun("қатты", "громко", null),
@@ -237,9 +238,13 @@ object VerbList {
         )),
         Entry(verbTr("тарту", "тянуть"), listOf(
             SupplementNoun("арқан", "верёвка", Septik.Tabys),
+            SupplementNoun("жіп", "верёвка", Septik.Tabys),
             SupplementNoun("қатты", "сильно", null),
             SupplementNoun("арқан", "верёвка", Septik.Komektes),
             SupplementNoun("жүк", "груз", Septik.Atau),
+        )),
+        Entry(verbTr("түрту", "толкнуть"), listOf(
+            SupplementNoun("есік", "дверь", Septik.Tabys),
         )),
         Entry(verbTr("шығару", "издавать"), listOf(
             SupplementNoun("кітап", "книга", Septik.Atau),
@@ -289,6 +294,7 @@ object VerbList {
         Entry(verbTr("табу", "находить"), listOf(
             SupplementNoun("шешім", "решение", Septik.Atau),
             SupplementNoun("дос", "", Septik.Atau),
+            SupplementNoun("уақыт", "", Septik.Atau),
         )),
         Entry(verbTr("табу", "зарабатывать"), listOf(
             SupplementNoun("ақша", "деньги", Septik.Atau),
@@ -302,6 +308,20 @@ object VerbList {
             SupplementNoun("жеңіс", "", Septik.Barys),
             SupplementNoun("бұған", "этому", null),
             SupplementNoun("қатты", "сильно", null),
+        )),
+        Entry(verbTr("жеу", "кушать"), listOf(
+            SupplementNoun("самса", "самса", Septik.Tabys),
+        )),
+        Entry(verbTr("кию", "надевать"), listOf(
+            SupplementNoun("аяқ киім", "обувь", Septik.Tabys),
+            SupplementNoun("көйлек", "платье", Septik.Atau),
+        )),
+        Entry(verbTr("ашу", "открывать"), listOf(
+            SupplementNoun("есік", "дверь", Septik.Atau),
+            SupplementNoun("есік", "дверь", Septik.Tabys),
+        )),
+        Entry(verbTr("жақындау", "приближаться"), listOf(
+            SupplementNoun("қасқыр", "волк", Septik.Barys),
         )),
     )
 }
