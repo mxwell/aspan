@@ -547,4 +547,23 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .auxVerb(phrasal = auxVerbPhrasal)
             .build()
     }
+
+    private val jazdauAuxBuidler: VerbBuilder by lazy {
+        VerbBuilder("жаздау")
+    }
+
+    fun jazdauClause(person: GrammarPerson, number: GrammarNumber, auxBuilder: VerbBuilder): Phrasal {
+        val contBase = getPresentContinuousBase()
+        val affix = getPerfectParticipleAffix()
+        val firstAuxVerbPhrasal = auxBuilder.presentTransitiveCommonBuilder().build()
+        val secondAuxVerbPhrasal = jazdauAuxBuidler.past(person, number, SentenceType.Statement)
+        return PhrasalBuilder()
+            .verbBase(contBase)
+            .tenseAffix(affix)
+            .space()
+            .auxVerb(phrasal = firstAuxVerbPhrasal)
+            .space()
+            .auxVerb(phrasal = secondAuxVerbPhrasal)
+            .build()
+    }
 }

@@ -6,8 +6,10 @@ fun main(args: Array<String>) {
     }
 
     val command = args[0]
-    val arg = args[1]
-    if (command == "Declension") {
+    if (command == "Conjugation") {
+        ConjugationTest().test()
+    } else if (command == "Declension") {
+        val arg = args[1]
         DeclensionTest(arg).test()
     } else {
         println("Unknown command ${command}")
