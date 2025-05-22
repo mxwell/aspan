@@ -65,6 +65,9 @@ object TheoryReferenceProvider {
         makeKazTiliArticle("Вспомогательный глагол 'көру'", "/glv03.htm"),
         makeYtKazakhtili("Как скажем на казахском \"попробовать, попытаться\"", "NED0itSbEQ8"),
     )
+    private val clauseJazdau = listOf(
+        makeKazTiliArticle("Вспомогательный глагол 'жаздау'", "/glv08.htm"),
+    )
     private val septikTabys = listOf(
         makeKazTiliArticle("Винительный падеж", "/su_rod2.htm"),
         makeYtKazakhtili("Винительный падеж казахского языка", "maBkCk8oGC0"),
@@ -108,6 +111,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_UNATU_CLAUSE -> clauseUnatu
             TaskTopic.CONJ_KORU_CLAUSE -> clauseKoru
             TaskTopic.CONJ_TRY_CLAUSE_EASY, TaskTopic.CONJ_TRY_CLAUSE -> clauseTry
+            TaskTopic.CONJ_JAZDAU_CLAUSE -> clauseJazdau
             TaskTopic.DECL_TABYS_EASY, TaskTopic.DECL_TABYS -> septikTabys
             TaskTopic.DECL_ILIK_EASY, TaskTopic.DECL_ILIK -> septikIlik
             TaskTopic.DECL_BARYS_EASY, TaskTopic.DECL_BARYS -> septikBarys

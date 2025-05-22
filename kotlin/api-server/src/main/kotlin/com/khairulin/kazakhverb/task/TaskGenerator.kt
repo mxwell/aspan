@@ -634,6 +634,48 @@ class TaskGenerator {
 
     private fun genTryClause() = genCommon(SentenceTypePattern.S7_Q3, this::tryClauseGenerator)
 
+    data class JazdauCombo(
+        val supplement: SupplementNoun?,
+        val verb: VerbInfo,
+        val auxVerb: String,
+    )
+
+    private val kJazdauCombos = listOf(
+        JazdauCombo(null, VerbInfo("ұмыту", false, "забывать"), "қалу"),
+        JazdauCombo(null, VerbInfo("айту", false, "сказать"), "салу"),
+        JazdauCombo(null, VerbInfo("жоғалту", false, "терять"), "алу"),
+        JazdauCombo(null, VerbInfo("кешігу", false, "опаздывать"), "қалу"),
+        JazdauCombo(SupplementNoun("олармен", "с ними", null), VerbInfo("кездесу", false, "встречаться"), "қалу"),
+    )
+
+    private fun genJazdauClause() = collectTasks {
+        val grammarForm = usedForms.random()
+        val combo = kJazdauCombos.random()
+        val startSb = StringBuilder(grammarForm.pronoun)
+        if (combo.supplement != null) {
+            startSb.append(" ")
+            startSb.append(combo.supplement.form(grammarForm))
+        }
+        val sentenceStart = startSb.toString()
+        val description =
+            "(действие чуть не совершилось)\n`[${sentenceStart}] [${combo.verb.verb} + ${combo.auxVerb} + жаздау]`"
+        val auxBuilder = VerbBuilder(combo.auxVerb)
+        val verbForm = combo
+            .verb.builder()
+            .jazdauClause(grammarForm.person, grammarForm.number, auxBuilder)
+            .raw
+        val answer = "${sentenceStart} ${verbForm}"
+
+        TaskItem(
+            description,
+            listOf(answer),
+            translations = collectTranslations(
+                combo.supplement?.asPair(),
+                combo.verb.asPair()
+            )
+        )
+    }
+
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
         val sb = StringBuilder()
         sb.append("(${septik})\n")
@@ -1411,6 +1453,7 @@ class TaskGenerator {
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
             TaskTopic.CONJ_TRY_CLAUSE -> genTryClause()
+            TaskTopic.CONJ_JAZDAU_CLAUSE -> genJazdauClause()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
             TaskTopic.DECL_ILIK_EASY -> genIlikEasy()

@@ -23,6 +23,7 @@ enum class TaskTopic(val ruTitle: String) {
     CONJ_KORU_CLAUSE("Конструкция с жақсы, жек көру"),
     CONJ_TRY_CLAUSE_EASY("Конструкция с көру - 1"),
     CONJ_TRY_CLAUSE("Конструкция с көру - 2"),
+    CONJ_JAZDAU_CLAUSE("Конструкция с жаздау"),
     DECL_TABYS_EASY("Винительный падеж - 1"),
     DECL_TABYS("Винительный падеж - 2"),
     DECL_ILIK_EASY("Родительный падеж - 1"),
@@ -59,6 +60,7 @@ enum class TaskTopic(val ruTitle: String) {
                 CONJ_KORU_CLAUSE.name -> CONJ_KORU_CLAUSE
                 CONJ_TRY_CLAUSE_EASY.name -> CONJ_TRY_CLAUSE_EASY
                 CONJ_TRY_CLAUSE.name -> CONJ_TRY_CLAUSE
+                CONJ_JAZDAU_CLAUSE.name -> CONJ_JAZDAU_CLAUSE
                 DECL_TABYS_EASY.name -> DECL_TABYS_EASY
                 DECL_TABYS.name -> DECL_TABYS
                 DECL_ILIK_EASY.name -> DECL_ILIK_EASY
