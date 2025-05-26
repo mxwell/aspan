@@ -646,6 +646,22 @@ class TaskGenerator {
         JazdauCombo(null, VerbInfo("жоғалту", false, "терять"), "алу"),
         JazdauCombo(null, VerbInfo("кешігу", false, "опаздывать"), "қалу"),
         JazdauCombo(SupplementNoun("олармен", "с ними", null), VerbInfo("кездесу", false, "встречаться"), "қалу"),
+        JazdauCombo(SupplementNoun("көлік", "транспорт", Septik.Barys), VerbInfo("соғылу", false, "ударить"), "қалу"),
+        JazdauCombo(SupplementNoun("емтихан", "экзамен", Septik.Shygys), VerbInfo("құлау", false, "проваливаться"), "қалу"),
+        JazdauCombo(SupplementNoun("шындық", "правда", Septik.Tabys), VerbInfo("айту", false, "сказать"), "қою"),
+        JazdauCombo(SupplementNoun("ұшақ", "самолёт", Septik.Barys), VerbInfo("қалу", false, "отставать"), "қою"),
+        JazdauCombo(SupplementNoun("телефон", "телефон", Septik.Tabys), VerbInfo("түсіру", false, "ронять"), "алу"),
+        JazdauCombo(SupplementNoun("ашу", "злость", Septik.Shygys), VerbInfo("жылау", false, "плакать"), "қалу"),
+        JazdauCombo(SupplementNoun("ауыл", "аул", Septik.Jatys), VerbInfo("адасу", false, "плутать"), "кету"),
+        JazdauCombo(null, VerbInfo("есінен тану", false, "падать в обморок"), "қалу"),
+        JazdauCombo(SupplementNoun("үй", "дом", Septik.Shygys), VerbInfo("кету", false, "отправляться"), "қалу"),
+        JazdauCombo(SupplementNoun("кілт", "ключ", Septik.Tabys), VerbInfo("жоғалту", false, "терять"), "қалу"),
+        JazdauCombo(SupplementNoun("самса", "самса", Septik.Tabys), VerbInfo("беру", false, "давать"), "қою"),
+        JazdauCombo(null, VerbInfo("өлу", false, "умирать"), "қалу"),
+        JazdauCombo(SupplementNoun("апан", "яма", Septik.Barys), VerbInfo("кіру", false, "вступать"), "кету"),
+        JazdauCombo(SupplementNoun("қолайсыз жағдай", "неловкое положение", Septik.Barys), VerbInfo("ұшырау", false, "попадать"), "қалу"),
+        JazdauCombo(SupplementNoun("оқ", "пуля", Septik.Barys), VerbInfo("арандау", false, "оказаться в опасности"), "қалу"),
+        JazdauCombo(SupplementNoun("көйлек", "рубашка", Septik.Tabys), VerbInfo("жырту", false, "рвать"), "алу"),
     )
 
     private fun genJazdauClause() = collectTasks {
