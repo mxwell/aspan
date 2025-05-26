@@ -674,7 +674,7 @@ class TaskGenerator {
         }
         val sentenceStart = startSb.toString()
         val description =
-            "(действие чуть не совершилось)\n`[${sentenceStart}] [${combo.verb.verb} + ${combo.auxVerb} + жаздау]`"
+            "(действие чуть не совершилось)\n`${sentenceStart} [${combo.verb.verb} + ${combo.auxVerb} + жаздау]`"
         val auxBuilder = VerbBuilder(combo.auxVerb)
         val verbForm = combo
             .verb.builder()
