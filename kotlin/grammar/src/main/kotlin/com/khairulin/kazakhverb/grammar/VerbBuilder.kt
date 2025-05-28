@@ -371,6 +371,19 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         }
     }
 
+    private fun pastUncertainCommonBuilder(): PhrasalBuilder {
+        val base = genericBaseModifier(nc = false, yp = true)
+        val baseLast = base.last
+        val affix = VerbSuffix.getYpip(baseLast, softOffset)
+        return PhrasalBuilder()
+            .verbBase(base.base)
+            .tenseAffix(affix)
+    }
+
+    private fun pastUncertainTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+    }
+
     private fun conditionalMoodCommonBuilder(): PhrasalBuilder {
         val pastBase = genericBaseModifier(nc = true, yp = false)
         val affix = Rules.SASE[softOffset]
