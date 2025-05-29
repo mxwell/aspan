@@ -332,15 +332,6 @@ class TaskGenerator {
             sentenceType,
         )
         answers.add("${sentenceStart}${phrasal.raw}")
-        if (sentenceType == SentenceType.Negative) {
-            val phrasal2 = builder.remotePast(
-                grammarForm.person,
-                grammarForm.number,
-                sentenceType,
-                negateAux = false
-            )
-            answers.add("${sentenceStart}${phrasal2.raw}")
-        }
 
         val description = buildTaskDescription(
             "давнопрошедшее неочевидное время",
