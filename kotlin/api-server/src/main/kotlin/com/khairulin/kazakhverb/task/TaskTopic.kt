@@ -12,6 +12,8 @@ enum class TaskTopic(val ruTitle: String) {
     CONJ_PAST("Прошедшее время - 2"),
     CONJ_REMOTE_PAST_EASY("Давнопрошедшее очевидное время - 1"),
     CONJ_REMOTE_PAST("Давнопрошедшее очевидное время - 2"),
+    CONJ_PAST_UNCERTAIN_EASY("Давнопрошедшее неочевидное время - 1"),
+    CONJ_PAST_UNCERTAIN("Давнопрошедшее неочевидное время - 2"),
     CONJ_OPTATIVE_MOOD_EASY("Желательное наклонение - 1"),
     CONJ_OPTATIVE_MOOD("Желательное наклонение - 2"),
     CONJ_OPTATIVE_MOOD_PAST("Желательное наклонение - 3"),
@@ -49,6 +51,8 @@ enum class TaskTopic(val ruTitle: String) {
                 CONJ_PAST.name -> CONJ_PAST
                 CONJ_REMOTE_PAST_EASY.name -> CONJ_REMOTE_PAST_EASY
                 CONJ_REMOTE_PAST.name -> CONJ_REMOTE_PAST
+                CONJ_PAST_UNCERTAIN_EASY.name -> CONJ_PAST_UNCERTAIN_EASY
+                CONJ_PAST_UNCERTAIN.name -> CONJ_PAST_UNCERTAIN
                 CONJ_OPTATIVE_MOOD_EASY.name -> CONJ_OPTATIVE_MOOD_EASY
                 CONJ_OPTATIVE_MOOD.name -> CONJ_OPTATIVE_MOOD
                 CONJ_OPTATIVE_MOOD_PAST.name -> CONJ_OPTATIVE_MOOD_PAST

@@ -43,6 +43,11 @@ object TheoryReferenceProvider {
         makeYtKazakhtili("Достоверное прошедшее время казахского языка", "QLjwHyGcgL0"),
         makeBookBekturovs("Грамматика: Есімше. Бұрынғы өткен шақ", 377),
     )
+    private val tensePastUncertain = listOf(
+        makeKazTiliArticle("Давнопрошедшее неочевидное время глагола", "/glag10.htm"),
+        makeYtKazakhtili("Давнопрошедшее (неочевидное прошедшее) время казахского языка", "qW_qbkA_x6M"),
+        makeBookBekturovs("Бұрынғы өткен шақ (ып/іп/п)", 393),
+    )
     private val moodOptative = listOf(
         makeKazTiliArticle("Желательное наклонение глагола", "/glag5.htm"),
         makeYtKazakhtili("Как скажем на казахском \"Я ХОЧУ\"", "SxpsZqKp-m4"),
@@ -105,6 +110,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_PRESENT_CONTINUOUS_EASY, TaskTopic.CONJ_PRESENT_CONTINUOUS -> tensePresentContinuous
             TaskTopic.CONJ_PAST_EASY, TaskTopic.CONJ_PAST -> tensePast
             TaskTopic.CONJ_REMOTE_PAST_EASY, TaskTopic.CONJ_REMOTE_PAST -> tenseRemotePast
+            TaskTopic.CONJ_PAST_UNCERTAIN_EASY, TaskTopic.CONJ_PAST_UNCERTAIN -> tensePastUncertain
             TaskTopic.CONJ_OPTATIVE_MOOD_EASY, TaskTopic.CONJ_OPTATIVE_MOOD, TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> moodOptative
             TaskTopic.CONJ_CAN_CLAUSE_EASY, TaskTopic.CONJ_CAN_CLAUSE, TaskTopic.CONJ_CAN_CLAUSE_PAST -> clauseCan
             TaskTopic.CONJ_UNAU_CLAUSE -> clauseUnau

@@ -315,6 +315,53 @@ class TaskGenerator {
 
     private fun genRemotePast() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::remotePastGenerator)
 
+    private fun pastUncertainGenerator(combo: Combo): TaskItem {
+        val verbEntry = combo.verb
+        val verb = verbEntry.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val builder = verb.builder()
+
+        val supPair = buildSupplementForm(grammarForm, verbEntry.supplements)
+        val sentenceStart = buildSentenceStart(grammarForm.pronoun, supPair?.second ?: "")
+
+        val answers = mutableListOf<String>()
+        val phrasal = builder.pastUncertainTense(
+            grammarForm.person,
+            grammarForm.number,
+            sentenceType,
+        )
+        answers.add("${sentenceStart}${phrasal.raw}")
+        if (sentenceType == SentenceType.Negative) {
+            val phrasal2 = builder.remotePast(
+                grammarForm.person,
+                grammarForm.number,
+                sentenceType,
+                negateAux = false
+            )
+            answers.add("${sentenceStart}${phrasal2.raw}")
+        }
+
+        val description = buildTaskDescription(
+            "давнопрошедшее неочевидное время",
+            sentenceStart,
+            verb,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            answers,
+            collectTranslations(
+                supPair?.first?.asPair(),
+                verb.asPair(),
+            )
+        )
+    }
+
+    private fun genPastUncertainEasy() = genCommon(SentenceTypePattern.S10, generator = this::pastUncertainGenerator)
+
+    private fun genPastUncertain() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::pastUncertainGenerator)
+
     private fun optativeMoodGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
         val verb = verbEntry.verb
@@ -1458,6 +1505,8 @@ class TaskGenerator {
             TaskTopic.CONJ_PAST -> genPast()
             TaskTopic.CONJ_REMOTE_PAST_EASY -> genRemotePastEasy()
             TaskTopic.CONJ_REMOTE_PAST -> genRemotePast()
+            TaskTopic.CONJ_PAST_UNCERTAIN_EASY -> genPastUncertainEasy()
+            TaskTopic.CONJ_PAST_UNCERTAIN -> genPastUncertain()
             TaskTopic.CONJ_OPTATIVE_MOOD_EASY -> genOptativeMoodEasy()
             TaskTopic.CONJ_OPTATIVE_MOOD -> genOptativeMood()
             TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> genOptativeMoodPastTense()
