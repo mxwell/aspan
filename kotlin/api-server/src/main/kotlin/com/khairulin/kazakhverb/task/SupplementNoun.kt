@@ -10,6 +10,18 @@ data class SupplementNoun(
     val septik: Septik?,
     val ownedBySubject: Boolean = false,  // the noun should be put into a possessive form determined by the subject
 ) {
+
+    companion object {
+        fun notNoun(word: String, translation: String): SupplementNoun {
+            return SupplementNoun(
+                word,
+                translation,
+                septik = null,
+                ownedBySubject = false,
+            )
+        }
+    }
+
     fun builder() = NounBuilder.ofNoun(noun)
 
     fun form(subject: GrammarForm): String? {

@@ -9,6 +9,14 @@ import kotlin.random.Random
 class TaskGenerator {
     private val LOG = KtorSimpleLogger("TaskGenerator")
 
+    companion object {
+        fun collectTranslationsOfList(pairs: List<Pair<String, String>?>): List<List<String>> {
+            return pairs.filterNotNull().map {
+                listOf(it.first, it.second)
+            }
+        }
+    }
+
     private val usedForms = listOf(
         GrammarForm.MEN,
         GrammarForm.BIZ,
@@ -420,6 +428,244 @@ class TaskGenerator {
     private fun genOptativeMood() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::optativeMoodGenerator)
 
     private fun genOptativeMoodPastTense() = genCommon(SentenceTypePattern.S10, generator = this::optativeMoodPastTenseGenerator)
+
+    enum class GrammarFormAffinity {
+        unspecified,
+        matchRequired,  // use the same person+number in both clauses
+        mismatchRequired,  // use different person in both clauses
+    }
+
+    fun getRandomGrammarFormPair(affinity: GrammarFormAffinity): Pair<GrammarForm, GrammarForm> {
+        return when (affinity) {
+            GrammarFormAffinity.matchRequired -> {
+                val form = usedForms.random()
+                Pair(form, form)
+            }
+            GrammarFormAffinity.mismatchRequired -> {
+                val first = usedForms.random()
+                var second = first
+                for (iter in 1..10) {
+                    second = usedForms.random()
+                    if (second.person != first.person) {
+                        break
+                    }
+                }
+                if (first.person == second.person) {
+                    throw IllegalStateException("failed to generate grammar forms with different persons")
+                }
+                Pair(first, second)
+            }
+            else -> {
+                Pair(usedForms.random(), usedForms.random())
+            }
+        }
+    }
+
+    data class ConditionalCombo(
+        val affinity: GrammarFormAffinity,
+        val firstVerb: VerbInfo,
+        val secondVerb: VerbInfo,
+        val firstSupplements: List<SupplementNoun> = emptyList(),
+        val secondSupplements: List<SupplementNoun> = emptyList(),
+        val firstSentence: SentenceType = SentenceType.Statement,
+        val secondSentence: SentenceType = SentenceType.Statement,
+    ) {
+        fun collectComboTranslations(): List<List<String>> {
+            val pairs = mutableListOf<Pair<String, String>?>()
+            for (sup in firstSupplements) {
+                pairs.add(sup.asPair())
+            }
+            pairs.add(firstVerb.asPair())
+            for (sup in secondSupplements) {
+                pairs.add(sup.asPair())
+            }
+            pairs.add(secondVerb.asPair())
+            return collectTranslationsOfList(pairs)
+        }
+    }
+
+    private val kConditionalCombos = listOf(
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("алу", translation = "взять"),
+            VerbInfo("қайту", translation = "возвращаться"),
+            firstSupplements = listOf(
+                SupplementNoun.notNoun("бүгін", "сегодня"),
+                SupplementNoun("билет", "билет", Septik.Tabys),
+            ),
+            secondSupplements = listOf(
+                SupplementNoun.notNoun("ертең", "завтра"),
+                SupplementNoun("үй", "дом", Septik.Barys),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("түсіндіру", translation = "объяснять"),
+            VerbInfo("білу", translation = "знать"),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("тырысу", translation = "стараться"),
+            VerbInfo("орындау", translation = "выполнить"),
+            secondSupplements = listOf(
+                SupplementNoun("тапсырма", "задание", Septik.Tabys),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("шақыру", translation = "приглашать"),
+            VerbInfo("бару", translation = "идти"),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("шақыру", translation = "приглашать"),
+            VerbInfo("бару", translation = "идти"),
+            firstSentence = SentenceType.Negative,
+            secondSentence = SentenceType.Negative,
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("оқу", translation = "читать"),
+            VerbInfo("түсіну", translation = "понимать"),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("шаршау", translation = "уставать"),
+            VerbInfo("демалу", translation = "отдыхать"),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("сұрау", translation = "спрашивать"),
+            VerbInfo("беру", translation = "давать"),
+            secondSupplements = listOf(
+                SupplementNoun("жауап", "ответ", Septik.Atau),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("ұмыту", translation = "забывать"),
+            VerbInfo("телефон соғу", translation = "звонить"),
+            firstSentence = SentenceType.Negative,
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("түсіну", translation = "понимать"),
+            VerbInfo("көмектесу", translation = "помогать"),
+            firstSupplements = listOf(
+                SupplementNoun("сабақ", "урок", Septik.Tabys),
+                SupplementNoun.notNoun("жақсы", "хорошо"),
+            ),
+            firstSentence = SentenceType.Negative,
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("тұру", translation = "вставать"),
+            VerbInfo("келу", translation = "приезжать"),
+            firstSupplements = listOf(
+                SupplementNoun.notNoun("ерте", "рано"),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("бару", translation = "идти"),
+            VerbInfo("бару", translation = "идти"),
+            secondSupplements = listOf(
+                SupplementNoun.notNoun("де", "тоже"),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("келу", translation = "приезжать"),
+            VerbInfo("ренжу", translation = "обижаться"),
+            firstSupplements = listOf(
+                SupplementNoun("қонақ", "гость", Septik.Barys),
+            ),
+            firstSentence = SentenceType.Negative,
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.mismatchRequired,
+            VerbInfo("қарау", translation = "смотреть"),
+            VerbInfo("барып келу", translation = "сходить"),
+            firstSupplements = listOf(
+                SupplementNoun("бала", "ребёнок", Septik.Barys),
+            ),
+            secondSupplements = listOf(
+                SupplementNoun("дүкен", "магазин", Septik.Barys),
+            ),
+        ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("асығу", translation = "спешить"),
+            VerbInfo("кешігу", translation = "опаздывать"),
+            firstSentence = SentenceType.Negative,
+        ),
+    )
+
+    private fun makeSupplements(supplements: List<SupplementNoun>, subject: GrammarForm): String {
+        if (supplements.isEmpty()) {
+            return ""
+        }
+        val parts = mutableListOf<String>()
+        for (sup in supplements) {
+            parts.add(sup.form(subject)!!)
+        }
+        return parts.joinToString(" ") + " "
+    }
+
+    private fun genConditionalMood() = collectTasks {
+        val combo = kConditionalCombos.random()
+        val (first, second) = getRandomGrammarFormPair(combo.affinity)
+
+        val ifPrefix = if (Random.nextBoolean()) {
+            "егер "
+        } else {
+            ""
+        }
+        val firstSupplements = makeSupplements(combo.firstSupplements, first)
+        val firstVerbForm = combo
+            .firstVerb
+            .builder()
+            .conditionalMood(first.person, first.number, combo.firstSentence)
+            .raw
+        val firstStart = "${ifPrefix}${first.pronoun} ${firstSupplements}"
+        val secondPronoun = if (first == second && Random.nextBoolean()) "" else "${second.pronoun} "
+        val secondSupplements = makeSupplements(combo.secondSupplements, second)
+        val secondStart = "${secondPronoun}${secondSupplements}"
+        val secondVerbForm = combo
+            .secondVerb
+            .builder()
+            .presentTransitiveForm(second.person, second.number, combo.secondSentence)
+            .raw
+
+        val descriptionSb = StringBuilder("(")
+        descriptionSb.append("условное наклонение")
+        if (combo.firstSentence == SentenceType.Negative) {
+            descriptionSb.append(", *отрицание*")
+        }
+        descriptionSb.append(", ${first.ruShort}")
+        descriptionSb.append(" + ")
+        descriptionSb.append("переходное время")
+        if (combo.secondSentence == SentenceType.Negative) {
+            descriptionSb.append(", *отрицание*")
+        }
+        descriptionSb.append(", ${second.ruShort}")
+        descriptionSb.append(")\n")
+        descriptionSb.append("`")
+        descriptionSb.append(firstStart)
+        descriptionSb.append("[${combo.firstVerb.verb}]")
+        descriptionSb.append(", ")
+        descriptionSb.append(secondStart)
+        descriptionSb.append("[${combo.secondVerb.verb}]")
+        descriptionSb.append("`")
+
+        val answer = "${firstStart}${firstVerbForm}, ${secondStart}${secondVerbForm}"
+
+        TaskItem(
+            descriptionSb.toString(),
+            listOf(answer),
+            translations = combo.collectComboTranslations()
+        )
+    }
 
     private fun canClauseGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
@@ -1351,9 +1597,7 @@ class TaskGenerator {
     )
 
     private fun collectTranslations(vararg pairs: Pair<String, String>?): List<List<String>> {
-        return pairs.filterNotNull().map {
-            listOf(it.first, it.second)
-        }
+        return collectTranslationsOfList(pairs.toList())
     }
 
     fun genKomektesEasy(): GetTasks {
@@ -1501,6 +1745,7 @@ class TaskGenerator {
             TaskTopic.CONJ_OPTATIVE_MOOD_EASY -> genOptativeMoodEasy()
             TaskTopic.CONJ_OPTATIVE_MOOD -> genOptativeMood()
             TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> genOptativeMoodPastTense()
+            TaskTopic.CONJ_CONDITIONAL_MOOD -> genConditionalMood()
             TaskTopic.CONJ_CAN_CLAUSE_EASY -> genCanClauseEasy()
             TaskTopic.CONJ_CAN_CLAUSE -> genCanClause()
             TaskTopic.CONJ_CAN_CLAUSE_PAST -> genCanClausePastTense()

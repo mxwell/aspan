@@ -53,6 +53,11 @@ object TheoryReferenceProvider {
         makeYtKazakhtili("Как скажем на казахском \"Я ХОЧУ\"", "SxpsZqKp-m4"),
         makeBookBekturovs("Грамматика: қалау рай", 273),
     )
+    private val moodConditional = listOf(
+        makeKazTiliArticle("Условное наклонение глагола", "/glag4.htm"),
+        makeYtKazakhtili("Как скажем на казахском \"Если...\"", "Y4eMzYdxEMQ"),
+        // TODO find book page
+    )
     private val clauseCan = listOf(
         makeKazTiliArticle("алу – мочь,  бiлу – уметь", "/modal1.htm"),
         makeYtKazakhtili("Как скажем на казахском \"Я МОГУ\"", "OGn0bbqhlw4"),
@@ -112,6 +117,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_REMOTE_PAST_EASY, TaskTopic.CONJ_REMOTE_PAST -> tenseRemotePast
             TaskTopic.CONJ_PAST_UNCERTAIN_EASY, TaskTopic.CONJ_PAST_UNCERTAIN -> tensePastUncertain
             TaskTopic.CONJ_OPTATIVE_MOOD_EASY, TaskTopic.CONJ_OPTATIVE_MOOD, TaskTopic.CONJ_OPTATIVE_MOOD_PAST -> moodOptative
+            TaskTopic.CONJ_CONDITIONAL_MOOD -> moodConditional
             TaskTopic.CONJ_CAN_CLAUSE_EASY, TaskTopic.CONJ_CAN_CLAUSE, TaskTopic.CONJ_CAN_CLAUSE_PAST -> clauseCan
             TaskTopic.CONJ_UNAU_CLAUSE -> clauseUnau
             TaskTopic.CONJ_UNATU_CLAUSE -> clauseUnatu
