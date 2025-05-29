@@ -31,4 +31,16 @@ object PersAffix {
         }
         return ""
     }
+
+    fun getPersAffix3(person: GrammarPerson, number: GrammarNumber, softOffset: Int): String {
+        if (person == GrammarPerson.First) {
+            return Rules.FIRST_PERS_AFFIXES1[number]!![PersAffix1LetterGroup.PersAffixUnvoicedGroup]!![softOffset]
+        } else if (person == GrammarPerson.Second) {
+            return Rules.SECOND_PERS_AFFIXES1[number]!![softOffset]
+        } else if (person == GrammarPerson.SecondPolite) {
+            return Rules.SECOND_POLITE_PERS_AFFIXES1[number]!![softOffset]
+        } else {
+            return Rules.THIRD_PERS_AFFIXES3[number]!![softOffset]
+        }
+    }
 }

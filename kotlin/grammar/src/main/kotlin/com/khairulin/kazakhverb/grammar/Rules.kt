@@ -178,6 +178,11 @@ object Rules {
         GrammarNumber.Plural to listOf("сыздар", "сіздер")
     )
 
+    val THIRD_PERS_AFFIXES3: Map<GrammarNumber, List<String>> = mapOf(
+        GrammarNumber.Singular to listOf("ты", "ті"),
+        GrammarNumber.Plural to listOf("ты", "ті"),
+    )
+
     val IMPERATIVE_AFFIXES: Map<GrammarPerson, Map<GrammarNumber, List<String>>> = mapOf(
         GrammarPerson.First to mapOf(
             GrammarNumber.Singular to listOf("йын", "йін"),

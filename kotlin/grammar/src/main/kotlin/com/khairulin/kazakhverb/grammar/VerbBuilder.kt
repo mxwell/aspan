@@ -380,8 +380,34 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .tenseAffix(affix)
     }
 
-    private fun pastUncertainTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
-        return PhrasalBuilder.NOT_SUPPORTED_PHRASAL
+    fun pastUncertainTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        val persAffix = PersAffix.getPersAffix3(person, number, softOffset)
+
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                pastUncertainCommonBuilder()
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val baseAndLast = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(baseAndLast.last, softOffset)
+                val particleLast = particle.last()
+                val affix = VerbSuffix.getYpip(particleLast, softOffset)
+                PhrasalBuilder()
+                    .verbBase(baseAndLast.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    pastUncertainCommonBuilder()
+                        .personalAffix(persAffix)
+                ).build()
+            }
+        }
     }
 
     private fun conditionalMoodCommonBuilder(): PhrasalBuilder {
