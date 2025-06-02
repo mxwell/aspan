@@ -84,8 +84,41 @@ class ConjugationTest() {
         }
     }
 
+    private fun testPossibleFuture() {
+        val relations = mapOf<String, List<String>>(
+            "қорқу" to listOf(
+                "қорқармын", "қорқармыз", "қорқарсың", "қорқарсыңдар", "қорқарсыз", "қорқарсыздар", "қорқар", "қорқар",
+                "қорықпаспын", "қорықпаспыз", "қорықпассың", "қорықпассыңдар", "қорықпассыз", "қорықпассыздар", "қорықпас", "қорықпас"
+            ),
+            "көру" to listOf(
+                "көрермін", "көрерміз", "көрерсің", "көрерсіңдер", "көрерсіз", "көрерсіздер", "көрер", "көрер",
+                "көрмеспін", "көрмеспіз", "көрмессің", "көрмессіңдер", "көрмессіз", "көрмессіздер", "көрмес", "көрмес",
+            ),
+        )
+
+        for ((verb, forms) in relations) {
+            val builder = VerbBuilder(verb)
+            var position = 0
+            for (sentenceType in listOf(SentenceType.Statement, SentenceType.Negative)) {
+                for (person in GrammarPerson.entries) {
+                    for (number in GrammarNumber.entries) {
+                        val phrasal = builder.possibleFutureForm(person, number, sentenceType)
+                        val expected = forms[position]
+                        position += 1
+                        checkFormString(
+                            expected,
+                            phrasal,
+                            "person ${person}, number ${number}, sentence ${sentenceType}"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     fun test() {
         testJazdau()
         testPastUncertain()
+        testPossibleFuture()
     }
 }

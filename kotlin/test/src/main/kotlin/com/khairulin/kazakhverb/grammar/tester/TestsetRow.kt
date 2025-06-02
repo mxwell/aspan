@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar.tester
 
 import kotlinx.serialization.Serializable
 

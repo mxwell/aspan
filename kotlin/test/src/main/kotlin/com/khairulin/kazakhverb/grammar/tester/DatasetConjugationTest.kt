@@ -1,14 +1,18 @@
-package org.example
+package com.khairulin.kazakhverb.grammar.tester
 
-import com.khairulin.kazakhverb.grammar.GrammarNumber
-import com.khairulin.kazakhverb.grammar.GrammarPerson
-import com.khairulin.kazakhverb.grammar.Phrasal
-import com.khairulin.kazakhverb.grammar.SentenceType
-import com.khairulin.kazakhverb.grammar.VerbBuilder
+import com.khairulin.kazakhverb.grammar.*
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 import java.io.File
 
-class TestsetRunner {
+/**
+ * Usage:
+ *   $ ./gradlew :test:run --args="DatasetConjugation /data/verb_testset.20241217.jsonl"
+ */
+
+class DatasetConjugationTest(val resourcePath: String) {
+    val LOG = LoggerFactory.getLogger(this.javaClass)
+
     private val auxBuilders: Map<TenseIndex, VerbBuilder> by lazy {
         mapOf(
             TenseIndex.presentContinuousJatu to VerbBuilder("жату"),
@@ -29,7 +33,7 @@ class TestsetRunner {
         testset: List<Phrasal>
     ): Boolean {
         if (generated.size != testset.size) {
-            println("Form number mismatch: ${generated.size} != ${testset.size} for ${tenseIndex} ${sentenceType}")
+            LOG.error("Form number mismatch: ${generated.size} != ${testset.size} for ${tenseIndex} ${sentenceType}")
             return false
         }
 
@@ -38,12 +42,12 @@ class TestsetRunner {
             val g = generatedForm.parts
             val t = testsetForm.parts
             if (g.size != t.size) {
-                println("Phrasal part number mismatch: ${g.size} != ${t.size} for ${tenseIndex} ${sentenceType}, index ${result}")
+                LOG.error("Phrasal part number mismatch: ${g.size} != ${t.size} for ${tenseIndex} ${sentenceType}, index ${result}")
                 return false
             }
             for ((gPart, tPart) in g.zip(t)) {
                 if (gPart.content != tPart.content) {
-                    println("Phrasal part mismatch: ${gPart.content} != ${tPart.content} for ${tenseIndex} ${sentenceType}")
+                    LOG.error("Phrasal part mismatch: ${gPart.content} != ${tPart.content} for ${tenseIndex} ${sentenceType}")
                     return false
                 }
             }
@@ -95,9 +99,8 @@ class TestsetRunner {
         return VerbBuilder(verb, forceExceptional)
     }
 
-    //@Test
-    fun run() {
-        val inputStream = File("/data/verb_testset.20241217.jsonl").inputStream()
+    fun test() {
+        val inputStream = File(resourcePath).inputStream()
         var counter = 0
         var ok = true
         inputStream.bufferedReader().forEachLine { line ->
@@ -119,10 +122,11 @@ class TestsetRunner {
 
             counter += 1
             if (counter % 1000 == 0) {
-                println("Counter ${counter}")
+                LOG.info("Counter ${counter}")
             }
         }
-        println("Read verbs: ${counter}")
-        assert(ok)
+        LOG.info("Read verbs: ${counter}")
+        val testResult = if (ok) "pass" else "fail"
+        LOG.info("Test: ${testResult}")
     }
 }

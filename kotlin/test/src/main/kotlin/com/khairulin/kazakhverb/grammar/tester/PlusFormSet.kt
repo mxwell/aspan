@@ -1,8 +1,6 @@
-package org.example
+package com.khairulin.kazakhverb.grammar.tester
 
-import com.khairulin.kazakhverb.grammar.Phrasal
-import com.khairulin.kazakhverb.grammar.PhrasalBuilder
-import com.khairulin.kazakhverb.grammar.SentenceType
+import com.khairulin.kazakhverb.grammar.*
 import kotlinx.serialization.Serializable
 
 @Serializable

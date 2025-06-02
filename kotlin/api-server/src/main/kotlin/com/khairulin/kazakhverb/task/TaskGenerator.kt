@@ -599,6 +599,15 @@ class TaskGenerator {
             VerbInfo("кешігу", translation = "опаздывать"),
             firstSentence = SentenceType.Negative,
         ),
+        ConditionalCombo(
+            GrammarFormAffinity.matchRequired,
+            VerbInfo("асығу", translation = "спешить"),
+            VerbInfo("кешігу", translation = "опаздывать"),
+            firstSentence = SentenceType.Negative,
+            secondSupplements = listOf(
+                SupplementNoun("жұмыс", "работа", Septik.Barys),
+            ),
+        ),
     )
 
     private fun makeSupplements(supplements: List<SupplementNoun>, subject: GrammarForm): String {

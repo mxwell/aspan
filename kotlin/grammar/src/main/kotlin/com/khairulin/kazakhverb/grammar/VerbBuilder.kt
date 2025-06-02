@@ -605,4 +605,56 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .auxVerb(phrasal = secondAuxVerbPhrasal)
             .build()
     }
+
+    private fun possibleFutureSuffix(): String = when {
+        Phonetics.genuineVowel(baseLast) -> "р"
+        soft -> "ер"
+        else -> "ар"
+    }
+
+    private fun possibleFutureCommonBuilder(): PhrasalBuilder {
+        val affix = possibleFutureSuffix()
+        if (baseLast == 'й' && affix == "ар") {
+            return PhrasalBuilder()
+                .verbBase(verbBase.dropLast(1))
+                .tenseAffix("яр")
+        }
+        return PhrasalBuilder()
+            .verbBase(verbBase)
+            .tenseAffix(affix)
+    }
+
+    private fun possibleFutureCommonWithPersAffixBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        val builder = possibleFutureCommonBuilder()
+        val affixLast = builder.getLastItem()
+        val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+        return builder
+            .personalAffix(persAffix)
+    }
+
+    fun possibleFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                possibleFutureCommonWithPersAffixBuilder(person, number)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val base = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(char = base.last, softOffset = softOffset)
+                val affix = 'с'
+                val persAffix = PersAffix.getPersAffix1(person, number, affix, softOffset)
+                PhrasalBuilder()
+                    .verbBase(base.base)
+                    .negation(particle)
+                    .tenseAffix(affix.toString())
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    possibleFutureCommonWithPersAffixBuilder(person, number)
+                ).build()
+            }
+        }
+    }
 }

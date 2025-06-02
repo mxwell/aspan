@@ -8,6 +8,9 @@ fun main(args: Array<String>) {
     val command = args[0]
     if (command == "Conjugation") {
         ConjugationTest().test()
+    } else if (command == "DatasetConjugation") {
+        val arg = args[1]
+        DatasetConjugationTest(arg).test()
     } else if (command == "Declension") {
         val arg = args[1]
         DeclensionTest(arg).test()

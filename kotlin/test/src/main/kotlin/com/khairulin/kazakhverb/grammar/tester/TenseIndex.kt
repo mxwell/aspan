@@ -1,4 +1,4 @@
-package org.example
+package com.khairulin.kazakhverb.grammar.tester
 
 enum class TenseIndex(val index: Int) {
     presentTransitive(0),
