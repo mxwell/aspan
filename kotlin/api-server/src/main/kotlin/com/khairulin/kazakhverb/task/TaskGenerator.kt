@@ -446,7 +446,7 @@ class TaskGenerator {
                 var second = first
                 for (iter in 1..10) {
                     second = usedForms.random()
-                    if (second.person != first.person) {
+                    if (second.person.personPosition != first.person.personPosition) {
                         break
                     }
                 }

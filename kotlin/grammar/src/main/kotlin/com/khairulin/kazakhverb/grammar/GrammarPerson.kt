@@ -1,10 +1,10 @@
 package com.khairulin.kazakhverb.grammar
 
-enum class GrammarPerson {
-    First,
-    Second,
-    SecondPolite,
-    Third,
+enum class GrammarPerson(val personPosition: Int) {
+    First(1),
+    Second(2),
+    SecondPolite(2),
+    Third(3),
     ;
 
     companion object {
