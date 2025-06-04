@@ -985,6 +985,86 @@ class TaskGenerator {
         )
     }
 
+    data class ConjunctiveCombo(
+        val affinity: GrammarFormAffinity,
+        val firstVerb: VerbInfo,
+        val secondVerb: VerbInfo,
+        val first3pSubject: SupplementNoun? = null,
+        val second3pSubject: SupplementNoun? = null,
+        val firstSupplements: List<SupplementNoun> = emptyList(),
+        val secondSupplements: List<SupplementNoun> = emptyList(),
+    )
+
+    private fun getEdiForm(grammarForm: GrammarForm): String {
+        return VerbBuilder("еу")
+            .past(grammarForm.person, grammarForm.number, SentenceType.Statement)
+            .raw
+    }
+
+    private fun buildConjunctiveDescription(grammarForm: GrammarForm, template: String) =
+        "(сослагательное наклонение с -ар и еді, ${grammarForm.ruShort})\n`${template}`"
+
+    private fun conjunctiveArGen1(): TaskItem {
+        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val firstVerbForm = VerbBuilder("білу")
+            .conditionalMood(first.person, first.number, SentenceType.Statement)
+            .raw
+        val secondBarys = second.dative
+        val secondVerbForm = VerbBuilder("айту")
+            .possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
+            .raw
+        val ediForm = getEdiForm(first)
+        val sentenceStart = "${first.pronoun} осыны ${firstVerbForm}, ${first.pronoun} ${secondBarys}"
+        val template = "${sentenceStart} [айту]"
+        val description = buildConjunctiveDescription(first, template)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("осы", "это"),
+                listOf("білу", "знать"),
+                listOf("айту", "сказать"),
+            )
+        )
+    }
+
+    private fun conjunctiveArGen2(): TaskItem {
+        val grammarForm = usedForms.random()
+        val firstAtau = NounBuilder.ofNoun("мүмкіндік")
+            .possessiveSeptikForm(grammarForm.person, grammarForm.number, Septik.Atau)
+            .raw
+        val firstVerbForm = VerbBuilder("болу")
+            .conditionalMood(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
+            .raw
+        val secondVerb = "сатып алу"
+        val secondVerbForm = VerbBuilder(secondVerb)
+            .possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
+            .raw
+        val ediForm = getEdiForm(grammarForm)
+        val sentenceStart = "${firstAtau} ${firstVerbForm}, ${grammarForm.pronoun} машина"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(grammarForm, template)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("мүмкіндік", "возможность"),
+                listOf("болу", "быть"),
+                listOf("сатып алу", "купить"),
+            )
+        )
+    }
+
+    private fun genConjunctiveAr() = collectTasks {
+        if (Random.nextBoolean()) {
+            conjunctiveArGen1()
+        } else {
+            conjunctiveArGen2()
+        }
+    }
+
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
         val sb = StringBuilder()
         sb.append("(${septik})\n")
@@ -1764,6 +1844,7 @@ class TaskGenerator {
             TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
             TaskTopic.CONJ_TRY_CLAUSE -> genTryClause()
             TaskTopic.CONJ_JAZDAU_CLAUSE -> genJazdauClause()
+            TaskTopic.CONJ_CONJUNCTIVE_AR -> genConjunctiveAr()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
             TaskTopic.DECL_ILIK_EASY -> genIlikEasy()
