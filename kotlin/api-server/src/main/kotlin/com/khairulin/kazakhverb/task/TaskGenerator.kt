@@ -995,6 +995,12 @@ class TaskGenerator {
         val secondSupplements: List<SupplementNoun> = emptyList(),
     )
 
+    private fun getArForm(verb: String, sentenceType: SentenceType): String {
+        return VerbBuilder(verb)
+            .possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, sentenceType)
+            .raw
+    }
+
     private fun getEdiForm(grammarForm: GrammarForm): String {
         return VerbBuilder("еу")
             .past(grammarForm.person, grammarForm.number, SentenceType.Statement)
@@ -1010,9 +1016,7 @@ class TaskGenerator {
             .conditionalMood(first.person, first.number, SentenceType.Statement)
             .raw
         val secondBarys = second.dative
-        val secondVerbForm = VerbBuilder("айту")
-            .possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
-            .raw
+        val secondVerbForm = getArForm("айту", SentenceType.Statement)
         val ediForm = getEdiForm(first)
         val sentenceStart = "${first.pronoun} осыны ${firstVerbForm}, ${first.pronoun} ${secondBarys}"
         val template = "${sentenceStart} [айту]"
@@ -1030,6 +1034,7 @@ class TaskGenerator {
     }
 
     private fun conjunctiveArGen2(): TaskItem {
+        // мүмкіндігІМ болса, МЕН машина сатып алар едіМ
         val grammarForm = usedForms.random()
         val firstAtau = NounBuilder.ofNoun("мүмкіндік")
             .possessiveSeptikForm(grammarForm.person, grammarForm.number, Septik.Atau)
@@ -1038,9 +1043,7 @@ class TaskGenerator {
             .conditionalMood(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
             .raw
         val secondVerb = "сатып алу"
-        val secondVerbForm = VerbBuilder(secondVerb)
-            .possibleFutureForm(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
-            .raw
+        val secondVerbForm = getArForm(secondVerb, SentenceType.Statement)
         val ediForm = getEdiForm(grammarForm)
         val sentenceStart = "${firstAtau} ${firstVerbForm}, ${grammarForm.pronoun} машина"
         val template = "${sentenceStart} [${secondVerb}]"
@@ -1057,11 +1060,73 @@ class TaskGenerator {
         )
     }
 
+    private fun conjunctiveArGen3(): TaskItem {
+        // МЕН бизнесмен болсаМ, көп ақшаМ болар еді
+        val grammarForm = usedForms.random()
+        val firstVerbForm = VerbBuilder("болу")
+            .conditionalMood(grammarForm.person, grammarForm.number, SentenceType.Statement)
+            .raw
+        val secondAtauForm = NounBuilder.ofNoun("ақша")
+            .possessiveSeptikForm(grammarForm.person, grammarForm.number, Septik.Atau)
+            .raw
+        val secondVerb = "болу"
+        val secondVerbForm = getArForm(secondVerb, SentenceType.Statement)
+        val ediForm = getEdiForm(GrammarForm.OL)
+
+        val sentenceStart = "${grammarForm.pronoun} бизнесмен ${firstVerbForm}, көп ${secondAtauForm}"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(GrammarForm.OL, template)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("болу", "быть"),
+                listOf("көп", "много"),
+                listOf("ақша", "деньги"),
+            ),
+        )
+    }
+
+    private fun conjunctiveArGen4(): TaskItem {
+        // егер МЕНДЕ көп ақша болса, МЕН үй сатып алар едіМ
+        val grammarForm = usedForms.random()
+        val firstVerbForm = VerbBuilder("болу")
+            .conditionalMood(GrammarPerson.Third, GrammarNumber.Singular, SentenceType.Statement)
+            .raw
+        val secondVerb = "сатып алу"
+        val secondVerbForm = getArForm(secondVerb, SentenceType.Statement)
+        val ediForm = getEdiForm(grammarForm)
+
+        val sentenceStart = "егер ${grammarForm.jatys} көп ақша ${firstVerbForm}, ${grammarForm.pronoun} үй"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(GrammarForm.OL, template)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("көп", "много"),
+                listOf("ақша", "деньги"),
+                listOf("болу", "быть"),
+                listOf("үй", "дом"),
+                listOf("сатып алу", "купить"),
+            )
+        )
+    }
+
     private fun genConjunctiveAr() = collectTasks {
-        if (Random.nextBoolean()) {
+        val range = 10
+        val position = Random.nextInt(range * 10)
+        if (position < range) {
             conjunctiveArGen1()
-        } else {
+        } else if (position < 2 * range) {
             conjunctiveArGen2()
+        } else if (position < 3 * range) {
+            conjunctiveArGen3()
+        } else {
+            conjunctiveArGen4()
         }
     }
 
