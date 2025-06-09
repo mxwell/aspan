@@ -657,4 +657,51 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             }
         }
     }
+
+    private fun pastTransitiveSuffix(prevChar: Char) = when {
+        needsYaSuffix -> Rules.YATYN
+        Phonetics.genuineVowel(prevChar) -> Rules.YTYNYTIN[softOffset]
+        else -> Rules.ATYNETYN[softOffset]
+    }
+
+    private fun presentParticipleCommonBuilder() =
+        mergeBaseWithVowelAffix(
+            verbBase,
+            pastTransitiveSuffix(baseLast)
+        )
+
+    private fun pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        val builder = presentParticipleCommonBuilder()
+        val affixLast = builder.getLastItem()
+        val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+        return builder.personalAffix(persAffix)
+    }
+
+    fun pastTransitiveTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                pastTransitiveCommonBuilder(person, number)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val base = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(char = base.last, softOffset = softOffset)
+                val particleLast = particle.last()
+                val affix = pastTransitiveSuffix(particleLast)
+                val affixLast = affix.last()
+                val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+                PhrasalBuilder()
+                    .verbBase(base.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    pastTransitiveCommonBuilder(person, number)
+                ).build()
+            }
+        }
+    }
 }

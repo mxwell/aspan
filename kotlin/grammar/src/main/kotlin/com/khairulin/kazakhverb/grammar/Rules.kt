@@ -234,6 +234,9 @@ object Rules {
     val TYTI = listOf("ты", "ті")
     val YPIP = listOf("ып", "іп")
     val SASE = listOf("са", "се")
+    val YTYNYTIN = listOf("йтын", "йтін")
+    val ATYNETYN = listOf("атын", "етін")
+    val YATYN = "ятын"
 
     val LARLER = listOf("лар", "лер")
     val TARTER = listOf("тар", "тер")
