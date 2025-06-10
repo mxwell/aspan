@@ -160,10 +160,34 @@ class ConjugationTest() {
         }
     }
 
+    private fun testUshyUshiForm() {
+        checkFormString(
+            "ұнатушы",
+            VerbBuilder("ұнату").ushyUshiForm(),
+            "verb ұнату",
+        )
+        checkFormString(
+            "түсіндіруші",
+            VerbBuilder("түсіндіру").ushyUshiForm(),
+            "verb түсіндіру",
+        )
+        checkFormString(
+            "сөйлесуші",
+            VerbBuilder("сөйлесу").ushyUshiForm(),
+            "verb сөйлесу",
+        )
+        checkFormString(
+            "ұмытушы",
+            VerbBuilder("ұмыту").ushyUshiForm(),
+            "verb ұмыту",
+        )
+    }
+
     fun test() {
         testJazdau()
         testPastUncertain()
         testPossibleFuture()
         testPastTransitive()
+        testUshyUshiForm()
     }
 }

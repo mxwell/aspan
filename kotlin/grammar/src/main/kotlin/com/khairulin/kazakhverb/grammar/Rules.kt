@@ -237,6 +237,7 @@ object Rules {
     val YTYNYTIN = listOf("йтын", "йтін")
     val ATYNETYN = listOf("атын", "етін")
     val YATYN = "ятын"
+    val USHYUSHI = listOf("ушы", "уші")
 
     val LARLER = listOf("лар", "лер")
     val TARTER = listOf("тар", "тер")
