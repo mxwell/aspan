@@ -705,6 +705,7 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         }
     }
 
+    /* TODO support negative */
     fun ushyUshiForm(): Phrasal {
         val affix = Rules.USHYUSHI[softOffset]
         return PhrasalBuilder()
