@@ -677,6 +677,14 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         return builder.personalAffix(persAffix)
     }
 
+    private fun baseNegativeBuilder(): PhrasalBuilder {
+        val base = genericBaseModifier(nc = true, yp = false)
+        val particle = Question.getQuestionParticle(char = base.last, softOffset = softOffset)
+        return PhrasalBuilder()
+            .verbBase(base.base)
+            .negation(particle)
+    }
+
     fun pastTransitiveTense(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
         return when (sentenceType) {
             SentenceType.Statement -> {
@@ -684,15 +692,12 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
                     .build()
             }
             SentenceType.Negative -> {
-                val base = genericBaseModifier(nc = true, yp = false)
-                val particle = Question.getQuestionParticle(char = base.last, softOffset = softOffset)
-                val particleLast = particle.last()
+                val builder = baseNegativeBuilder()
+                val particleLast = builder.getLastItem()
                 val affix = pastTransitiveSuffix(particleLast)
                 val affixLast = affix.last()
                 val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
-                PhrasalBuilder()
-                    .verbBase(base.base)
-                    .negation(particle)
+                builder
                     .tenseAffix(affix)
                     .personalAffix(persAffix)
                     .build()
@@ -705,12 +710,27 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
         }
     }
 
-    /* TODO support negative */
-    fun ushyUshiForm(): Phrasal {
-        val affix = Rules.USHYUSHI[softOffset]
-        return PhrasalBuilder()
-            .verbBase(verbBase)
-            .tenseAffix(affix)
-            .build()
+    private fun ushyUshiCommonBuilder() = PhrasalBuilder()
+        .verbBase(verbBase)
+        .tenseAffix(Rules.USHYUSHI[softOffset])
+
+    fun ushyUshiForm(sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                ushyUshiCommonBuilder()
+                    .build()
+            }
+            SentenceType.Negative -> {
+                baseNegativeBuilder()
+                    .tenseAffix(Rules.USHYUSHI[softOffset])
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    ushyUshiCommonBuilder()
+                ).build()
+            }
+        }
+
     }
 }

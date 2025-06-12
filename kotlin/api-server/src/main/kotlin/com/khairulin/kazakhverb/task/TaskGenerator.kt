@@ -1026,9 +1026,8 @@ class TaskGenerator {
     }
 
     private fun getUshyForm(verb: String, sentenceType: SentenceType): String {
-        require(sentenceType == SentenceType.Statement)
         return VerbBuilder(verb)
-            .ushyUshiForm()
+            .ushyUshiForm(sentenceType)
             .raw
     }
 
@@ -1298,7 +1297,7 @@ class TaskGenerator {
         )
     }
 
-    private fun genConjunctiveCommon(conjName: String, conjFormBuilder: TConjFormBuilder, allowNegative: Boolean) = collectTasks {
+    private fun genConjunctiveCommon(conjName: String, conjFormBuilder: TConjFormBuilder) = collectTasks {
         val range = 10
         val position = Random.nextInt(range * 10)
         if (position < range) {
@@ -1309,7 +1308,7 @@ class TaskGenerator {
             conjunctiveArGen3(conjName, conjFormBuilder)
         } else if (position < 4 * range) {
             conjunctiveArGen4(conjName, conjFormBuilder)
-        } else if (position < 5 * range && allowNegative) {
+        } else if (position < 5 * range) {
             conjunctiveArGen5(conjName, conjFormBuilder)
         } else if (position < 6 * range) {
             conjunctiveArGen6(conjName, conjFormBuilder)
@@ -1328,19 +1327,16 @@ class TaskGenerator {
     private fun genConjunctiveAr() = genConjunctiveCommon(
         "сослагательное наклонение с -ар и еді",
         this::getArForm,
-        true
     )
 
     private fun genConjunctiveAtyn() = genConjunctiveCommon(
         "сослагательное наклонение с -атын и еді",
         this::getAtynForm,
-        true
     )
 
     private fun genConjunctiveUshy() = genConjunctiveCommon(
         "сослагательное наклонение с -ушы и еді",
         this::getUshyForm,
-        false
     )
 
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {

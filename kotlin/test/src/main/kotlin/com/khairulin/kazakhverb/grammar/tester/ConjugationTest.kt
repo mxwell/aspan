@@ -163,23 +163,28 @@ class ConjugationTest() {
     private fun testUshyUshiForm() {
         checkFormString(
             "ұнатушы",
-            VerbBuilder("ұнату").ushyUshiForm(),
+            VerbBuilder("ұнату").ushyUshiForm(SentenceType.Statement),
             "verb ұнату",
         )
         checkFormString(
             "түсіндіруші",
-            VerbBuilder("түсіндіру").ushyUshiForm(),
+            VerbBuilder("түсіндіру").ushyUshiForm(SentenceType.Statement),
             "verb түсіндіру",
         )
         checkFormString(
             "сөйлесуші",
-            VerbBuilder("сөйлесу").ushyUshiForm(),
+            VerbBuilder("сөйлесу").ushyUshiForm(SentenceType.Statement),
             "verb сөйлесу",
         )
         checkFormString(
             "ұмытушы",
-            VerbBuilder("ұмыту").ushyUshiForm(),
+            VerbBuilder("ұмыту").ushyUshiForm(SentenceType.Statement),
             "verb ұмыту",
+        )
+        checkFormString(
+            "шықпаушы",
+            VerbBuilder("шығу").ushyUshiForm(SentenceType.Negative),
+            "verb шығу",
         )
     }
 
