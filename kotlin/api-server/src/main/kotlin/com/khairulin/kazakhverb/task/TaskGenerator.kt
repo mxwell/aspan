@@ -1007,9 +1007,9 @@ class TaskGenerator {
         val secondSupplements: List<SupplementNoun> = emptyList(),
     )
 
-    private fun getConditionalForm(verb: String, grammarForm: GrammarForm): String {
+    private fun getConditionalForm(verb: String, grammarForm: GrammarForm, sentenceType: SentenceType = SentenceType.Statement): String {
         return VerbBuilder(verb)
-            .conditionalMood(grammarForm.person, grammarForm.number, SentenceType.Statement)
+            .conditionalMood(grammarForm.person, grammarForm.number, sentenceType)
             .raw
     }
 
@@ -1067,12 +1067,14 @@ class TaskGenerator {
         )
     }
 
+    private fun possForm(noun: String, form: GrammarForm, septik: Septik) = NounBuilder.ofNoun(noun)
+        .possessiveSeptikForm(form.person, form.number, septik)
+        .raw
+
     private fun conjunctiveArGen2(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
         // мүмкіндігІМ болса, МЕН машина сатып алар едіМ
         val grammarForm = usedForms.random()
-        val firstAtau = NounBuilder.ofNoun("мүмкіндік")
-            .possessiveSeptikForm(grammarForm.person, grammarForm.number, Septik.Atau)
-            .raw
+        val firstAtau = possForm("мүмкіндік", grammarForm, Septik.Atau)
         val firstVerbForm = getConditionalForm("болу", GrammarForm.OL)
         val secondVerb = "сатып алу"
         val secondVerbForm = conjFormBuilder(secondVerb, SentenceType.Statement)
@@ -1297,31 +1299,149 @@ class TaskGenerator {
         )
     }
 
+    private fun conjunctiveArGen11(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
+        // Егер ОЛ келмесе, БІЗ бастамас едІК.
+        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val firstVerbForm = getConditionalForm("келу", first, sentenceType = SentenceType.Negative)
+        val secondVerb = "бастау"
+        val secondSentenceType = SentenceType.Negative
+        val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
+        val ediForm = getEdiForm(first)
+
+        val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(conjName, second, template, sentenceType = secondSentenceType)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("келу", "приходить"),
+                listOf("бастау", "начинать"),
+            )
+        )
+    }
+
+    private fun conjunctiveArGen12(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
+        // Егер біз асықпасақ, автобусқа үлгермес едік.
+        val grammarForm = usedForms.random()
+        val firstVerbForm = getConditionalForm("асығу", grammarForm, sentenceType = SentenceType.Negative)
+        val secondVerb = "үлгеру"
+        val secondSentenceType = SentenceType.Negative
+        val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
+        val ediForm = getEdiForm(grammarForm)
+
+        val sentenceStart = "егер ${grammarForm.pronoun} ${firstVerbForm}, автобусқа"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(conjName, grammarForm, template, sentenceType = secondSentenceType)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("асығу", "спешить"),
+                listOf("автобус", "автобус"),
+                listOf("үлгеру", "успевать"),
+            )
+        )
+    }
+
+    private fun conjunctiveArGen13(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
+        // Егер ол қатесін түсінбесе, ол өзгермес еді.
+        val grammarForm = usedForms.random()
+        val tabysForm = possForm("қате", grammarForm, Septik.Tabys)
+        val firstVerbForm = getConditionalForm("түсіну", grammarForm, sentenceType = SentenceType.Negative)
+        val secondVerb = "өзгеру"
+        val secondSentenceType = SentenceType.Negative
+        val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
+        val ediForm = getEdiForm(grammarForm)
+
+        val sentenceStart = "егер ${grammarForm.pronoun} ${tabysForm} ${firstVerbForm}, ${grammarForm.pronoun}"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(conjName, grammarForm, template, sentenceType = secondSentenceType)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("қате", "ошибка"),
+                listOf("түсіну", "понимать"),
+                listOf("өзгеру", "изменяться"),
+            )
+        )
+    }
+
+    private fun conjunctiveArGen14(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
+        // Егер олар айтпаса, біз білмес едік.
+        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val firstVerbForm = getConditionalForm("айту", first, sentenceType = SentenceType.Negative)
+        val secondVerb = "білу"
+        val secondSentenceType = SentenceType.Negative
+        val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
+        val ediForm = getEdiForm(first)
+
+        val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(conjName, second, template, sentenceType = secondSentenceType)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("айту", "сказать"),
+                listOf("білу", "знать"),
+            )
+        )
+    }
+
+    private fun conjunctiveArGen15(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
+        // Егер сен ескертпесең, мен байқамас едім.
+        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val firstVerbForm = getConditionalForm("ескерту", first, sentenceType = SentenceType.Negative)
+        val secondVerb = "байқау"
+        val secondSentenceType = SentenceType.Negative
+        val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
+        val ediForm = getEdiForm(first)
+
+        val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
+        val template = "${sentenceStart} [${secondVerb}]"
+        val description = buildConjunctiveDescription(conjName, second, template, sentenceType = secondSentenceType)
+        val answer = "${sentenceStart} ${secondVerbForm} ${ediForm}"
+        return TaskItem(
+            description,
+            listOf(answer),
+            translations = listOf(
+                listOf("егер", "если"),
+                listOf("ескерту", "предупреждать"),
+                listOf("байқау", "замечать"),
+            )
+        )
+    }
+
+    private val kConjunctiveImplementations = listOf(
+        this::conjunctiveArGen1,
+        this::conjunctiveArGen2,
+        this::conjunctiveArGen3,
+        this::conjunctiveArGen4,
+        this::conjunctiveArGen5,
+        this::conjunctiveArGen6,
+        this::conjunctiveArGen7,
+        this::conjunctiveArGen8,
+        this::conjunctiveArGen9,
+        this::conjunctiveArGen10,
+        this::conjunctiveArGen11,
+        this::conjunctiveArGen12,
+        this::conjunctiveArGen13,
+        this::conjunctiveArGen14,
+        this::conjunctiveArGen15,
+    )
+
     private fun genConjunctiveCommon(conjName: String, conjFormBuilder: TConjFormBuilder) = collectTasks {
-        val range = 10
-        val position = Random.nextInt(range * 10)
-        if (position < range) {
-            conjunctiveArGen1(conjName, conjFormBuilder)
-        } else if (position < 2 * range) {
-            conjunctiveArGen2(conjName, conjFormBuilder)
-        } else if (position < 3 * range) {
-            conjunctiveArGen3(conjName, conjFormBuilder)
-        } else if (position < 4 * range) {
-            conjunctiveArGen4(conjName, conjFormBuilder)
-        } else if (position < 5 * range) {
-            conjunctiveArGen5(conjName, conjFormBuilder)
-        } else if (position < 6 * range) {
-            conjunctiveArGen6(conjName, conjFormBuilder)
-        } else if (position < 7 * range) {
-            conjunctiveArGen7(conjName, conjFormBuilder)
-        } else if (position < 8 * range) {
-            conjunctiveArGen8(conjName, conjFormBuilder)
-        } else if (position < 9 * range) {
-            conjunctiveArGen9(conjName, conjFormBuilder)
-        } else {
-            conjunctiveArGen10(conjName, conjFormBuilder)
-        }
-        // TODO add more examples with SentenceType.Negative
+        kConjunctiveImplementations.random()(conjName, conjFormBuilder)
     }
 
     private fun genConjunctiveAr() = genConjunctiveCommon(
