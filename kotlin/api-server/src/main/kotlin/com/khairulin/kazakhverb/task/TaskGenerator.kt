@@ -1306,7 +1306,7 @@ class TaskGenerator {
         val secondVerb = "бастау"
         val secondSentenceType = SentenceType.Negative
         val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
-        val ediForm = getEdiForm(first)
+        val ediForm = getEdiForm(second)
 
         val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
         val template = "${sentenceStart} [${secondVerb}]"
@@ -1381,7 +1381,7 @@ class TaskGenerator {
         val secondVerb = "білу"
         val secondSentenceType = SentenceType.Negative
         val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
-        val ediForm = getEdiForm(first)
+        val ediForm = getEdiForm(second)
 
         val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
         val template = "${sentenceStart} [${secondVerb}]"
@@ -1405,7 +1405,7 @@ class TaskGenerator {
         val secondVerb = "байқау"
         val secondSentenceType = SentenceType.Negative
         val secondVerbForm = conjFormBuilder(secondVerb, secondSentenceType)
-        val ediForm = getEdiForm(first)
+        val ediForm = getEdiForm(second)
 
         val sentenceStart = "егер ${first.pronoun} ${firstVerbForm}, ${second.pronoun}"
         val template = "${sentenceStart} [${secondVerb}]"
