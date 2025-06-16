@@ -13,5 +13,7 @@ enum class PhrasalPartType {
     PluralAffix,
     PossessiveAffix,
     SeptikAffix,
+    AdjBase,
+    AdjCompAffix,
     ;
 }

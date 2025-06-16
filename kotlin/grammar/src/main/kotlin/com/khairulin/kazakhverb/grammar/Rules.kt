@@ -261,6 +261,9 @@ object Rules {
 
     val NYNI = listOf("ны", "ні")
 
+    val RAKREK = listOf("рақ", "рек")
+    val YRAKIREK = listOf("ырақ", "ірек")
+
     val OPT_EXCEPT_VERB_MEANINGS: Map<String, List<List<String>>> = mapOf(
         "ашу" to listOf(listOf("открывать", "выявлять"), listOf("киснуть", "сквашиваться")),
         "еру" to listOf(listOf("следовать", "внимать"), listOf("таять", "растворяться")),

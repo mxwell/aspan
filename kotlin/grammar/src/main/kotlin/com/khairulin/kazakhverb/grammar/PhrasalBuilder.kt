@@ -93,6 +93,14 @@ class PhrasalBuilder {
         return addPart(type = PhrasalPartType.SeptikAffix, affix)
     }
 
+    fun adjBase(adjBase: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.AdjBase, adjBase)
+    }
+
+    fun adjCompAffix(affix: String): PhrasalBuilder {
+        return addPart(type = PhrasalPartType.AdjCompAffix, affix)
+    }
+
     fun setForbidden(forbidden: Boolean): PhrasalBuilder {
         this.forbidden = forbidden
         return this
