@@ -2213,6 +2213,167 @@ class TaskGenerator {
         }
     }
 
+    data class AdjTranslated(
+        val adj: String,
+        val translation: String,
+    ) {
+        fun asList() = listOf(adj, translation)
+    }
+
+    data class AdjComparativeCombo(
+        val adjs: List<AdjTranslated>,
+        val head: String,
+        val tail: String,
+        val translations: List<List<String>>
+    )
+
+    private val kAdjComparativeCombos = listOf(
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("таза", "чистый"),
+                AdjTranslated("үлкен", "большой"),
+                AdjTranslated("жылы", "тёплый"),
+            ),
+            "бұл бөлме ана бөлмеден ",
+            "",
+            listOf(
+                listOf("бөлме", "комната"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("қызық", "интересный"),
+                AdjTranslated("жақсы", "хороший"),
+            ),
+            "бұл кітап маған ",
+            " көрінді.",
+            listOf(
+                listOf("кітап", "книга"),
+                listOf("көріну", "показаться"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жумсық", "мягкий"),
+                AdjTranslated("жақсы", "хороший"),
+                AdjTranslated("әдемі", "красивый"),
+            ),
+            "ана диваннан мына диван ",
+            "",
+            listOf(
+                listOf("диван", "диван"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("кіші", "младший"),
+                AdjTranslated("үлкен", "старший"),
+            ),
+            "сенің жасың менің жасымнан ",
+            "",
+            listOf(
+                listOf("жас", "возраст"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жылы", "тёплый"),
+                AdjTranslated("ыстық", "жаркий"),
+                AdjTranslated("суық", "холодный"),
+                AdjTranslated("салқын", "прохладный"),
+            ),
+            "бүгін күн ",
+            "",
+            listOf(
+                listOf("бүгін", "сегодня"),
+                listOf("күн", "день"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жұқа", "тонкий"),
+                AdjTranslated("қалың", "толстый"),
+            ),
+            "мына дәптер ана дәптерден ",
+            "",
+            listOf(
+                listOf("дәптер", "тетрадь"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("қызық", "интересный"),
+            ),
+            "мына жазушының әңгімесі ",
+            "",
+            listOf(
+                listOf("жазушы", "писатель"),
+                listOf("әңгіме", "рассказ"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("мықты", "сильный"),
+                AdjTranslated("үлкен", "большой"),
+                AdjTranslated("биік", "высокий"),
+            ),
+            "мына палуан ",
+            "",
+            listOf(
+                listOf("палуан", "борец"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("дәмді", "вкусный"),
+            ),
+            "Сіздің сорпаңыз ",
+            "",
+            listOf(
+                listOf("сорпа", "бульон"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жіңішке", "тонкий"),
+                AdjTranslated("ұзын", "длинный"),
+            ),
+            "",
+            " жіп бар ма?",
+            listOf(
+                listOf("жіп", "нитка"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жақын", "близкий"),
+            ),
+            "маған ",
+            " отыр",
+            listOf(
+                listOf("отыру", "садиться"),
+            )
+        ),
+    )
+
+    fun genAdjComparative() = collectTasks {
+        val combo = kAdjComparativeCombos.random()
+        val adj = combo.adjs.random()
+
+        val adjForm = AdjBuilder(adj.adj).rakForm().raw
+
+        val description = "(сравнительная степень с -рақ)\n`${combo.head}[${adj.adj}]${combo.tail}`"
+        val answer = "${combo.head}${adjForm}${combo.tail}"
+        val translations = combo.translations.toMutableList()
+        translations.add(adj.asList())
+
+        TaskItem(
+            description,
+            listOf(answer),
+            translations = translations,
+        )
+    }
+
     private fun generateTasks(topic: TaskTopic): GetTasks? {
         return when (topic) {
             TaskTopic.CONJ_PRESENT_TRANSITIVE_EASY -> genPresentTransitiveEasy()
@@ -2253,6 +2414,7 @@ class TaskGenerator {
             TaskTopic.DECL_SHYGYS -> genShygys()
             TaskTopic.DECL_KOMEKTES_EASY -> genKomektesEasy()
             TaskTopic.DECL_KOMEKTES -> genKomektes()
+            TaskTopic.ADJ_COMPARATIVE -> genAdjComparative()
             else -> null
         }
     }

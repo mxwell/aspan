@@ -115,6 +115,11 @@ object TheoryReferenceProvider {
         makeYtKazakhtili("Көмектес септік, творительный падеж казахского языка", "aFuxxgPLXP0"),
         makeBookBekturovs("Көмектес септік", 241),
     )
+    private val adjComparativeRak = listOf(
+        makeKazTiliArticle("Степени сравнения прилагательных", "/prilag2.htm"),
+        makeYtKazakhtili("Степени сравнения прилагательных в казахском языке", "Dv9iAcuwZM4"),
+        makeBookBekturovs("Грамматика: сын есiмнің шырайлары", 230),
+    )
 
     fun provide(topic: TaskTopic): List<TheoryReference> {
         return when(topic) {
@@ -140,6 +145,7 @@ object TheoryReferenceProvider {
             TaskTopic.DECL_JATYS_EASY, TaskTopic.DECL_JATYS -> septikJatys
             TaskTopic.DECL_SHYGYS_EASY, TaskTopic.DECL_SHYGYS -> septikShygys
             TaskTopic.DECL_KOMEKTES_EASY, TaskTopic.DECL_KOMEKTES -> septikKomektes
+            TaskTopic.ADJ_COMPARATIVE -> adjComparativeRak
         }
     }
 }
