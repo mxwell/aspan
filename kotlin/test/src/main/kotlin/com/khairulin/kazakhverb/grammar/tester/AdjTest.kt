@@ -37,7 +37,30 @@ class AdjTest() {
         }
     }
 
+    private fun testDau() {
+        val relations = listOf<Pair<String, String>>(
+            Pair("таза", "тазалау"),
+            Pair("тәтті", "тәттілеу"),
+            Pair("лас", "ластау"),
+            Pair("жаман", "жамандау"),
+            Pair("жуан", "жуандау"),
+            Pair("төмен", "төмендеу"),
+            Pair("биік", "биіктеу"),
+            Pair("ақ", "ақтау"),
+            Pair("көп", "көптеу"),
+            Pair("семiз", "семiздеу"),
+            Pair("қымбат", "қымбаттау"),
+        )
+        for ((adj, dauForm) in relations) {
+            checkFormString(
+                dauForm,
+                AdjBuilder(adj).dauForm()
+            )
+        }
+    }
+
     fun test() {
         testRak()
+        testDau()
     }
 }

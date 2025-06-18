@@ -2356,13 +2356,13 @@ class TaskGenerator {
         ),
     )
 
-    fun genAdjComparative() = collectTasks {
+    private fun genCommonAdjComparative(formName: String, formGenerator: (String) -> String) = collectTasks {
         val combo = kAdjComparativeCombos.random()
         val adj = combo.adjs.random()
 
-        val adjForm = AdjBuilder(adj.adj).rakForm().raw
+        val adjForm = formGenerator(adj.adj)
 
-        val description = "(сравнительная степень с -рақ)\n`${combo.head}[${adj.adj}]${combo.tail}`"
+        val description = "(${formName})\n`${combo.head}[${adj.adj}]${combo.tail}`"
         val answer = "${combo.head}${adjForm}${combo.tail}"
         val translations = combo.translations.toMutableList()
         translations.add(adj.asList())
@@ -2372,6 +2372,14 @@ class TaskGenerator {
             listOf(answer),
             translations = translations,
         )
+    }
+
+    fun genAdjComparative() = genCommonAdjComparative("сравнительная степень с -рақ") {
+        AdjBuilder(it).rakForm().raw
+    }
+
+    fun genAdjComparativeDau() = genCommonAdjComparative("сравнительная степень с -дау") {
+        AdjBuilder(it).dauForm().raw
     }
 
     private fun generateTasks(topic: TaskTopic): GetTasks? {
@@ -2415,6 +2423,7 @@ class TaskGenerator {
             TaskTopic.DECL_KOMEKTES_EASY -> genKomektesEasy()
             TaskTopic.DECL_KOMEKTES -> genKomektes()
             TaskTopic.ADJ_COMPARATIVE -> genAdjComparative()
+            TaskTopic.ADJ_COMPARATIVE_DAU -> genAdjComparativeDau()
             else -> null
         }
     }

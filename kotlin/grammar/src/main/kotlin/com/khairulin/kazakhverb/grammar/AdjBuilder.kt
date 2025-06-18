@@ -44,4 +44,13 @@ class AdjBuilder(private val adjDictForm: String) {
             .adjCompAffix(affix)
             .build()
     }
+
+    fun dauForm(): Phrasal {
+        val last = adjDictForm.last()
+        val affix = AffixHelpers.chooseLDT(last, softOffset, Rules.LAULEU, Rules.DAUDEU, Rules.TAUTEU)
+        return PhrasalBuilder()
+            .adjBase(adjDictForm)
+            .adjCompAffix(affix)
+            .build()
+    }
 }

@@ -263,6 +263,9 @@ object Rules {
 
     val RAKREK = listOf("рақ", "рек")
     val YRAKIREK = listOf("ырақ", "ірек")
+    val LAULEU = listOf("лау", "леу")
+    val DAUDEU = listOf("дау", "деу")
+    val TAUTEU = listOf("тау", "теу")
 
     val OPT_EXCEPT_VERB_MEANINGS: Map<String, List<List<String>>> = mapOf(
         "ашу" to listOf(listOf("открывать", "выявлять"), listOf("киснуть", "сквашиваться")),
