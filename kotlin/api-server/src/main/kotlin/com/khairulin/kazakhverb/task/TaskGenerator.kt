@@ -2246,7 +2246,7 @@ class TaskGenerator {
                 AdjTranslated("жақсы", "хороший"),
             ),
             "бұл кітап маған ",
-            " көрінді.",
+            " көрінді",
             listOf(
                 listOf("кітап", "книга"),
                 listOf("көріну", "показаться"),
@@ -2352,6 +2352,63 @@ class TaskGenerator {
             " отыр",
             listOf(
                 listOf("отыру", "садиться"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("арзан", "дешёвый"),
+                AdjTranslated("қымбат", "дорогой"),
+            ),
+            "мына заттар ",
+            "",
+            listOf(
+                listOf("зат", "вещь"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("әлсіз", "слабый"),
+            ),
+            "мына студенттің денсаулығы ",
+            "",
+            listOf(
+                listOf("студент", "студент"),
+                listOf("денсаулық", "здоровье"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("терең", "глубокий"),
+            ),
+            "",
+            " қазу керек",
+            listOf(
+                listOf("қазу", "копать"),
+                listOf("керек", "нужно"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жеңіл", "лёгкий"),
+            ),
+            "менің ",
+            " аяқ киім алуым керек",
+            listOf(
+                listOf("аяқ киім", "обувь"),
+                listOf("алу", "покупать"),
+                listOf("керек", "нужно"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("жылы", "тёплый"),
+                AdjTranslated("суық", "холодный"),
+            ),
+            "",
+            " су ішкім келіп тұр",
+            listOf(
+                listOf("су", "вода"),
+                listOf("ішу", "пить"),
             )
         ),
     )
