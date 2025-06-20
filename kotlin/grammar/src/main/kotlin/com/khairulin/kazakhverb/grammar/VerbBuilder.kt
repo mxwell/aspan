@@ -562,6 +562,14 @@ class VerbBuilder(private val verbDictForm: String, private val forceExceptional
             .build()
     }
 
+    fun canClauseInPresentContinuous(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType, auxBuilder: VerbBuilder): Phrasal {
+        val aux = createCanAuxBuilder().presentContinuousForm(person, number, sentenceType, auxBuilder, negateAux = false)
+        return this.presentTransitiveCommonBuilder()
+            .space()
+            .auxVerb(phrasal = aux)
+            .build()
+    }
+
     private val koruAuxBuilder: VerbBuilder by lazy {
         VerbBuilder("көру")
     }

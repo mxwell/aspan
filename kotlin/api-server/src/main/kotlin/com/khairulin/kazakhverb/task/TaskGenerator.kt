@@ -257,6 +257,89 @@ class TaskGenerator {
 
     private fun genPresentContinuous() = genCommon(SentenceTypePattern.S6_N2_Q2, generator = this::presentContinuousGenerator)
 
+    data class NotHappeningCombo(
+        val subject: NounInfo?,
+        val middle: String,
+        val verb: VerbInfo,
+    )
+
+    /**
+     * Радио сөйлемей тұр
+     * Жаңбыр жаумай тұр
+     * Машина жүрмей жатыр
+     * мен ұйықтай алмай жатырмын
+     * Ахмет үйiне қайтпай жүр
+     * компьютер істемей жатыр
+     * көңіл-күйім болмай тұр
+     * Марат дүкенге бармай жатыр
+     * біз кездесе алмай жатырмыз
+     * жаңбыр бітпей жатыр
+     *
+     * TODO variation in aux verbs
+     */
+    private val kNotHappeningCombos = listOf(
+        NotHappeningCombo(
+            NounInfo("радио", "радио"),
+            " ",
+            VerbInfo("сөйлеу", translation = "говорить"),
+        ),
+        NotHappeningCombo(
+            NounInfo("жаңбыр", "дождь"),
+            " ",
+            VerbInfo("жауу", translation = "идти"),
+        ),
+        NotHappeningCombo(
+            NounInfo("машина", translation = "автомобиль"),
+            " ",
+            VerbInfo("жүру", translation = "ездить"),
+        ),
+        NotHappeningCombo(
+            null,
+            " ",
+            VerbInfo("ұйықтау", translation = "спать")
+        )
+    )
+
+    private fun genNotHappening() = collectTasks {
+        val combo = kNotHappeningCombos.random()
+        val grammarForm = if (combo.subject != null) {
+            GrammarForm.OL
+        } else {
+            usedForms.random()
+        }
+        val subject = if (combo.subject != null) {
+            combo.subject.noun
+        } else {
+            grammarForm.pronoun
+        }
+        val sentenceStart = "${subject}${combo.middle}"
+        val auxVerb = "жату"
+        val alu = grammarForm.person == GrammarPerson.First
+        val aluHint = if (alu) {
+            "+ алу "
+        } else {
+            ""
+        }
+        val description = "(что-то никак не происходит)\n\n${sentenceStart}[${combo.verb.verb} ${aluHint}+ ${auxVerb}]"
+        val builder = combo.verb.builder()
+        val verbForm = if (alu) {
+            builder.canClauseInPresentContinuous(grammarForm.person, grammarForm.number, SentenceType.Negative, jatuBuilder).raw
+        } else {
+            builder.presentContinuousForm(grammarForm.person, grammarForm.number, SentenceType.Negative, jatuBuilder, negateAux = false).raw
+        }
+        val answer = "${sentenceStart}${verbForm}"
+        TaskItem(
+            description,
+            listOf(
+                answer
+            ),
+            translations = collectTranslations(
+                combo.subject?.asPair(),
+                combo.verb.asPair()
+            )
+        )
+    }
+
     private fun pastGenerator(combo: Combo): TaskItem {
         val verbEntry = combo.verb
         val verb = verbEntry.verb
@@ -2467,6 +2550,7 @@ class TaskGenerator {
             TaskTopic.CONJ_CONJUNCTIVE_AR -> genConjunctiveAr()
             TaskTopic.CONJ_CONJUNCTIVE_ATYN -> genConjunctiveAtyn()
             TaskTopic.CONJ_CONJUNCTIVE_USHY -> genConjunctiveUshy()
+            TaskTopic.CONJ_NOT_HAPPENING -> genNotHappening()
             TaskTopic.DECL_TABYS_EASY -> genTabysEasy()
             TaskTopic.DECL_TABYS -> genTabys()
             TaskTopic.DECL_ILIK_EASY -> genIlikEasy()

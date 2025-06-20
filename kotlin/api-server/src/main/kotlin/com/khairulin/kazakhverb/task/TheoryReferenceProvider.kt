@@ -84,6 +84,9 @@ object TheoryReferenceProvider {
     private val conjunctiveAtyn = listOf(
         makeKazTiliArticle("Вспомогательный глагол 'едi'", "/glv02.htm#metka3"),
     )
+    private val notHappening = listOf(
+        makeKazTiliArticle("Настоящее время глагола", "/glag1.htm"),
+    )
     private val emptyRefs = emptyList<TheoryReference>()
     private val septikTabys = listOf(
         makeKazTiliArticle("Винительный падеж", "/su_rod2.htm"),
@@ -144,6 +147,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_CONJUNCTIVE_AR -> conjunctiveAr
             TaskTopic.CONJ_CONJUNCTIVE_ATYN -> conjunctiveAtyn
             TaskTopic.CONJ_CONJUNCTIVE_USHY -> emptyRefs
+            TaskTopic.CONJ_NOT_HAPPENING -> notHappening
             TaskTopic.DECL_TABYS_EASY, TaskTopic.DECL_TABYS -> septikTabys
             TaskTopic.DECL_ILIK_EASY, TaskTopic.DECL_ILIK -> septikIlik
             TaskTopic.DECL_BARYS_EASY, TaskTopic.DECL_BARYS -> septikBarys
