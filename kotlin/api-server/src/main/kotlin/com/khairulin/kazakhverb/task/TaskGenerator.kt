@@ -2337,7 +2337,7 @@ class TaskGenerator {
         ),
         AdjComparativeCombo(
             listOf(
-                AdjTranslated("жумсық", "мягкий"),
+                AdjTranslated("жұмсақ", "мягкий"),
                 AdjTranslated("жақсы", "хороший"),
                 AdjTranslated("әдемі", "красивый"),
             ),
@@ -2429,16 +2429,6 @@ class TaskGenerator {
         ),
         AdjComparativeCombo(
             listOf(
-                AdjTranslated("жақын", "близкий"),
-            ),
-            "маған ",
-            " отыр",
-            listOf(
-                listOf("отыру", "садиться"),
-            )
-        ),
-        AdjComparativeCombo(
-            listOf(
                 AdjTranslated("арзан", "дешёвый"),
                 AdjTranslated("қымбат", "дорогой"),
             ),
@@ -2492,6 +2482,71 @@ class TaskGenerator {
             listOf(
                 listOf("су", "вода"),
                 listOf("ішу", "пить"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("ұзақ", "долго"),
+            ),
+            "",
+            " күту керек болады",
+            listOf(
+                listOf("күту", "ждать"),
+                listOf("керек", "нужно"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("биік", "высоко"),
+            ),
+            "мына затты ",
+            " қойшы",
+            listOf(
+                listOf("зат", "вещь"),
+                listOf("қою", "ставить"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("тәтті", "сладкий"),
+            ),
+            "мына бал ",
+            "",
+            listOf(
+                listOf("бал", "мёд"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("тәтті", "сладкий"),
+                AdjTranslated("қызыл", "красный"),
+            ),
+            "кешегі қарбыз ",
+            " болды",
+            listOf(
+                listOf("кешегі", "вчерашний"),
+                listOf("қарбыз", "арбуз"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("төмен", "низкий"),
+            ),
+            "олардың деңгейі ",
+            "",
+            listOf(
+                listOf("деңгей", "уровень"),
+            )
+        ),
+        AdjComparativeCombo(
+            listOf(
+                AdjTranslated("ауыр", "тяжёлый"),
+            ),
+            "",
+            "  сөмкені маған бер",
+            listOf(
+                listOf("сөмке", "сумка"),
+                listOf("беру", "давать"),
             )
         ),
     )
