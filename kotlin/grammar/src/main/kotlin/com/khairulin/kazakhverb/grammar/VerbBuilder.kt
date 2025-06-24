@@ -1,6 +1,6 @@
 package com.khairulin.kazakhverb.grammar
 
-class VerbBuilder(private val verbDictForm: String, private val forceExceptional: Boolean = false) {
+class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolean = false) {
 
     companion object {
         fun validateVerb(verbDictForm: String): Boolean {

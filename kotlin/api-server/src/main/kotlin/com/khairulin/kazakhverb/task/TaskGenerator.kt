@@ -13,26 +13,33 @@ class TaskGenerator {
 
     companion object {
         fun collectTranslationsOfList(pairs: List<Pair<String, String>?>): List<List<String>> {
-            return pairs.filterNotNull().map {
+            return pairs.filterNotNull().filter{ it.second.isNotEmpty() }.map {
                 listOf(it.first, it.second)
             }
         }
-    }
 
-    private val usedForms = listOf(
-        GrammarForm.MEN,
-        GrammarForm.BIZ,
-        GrammarForm.SEN,
-        GrammarForm.SIZ,
-        GrammarForm.OL,
-        GrammarForm.OLAR,
-    )
+        private val usedForms = listOf(
+            GrammarForm.MEN,
+            GrammarForm.BIZ,
+            GrammarForm.SEN,
+            GrammarForm.SIZ,
+            GrammarForm.OL,
+            GrammarForm.OLAR,
+        )
+        private val pluralForms = GrammarForm.entries.filter { it.number == GrammarNumber.Plural }
+
+        private val jatuBuilder: VerbBuilder by lazy {
+            VerbBuilder("жату")
+        }
+        private val juruBuilder: VerbBuilder by lazy {
+            VerbBuilder("жүру")
+        }
+        private val turuBuilder: VerbBuilder by lazy {
+            VerbBuilder("тұру")
+        }
+    }
 
     private val kTaskCount = 10
-
-    private val jatuBuilder: VerbBuilder by lazy {
-        VerbBuilder("жату")
-    }
 
     private fun pickFormExcept(except: List<GrammarForm>, defaultForm: GrammarForm): GrammarForm {
         for (i in 0..9) {
@@ -125,7 +132,13 @@ class TaskGenerator {
     private fun collectTasks(generator: (taskId: Int) -> TaskItem): GetTasks {
         val tasks = mutableListOf<TaskItem>()
         for (taskId in 1..kTaskCount) {
-            tasks.add(generator(taskId))
+            for (attempt in 1..3) {
+                val task = generator(taskId)
+                if (attempt == 3 || tasks.isEmpty() || tasks.last().question != task.question) {
+                    tasks.add(task)
+                    break
+                }
+            }
         }
         return GetTasks(tasks)
     }
@@ -261,7 +274,16 @@ class TaskGenerator {
         val subject: NounInfo?,
         val middle: String,
         val verb: VerbInfo,
-    )
+        val forms: List<GrammarForm> = emptyList(),
+        val aux: VerbBuilder = jatuBuilder,
+        val translations: List<Pair<String, String>?> = emptyList(),
+    ) {
+        fun getGrammarForms() = if (forms.isNotEmpty()) {
+            forms
+        } else {
+            usedForms
+        }
+    }
 
     /**
      * Радио сөйлемей тұр
@@ -274,19 +296,25 @@ class TaskGenerator {
      * Марат дүкенге бармай жатыр
      * біз кездесе алмай жатырмыз
      * жаңбыр бітпей жатыр
-     *
-     * TODO variation in aux verbs
+     * менің хатым келмей жатыр
+     * Ол ештеңе айтпай тұр
+     * Сабақ басталмай тұр
+     * Компьютер қосылмай жатыр
+     * Мен оны түсінбей тұрмын
+     * Кітапхана ашылмай жатыр.
      */
     private val kNotHappeningCombos = listOf(
         NotHappeningCombo(
             NounInfo("радио", "радио"),
             " ",
             VerbInfo("сөйлеу", translation = "говорить"),
+            aux = turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("жаңбыр", "дождь"),
             " ",
             VerbInfo("жауу", translation = "идти"),
+            aux = turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("машина", translation = "автомобиль"),
@@ -297,7 +325,71 @@ class TaskGenerator {
             null,
             " ",
             VerbInfo("ұйықтау", translation = "спать")
-        )
+        ),
+        NotHappeningCombo(
+            NounInfo("Ахмет", translation = ""),
+            " үйiне ",
+            VerbInfo("қайту", translation = "возвращаться"),
+            aux = juruBuilder,
+            translations = listOf(Pair("үй", "дом")),
+        ),
+        NotHappeningCombo(
+            NounInfo("компьютер", translation = "компьютер"),
+            " ",
+            VerbInfo("істеу", translation = "работать"),
+        ),
+        NotHappeningCombo(
+            NounInfo("көңіл-күйім", translation = "моё настроение"),
+            " ",
+            VerbInfo("болу", translation = "быть"),
+            aux = turuBuilder,
+        ),
+        NotHappeningCombo(
+            NounInfo("Марат", translation = ""),
+            " дүкенге ",
+            VerbInfo("бару", translation = "идти"),
+            translations = listOf(Pair("дүкен", "магазин")),
+        ),
+        NotHappeningCombo(
+            null,
+            " ",
+            VerbInfo("кездесу", translation = "встречаться"),
+            forms = pluralForms,
+        ),
+        NotHappeningCombo(
+            NounInfo("жаңбыр", "дождь"),
+            " ",
+            VerbInfo("біту", translation = "заканчиваться"),
+        ),
+        NotHappeningCombo(
+            NounInfo("менің хатым", translation = "моё письмо"),
+            " ",
+            VerbInfo("келу", translation = "приходить"),
+        ),
+        NotHappeningCombo(
+            null,
+            " ештеңе ",
+            VerbInfo("айту", translation = "говорить"),
+            aux = turuBuilder,
+            translations = listOf(Pair("ештеңе", "ничего")),
+        ),
+        NotHappeningCombo(
+            NounInfo("сабақ", "урок"),
+            " ",
+            VerbInfo("басталу", translation = "начинаться"),
+            aux = turuBuilder,
+        ),
+        NotHappeningCombo(
+            null,
+            " оны ",
+            VerbInfo("түсіну", translation = "понимать"),
+            aux = turuBuilder,
+        ),
+        NotHappeningCombo(
+            NounInfo("кітапхана", "библиотека"),
+            " ",
+            VerbInfo("ашылу", translation = "открываться"),
+        ),
     )
 
     private fun genNotHappening() = collectTasks {
@@ -305,7 +397,7 @@ class TaskGenerator {
         val grammarForm = if (combo.subject != null) {
             GrammarForm.OL
         } else {
-            usedForms.random()
+            combo.getGrammarForms().random()
         }
         val subject = if (combo.subject != null) {
             combo.subject.noun
@@ -313,7 +405,7 @@ class TaskGenerator {
             grammarForm.pronoun
         }
         val sentenceStart = "${subject}${combo.middle}"
-        val auxVerb = "жату"
+        val auxVerb = combo.aux.verbDictForm
         val alu = grammarForm.person == GrammarPerson.First
         val aluHint = if (alu) {
             "+ алу "
@@ -323,9 +415,9 @@ class TaskGenerator {
         val description = "(что-то никак не происходит)\n\n${sentenceStart}[${combo.verb.verb} ${aluHint}+ ${auxVerb}]"
         val builder = combo.verb.builder()
         val verbForm = if (alu) {
-            builder.canClauseInPresentContinuous(grammarForm.person, grammarForm.number, SentenceType.Negative, jatuBuilder).raw
+            builder.canClauseInPresentContinuous(grammarForm.person, grammarForm.number, SentenceType.Negative, combo.aux).raw
         } else {
-            builder.presentContinuousForm(grammarForm.person, grammarForm.number, SentenceType.Negative, jatuBuilder, negateAux = false).raw
+            builder.presentContinuousForm(grammarForm.person, grammarForm.number, SentenceType.Negative, combo.aux, negateAux = false).raw
         }
         val answer = "${sentenceStart}${verbForm}"
         TaskItem(
@@ -333,10 +425,11 @@ class TaskGenerator {
             listOf(
                 answer
             ),
-            translations = collectTranslations(
-                combo.subject?.asPair(),
-                combo.verb.asPair()
-            )
+            translations = (
+                collectTranslations(combo.subject?.asPair())
+                + collectTranslationsOfList(combo.translations)
+                + collectTranslations(combo.verb.asPair())
+            ),
         )
     }
 
@@ -1844,7 +1937,9 @@ class TaskGenerator {
 
         val result = mutableListOf<NounInfo>()
         for ((noun, translation) in nounsAndTranslations.toList().windowed(2, 2, partialWindows = false)) {
-            result.add(NounInfo(noun, translation))
+            if (translation.isNotEmpty()) {
+                result.add(NounInfo(noun, translation))
+            }
         }
         return result
     }
