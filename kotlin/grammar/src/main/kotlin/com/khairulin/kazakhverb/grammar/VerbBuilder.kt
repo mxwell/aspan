@@ -678,6 +678,23 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
             pastTransitiveSuffix(baseLast)
         )
 
+    fun presentParticiple(sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> presentParticipleCommonBuilder().build()
+            SentenceType.Negative -> {
+                val base = genericBaseModifier(nc = true, yp = false)
+                val particle = Question.getQuestionParticle(base.last, softOffset)
+                val affix = pastTransitiveSuffix(particle.last())
+                PhrasalBuilder()
+                    .verbBase(base.base)
+                    .negation(particle)
+                    .tenseAffix(affix)
+                    .build()
+            }
+            SentenceType.Question -> buildQuestionForm(presentParticipleCommonBuilder()).build()
+        }
+    }
+
     private fun pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         val builder = presentParticipleCommonBuilder()
         val affixLast = builder.getLastItem()
