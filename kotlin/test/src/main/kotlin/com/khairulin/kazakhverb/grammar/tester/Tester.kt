@@ -13,9 +13,11 @@ fun main(args: Array<String>) {
     } else if (command == "DatasetConjugation") {
         val arg = args[1]
         DatasetConjugationTest(arg).test()
-    } else if (command == "Declension") {
+    } else if (command == "DatasetDeclension") {
         val arg = args[1]
-        DeclensionTest(arg).test()
+        DatasetDeclensionTest(arg).test()
+    } else if (command == "Declension") {
+        DeclensionTest().test()
     } else {
         println("Unknown command ${command}")
     }

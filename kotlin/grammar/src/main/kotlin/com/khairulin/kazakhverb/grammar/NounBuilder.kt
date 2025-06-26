@@ -1,6 +1,6 @@
 package com.khairulin.kazakhverb.grammar
 
-class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOffset: Int) {
+class NounBuilder(val baseBuilder: PhrasalBuilder, val softOffset: Int) {
 
     companion object {
         fun ofNoun(nounDictForm: String): NounBuilder {
@@ -9,7 +9,13 @@ class NounBuilder(val baseBuilder: PhrasalBuilder, val soft: Boolean, val softOf
             val softOffset = Phonetics.softToOffset(soft)
             return NounBuilder(
                 baseBuilder,
-                soft,
+                softOffset,
+            )
+        }
+
+        fun ofPhrasalBuilder(baseBuilder: PhrasalBuilder, softOffset: Int): NounBuilder {
+            return NounBuilder(
+                baseBuilder,
                 softOffset,
             )
         }

@@ -96,6 +96,8 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
         contContext = Rules.VERB_PRESENT_CONT_BASE_MAP[verbDictForm]
     }
 
+    fun extractSoftOffset() = softOffset
+
     private fun presentTransitiveSuffix(): String = when {
         needsYaSuffix -> "я"
         Phonetics.genuineVowel(baseLast) -> "й"
@@ -678,9 +680,9 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
             pastTransitiveSuffix(baseLast)
         )
 
-    fun presentParticiple(sentenceType: SentenceType): Phrasal {
+    fun presentParticipleBuilder(sentenceType: SentenceType): PhrasalBuilder {
         return when (sentenceType) {
-            SentenceType.Statement -> presentParticipleCommonBuilder().build()
+            SentenceType.Statement -> presentParticipleCommonBuilder()
             SentenceType.Negative -> {
                 val base = genericBaseModifier(nc = true, yp = false)
                 val particle = Question.getQuestionParticle(base.last, softOffset)
@@ -689,11 +691,12 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
                     .verbBase(base.base)
                     .negation(particle)
                     .tenseAffix(affix)
-                    .build()
             }
-            SentenceType.Question -> buildQuestionForm(presentParticipleCommonBuilder()).build()
+            SentenceType.Question -> buildQuestionForm(presentParticipleCommonBuilder())
         }
     }
+
+    fun presentParticiple(sentenceType: SentenceType) = presentParticipleBuilder(sentenceType).build()
 
     private fun pastTransitiveCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
         val builder = presentParticipleCommonBuilder()
