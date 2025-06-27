@@ -156,6 +156,7 @@ object TheoryReferenceProvider {
             TaskTopic.DECL_KOMEKTES_EASY, TaskTopic.DECL_KOMEKTES -> septikKomektes
             TaskTopic.ADJ_COMPARATIVE -> adjComparativeRak
             TaskTopic.ADJ_COMPARATIVE_DAU -> adjComparativeDau
+            TaskTopic.PARTICIPLE_PRESENT -> emptyRefs
         }
     }
 }

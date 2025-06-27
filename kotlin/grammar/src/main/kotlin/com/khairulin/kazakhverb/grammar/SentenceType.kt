@@ -5,4 +5,14 @@ enum class SentenceType {
     Negative,
     Question,
     ;
+
+    companion object {
+        fun ofNegativeFlag(negativeFlag: Boolean): SentenceType {
+            return if (negativeFlag) {
+                Negative
+            } else {
+                Statement
+            }
+        }
+    }
 }

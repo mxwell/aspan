@@ -17,4 +17,17 @@ enum class GrammarForm(val person: GrammarPerson, val number: GrammarNumber, val
         }
         return pronoun
     }
+
+    companion object {
+        val kMainForms = listOf(
+            GrammarForm.MEN,
+            GrammarForm.BIZ,
+            GrammarForm.SEN,
+            GrammarForm.SIZ,
+            GrammarForm.OL,
+            GrammarForm.OLAR,
+        )
+
+        fun getMainRandom() = kMainForms.random()
+    }
 }

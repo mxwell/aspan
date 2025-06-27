@@ -18,14 +18,7 @@ class TaskGenerator {
             }
         }
 
-        private val usedForms = listOf(
-            GrammarForm.MEN,
-            GrammarForm.BIZ,
-            GrammarForm.SEN,
-            GrammarForm.SIZ,
-            GrammarForm.OL,
-            GrammarForm.OLAR,
-        )
+        private val usedForms = GrammarForm.kMainForms
         private val pluralForms = GrammarForm.entries.filter { it.number == GrammarNumber.Plural }
 
         private val jatuBuilder: VerbBuilder by lazy {
@@ -40,6 +33,10 @@ class TaskGenerator {
     }
 
     private val kTaskCount = 10
+
+    private val particleGenerator: ParticipleTaskGenerator by lazy {
+        ParticipleTaskGenerator(kTaskCount)
+    }
 
     private fun pickFormExcept(except: List<GrammarForm>, defaultForm: GrammarForm): GrammarForm {
         for (i in 0..9) {
@@ -617,38 +614,6 @@ class TaskGenerator {
 
     private fun genOptativeMoodPastTense() = genCommon(SentenceTypePattern.S10, generator = this::optativeMoodPastTenseGenerator)
 
-    enum class GrammarFormAffinity {
-        unspecified,
-        matchRequired,  // use the same person+number in both clauses
-        mismatchRequired,  // use different person in both clauses
-    }
-
-    fun getRandomGrammarFormPair(affinity: GrammarFormAffinity): Pair<GrammarForm, GrammarForm> {
-        return when (affinity) {
-            GrammarFormAffinity.matchRequired -> {
-                val form = usedForms.random()
-                Pair(form, form)
-            }
-            GrammarFormAffinity.mismatchRequired -> {
-                val first = usedForms.random()
-                var second = first
-                for (iter in 1..10) {
-                    second = usedForms.random()
-                    if (second.person.personPosition != first.person.personPosition) {
-                        break
-                    }
-                }
-                if (first.person == second.person) {
-                    throw IllegalStateException("failed to generate grammar forms with different persons")
-                }
-                Pair(first, second)
-            }
-            else -> {
-                Pair(usedForms.random(), usedForms.random())
-            }
-        }
-    }
-
     data class ConditionalCombo(
         val affinity: GrammarFormAffinity,
         val firstVerb: VerbInfo,
@@ -811,7 +776,7 @@ class TaskGenerator {
 
     private fun genConditionalMood() = collectTasks {
         val combo = kConditionalCombos.random()
-        val (first, second) = getRandomGrammarFormPair(combo.affinity)
+        val (first, second) = combo.affinity.getRandomGrammarFormPair()
 
         val ifPrefix = if (Random.nextBoolean()) {
             "егер "
@@ -1223,7 +1188,7 @@ class TaskGenerator {
     }
 
     private fun conjunctiveArGen1(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
-        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val (first, second) = GrammarFormAffinity.mismatchRequired.getRandomGrammarFormPair()
         val firstVerbForm = getConditionalForm("білу", first)
         val secondBarys = second.dative
         val secondVerbForm = conjFormBuilder("айту", SentenceType.Statement)
@@ -1477,7 +1442,7 @@ class TaskGenerator {
 
     private fun conjunctiveArGen11(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
         // Егер ОЛ келмесе, БІЗ бастамас едІК.
-        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val (first, second) = GrammarFormAffinity.mismatchRequired.getRandomGrammarFormPair()
         val firstVerbForm = getConditionalForm("келу", first, sentenceType = SentenceType.Negative)
         val secondVerb = "бастау"
         val secondSentenceType = SentenceType.Negative
@@ -1552,7 +1517,7 @@ class TaskGenerator {
 
     private fun conjunctiveArGen14(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
         // Егер олар айтпаса, біз білмес едік.
-        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val (first, second) = GrammarFormAffinity.mismatchRequired.getRandomGrammarFormPair()
         val firstVerbForm = getConditionalForm("айту", first, sentenceType = SentenceType.Negative)
         val secondVerb = "білу"
         val secondSentenceType = SentenceType.Negative
@@ -1576,7 +1541,7 @@ class TaskGenerator {
 
     private fun conjunctiveArGen15(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
         // Егер сен ескертпесең, мен байқамас едім.
-        val (first, second) = getRandomGrammarFormPair(GrammarFormAffinity.mismatchRequired)
+        val (first, second) = GrammarFormAffinity.mismatchRequired.getRandomGrammarFormPair()
         val firstVerbForm = getConditionalForm("ескерту", first, sentenceType = SentenceType.Negative)
         val secondVerb = "байқау"
         val secondSentenceType = SentenceType.Negative
@@ -2391,6 +2356,10 @@ class TaskGenerator {
         }
     }
 
+    fun genPresentParticiple(): GetTasks {
+        throw NotImplementedError()
+    }
+
     data class AdjTranslated(
         val adj: String,
         val translation: String,
@@ -2715,6 +2684,7 @@ class TaskGenerator {
             TaskTopic.DECL_KOMEKTES -> genKomektes()
             TaskTopic.ADJ_COMPARATIVE -> genAdjComparative()
             TaskTopic.ADJ_COMPARATIVE_DAU -> genAdjComparativeDau()
+            TaskTopic.PARTICIPLE_PRESENT -> particleGenerator.genPresentParticiple()
             else -> null
         }
     }
