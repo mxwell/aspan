@@ -45,7 +45,7 @@ enum class TaskTopic(val ruTitle: String) {
     DECL_KOMEKTES("Творительный падеж - 2"),
     ADJ_COMPARATIVE("Сравнительная степень - 1"),
     ADJ_COMPARATIVE_DAU("Сравнительная степень - 2"),
-    PARTICIPLE_PRESENT("Причастие настоящего времени"),
+    PARTICIPLE_PRESENT("Причастие с -атын как дополнение"),
     ;
 
     companion object {

@@ -128,6 +128,10 @@ object TheoryReferenceProvider {
         makeYtKazakhtili("Степени сравнения прилагательных в казахском языке, 2 часть", "NVs8wnJVyOQ"),
         makeBookBekturovs("Грамматика: сын есiмнің шырайлары", 230),
     )
+    private val participlePresent = listOf(
+        makeKazTiliArticle("Причастия настоящего времени", "/prichast2.htm"),
+        makeBookBekturovs("Есімше (-атын/-етін/-йтын/-йтін)", 405),
+    )
 
     fun provide(topic: TaskTopic): List<TheoryReference> {
         return when(topic) {
@@ -156,7 +160,7 @@ object TheoryReferenceProvider {
             TaskTopic.DECL_KOMEKTES_EASY, TaskTopic.DECL_KOMEKTES -> septikKomektes
             TaskTopic.ADJ_COMPARATIVE -> adjComparativeRak
             TaskTopic.ADJ_COMPARATIVE_DAU -> adjComparativeDau
-            TaskTopic.PARTICIPLE_PRESENT -> emptyRefs
+            TaskTopic.PARTICIPLE_PRESENT -> participlePresent
         }
     }
 }

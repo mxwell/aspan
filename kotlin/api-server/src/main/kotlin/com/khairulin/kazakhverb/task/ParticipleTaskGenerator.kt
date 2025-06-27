@@ -9,38 +9,6 @@ import com.khairulin.kazakhverb.grammar.VerbBuilder
 import com.khairulin.kazakhverb.response.GetTasks
 import com.khairulin.kazakhverb.response.TaskItem
 
-/**
- * Не істейтінін сен білмейсің
- * - /ол/ не істейді/ сен білмейсің
- * - Что он делает, ты не знаешь
- * Бірдене істейтіндерін мен естімедім
- * - /олар/ бірдене істейді/ мен естімедім
- * - Их, что-то делающих, я не слышал
- * Ештеңе істемейтініңді мен көріп тұрмын
- * - /сен/ ештеңе істемейсің/ мен көріп тұрмын
- * - Тебя, ничего не делающего, я вижу
- * Бұл жұмысты істейтіндерге мен көмектесемін
- * - /сендерге/ бұл жұмысты істейсіңдер/ мен көмектесемін
- * - Вам, эту работу делающим, я помогу
- * ертен не істейтінін мен білемін
- * - /ол/ ертен не істейтінін/ мен білемін
- * - Что он завтра будет делать, я знаю
- * Онда жұмыс істейтіндерді сендер білмейсіңдер
- * - /оларды/ Онда жұмыс істейді/ сендер білмейсіңдер
- * - Там работающих людей вы не знаете
- * Олардың бүгін келетіндерін білмедім
- * - /оларды/ бүгін келейді/ білмедім
- * - О них, сегодня приходящих, я не знал
- * Сіздің бүгін келмейтініңізді білмедік
- * - /Сіз/ бүгін келмейді/ білмедік
- * - О вас, сегодня не приходящих, мы не знали
- * Сенің қалаға баратыныңды білмедім
- * - /Сен/қалаға барасың/ білмедім
- * - О тебе, едущем в город, я не знал
- * Сатып алатынға тауарды беремін
- * - /Оған/ сатып алады/ тауарды беремін
- * - Покупающему товар отдам
- */
 class ParticipleTaskGenerator(val taskCount: Int) {
 
     data class StringFragment(
@@ -56,23 +24,17 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         }
     }
 
-    companion object {
-        private val jatuBuilder: VerbBuilder by lazy {
-            VerbBuilder("жату")
-        }
-    }
-
     enum class Shak {
         presentTransitive,
         past,
-        presentContinuous,
+        presentContinuousTur,
         ;
 
         fun apply(builder: VerbBuilder, grammarForm: GrammarForm, sentenceType: SentenceType): String {
             return when(this) {
                 presentTransitive -> builder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType)
                 past -> builder.past(grammarForm.person, grammarForm.number, sentenceType)
-                presentContinuous -> builder.presentContinuousForm(grammarForm.person, grammarForm.number, sentenceType, jatuBuilder)
+                presentContinuousTur -> builder.presentContinuousForm(grammarForm.person, grammarForm.number, sentenceType, AuxVerbProvider.turuBuilder)
             }.raw
         }
     }
@@ -117,11 +79,220 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
             VerbInfo("істеу", translation = "делать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "не",
+                listOf(
+                    Pair("не", "что")
+                )
+            ),
+            mainVerbNegative = true,
+        ),
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("істеу", translation = "делать"),
             VerbInfo("есту", translation = "слышать"),
             Shak.past,
-            subordinatePrefix = StringFragment("бірдеңе", listOf(Pair("бірдеңе", "что-то"))),
+            subordinatePrefix = StringFragment(
+                "бірдеңе",
+                listOf(
+                    Pair("бірдеңе", "что-то")
+                )
+            ),
             mainVerbNegative = true,
-        )
+        ),
+        // 3 - [ештеңе істемейсің] [оны] көріп тұрмын
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("істеу", translation = "делать"),
+            VerbInfo("көру", translation = "видеть"),
+            Shak.presentContinuousTur,
+            subordinatePrefix = StringFragment(
+                "ештеңе",
+                listOf(
+                    Pair("ештеңе", "ничего")
+                )
+            ),
+            subordinateVerbNegative = true,
+        ),
+        // 4 - [бұл жұмысты істейсіңдер] [оларға] көмектесемін
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Barys,
+            VerbInfo("істеу", translation = "делать"),
+            VerbInfo("көмектесу", translation = "помогать"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "бұл жұмысты",
+                listOf(
+                    Pair("жұмыс", "работа")
+                )
+            ),
+        ),
+        // 5 - [ертен не істейтінін] [оны] мен білемін
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("істеу", translation = "делать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "ертен не",
+                listOf(
+                    Pair("ертен", "завтра"),
+                    Pair("не", "что"),
+                )
+            ),
+        ),
+        // 6 - [онда жұмыс істейді] [оны] сендер білмейсіңдер
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("жұмыс істеу", translation = "работать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "онда",
+                listOf(
+                    Pair("онда", "там"),
+                )
+            ),
+            mainVerbNegative = true,
+        ),
+        // 7 - [бүгін келейді] [оны] білмедім
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("келу", translation = "приезжать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "бүгін",
+                listOf(
+                    Pair("бүгін", "сегодня"),
+                )
+            ),
+            mainVerbNegative = true,
+        ),
+        // 8 - [бүгін келмедіңіз] [оны] білмедік
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("келу", translation = "приезжать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "бүгін",
+                listOf(
+                    Pair("бүгін", "сегодня"),
+                )
+            ),
+            subordinateVerbNegative = true,
+            mainVerbNegative = true,
+        ),
+        // 9 - [қалаға барасың] [оны] білмедім
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("бару", translation = "ехать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "қалаға",
+                listOf(
+                    Pair("қала", "город"),
+                )
+            ),
+            mainVerbNegative = true,
+        ),
+        // 10 - [сатып алады] [оған] тауарды беремін
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Barys,
+            VerbInfo("сатып алу", translation = "покупать"),
+            VerbInfo("беру", translation = "давать"),
+            Shak.presentTransitive,
+            mainPrefix = StringFragment(
+                "тауарды",
+                listOf(
+                    Pair("тауар", "товар"),
+                )
+            ),
+        ),
+        // 11 - [ол келеді] [оны] мен күттім
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("келу", translation = "приезжать"),
+            VerbInfo("күту", translation = "ждать"),
+            Shak.past,
+        ),
+        // 12 - [сен не айтаcың] [оны] түсінбедім
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("айту", translation = "сказать"),
+            VerbInfo("түсіну", translation = "понимать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "не",
+                listOf(
+                    Pair("не", "что"),
+                )
+            ),
+            mainVerbNegative = true,
+        ),
+        // 13 - [ол ашуланып шыға келеді] [оны] білемін
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("айту", translation = "сказать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "ашуланып шыға",
+                listOf(
+                    Pair("ашулану", "злиться"),
+                    Pair("шығу", "выходить"),
+                )
+            ),
+        ),
+        // 14 - [ол тура мұғалімнің өзінен оқиды] [оны] ол білді
+        // orig: Оқығанда, тура Қабдөш мұғалімнің өзінен оқитынын білді.
+        Combo(
+            GrammarFormAffinity.matchRequired,
+            Septik.Tabys,
+            VerbInfo("оқу", translation = "учиться"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "тура мұғалімнің өзінен",
+                listOf(
+                    Pair("тура", "прямо"),
+                    Pair("мұғалім", "учитель"),
+                    Pair("өзінен", "от него самого"),
+                )
+            )
+        ),
+        // 15 - [мен жылап қайтамын] [оны] ескермедi
+        // orig: Несиенiң күлiп келiп, жылап қайтатынын ескермедi.
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("қайту", translation = "возвращаться"),
+            VerbInfo("ескеру", translation = "обращать внимание"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "жылап",
+                listOf(
+                    Pair("жылау", "плакать"),
+                )
+            ),
+            mainVerbNegative = true,
+        ),
     )
 
     private fun buildTask(combo: Combo): TaskItem {
@@ -151,7 +322,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         val answer = "${subordinatePrefix}${participleForm} ${mainClause}"
 
         return TaskItem(
-            "(${descriptor})\n${pattern}",
+            "(${descriptor})\n`${pattern}`",
             listOf(
                 answer
             ),
