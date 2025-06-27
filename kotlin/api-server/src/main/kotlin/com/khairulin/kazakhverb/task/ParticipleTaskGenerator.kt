@@ -249,7 +249,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         Combo(
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
-            VerbInfo("айту", translation = "сказать"),
+            VerbInfo("келу"),
             VerbInfo("білу", translation = "знать"),
             Shak.presentTransitive,
             subordinatePrefix = StringFragment(
@@ -298,14 +298,13 @@ class ParticipleTaskGenerator(val taskCount: Int) {
     private fun buildTask(combo: Combo): TaskItem {
         val (firstForm, secondForm) = combo.affinity.getRandomGrammarFormPair()
         val subordinateSeptik = combo.subordinateSeptik
-        val descriptor = "причастие наст. вр. ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
+        val descriptor = "причастие наст. вр., ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
         val subordinateVerbBuilder = combo.subordinateVerb.builder()
         val hintVerbForm = subordinateVerbBuilder.presentTransitiveForm(
             firstForm.person,
             firstForm.number,
             combo.subordinateSentenceType()
         ).raw
-        val pronounForm = PronounDeclension.getPronounForm(firstForm, combo.subordinateSeptik)
         val mainVerbForm = combo.shak.apply(
             combo.mainVerb.builder(),
             secondForm,
@@ -313,7 +312,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         )
         val mainClause = "${combo.mainPrefixString()}${mainVerbForm}"
         val subordinatePrefix = combo.subordinatePrefixString()
-        val pattern = "[${firstForm.pronoun} ${subordinatePrefix}${hintVerbForm}] [${pronounForm}] ${mainClause}"
+        val pattern = "[${firstForm.pronoun} ${subordinatePrefix}${hintVerbForm}] ${mainClause}"
 
         val participleBuilder = subordinateVerbBuilder.presentParticipleBuilder(combo.subordinateSentenceType())
         val participleForm = NounBuilder
