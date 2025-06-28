@@ -62,7 +62,14 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         }
 
         fun subordinatePrefixString() = stringFragmentToString(subordinatePrefix)
-        fun mainPrefixString() = stringFragmentToString(mainPrefix)
+
+        fun mainPrefixString(mainGrammarForm: GrammarForm): String {
+            if (mainPrefix?.text == "өз[ENDING]") {
+                val ozForm = PronounDeclension.getOzForm(mainGrammarForm)
+                return "${ozForm} "
+            }
+            return stringFragmentToString(mainPrefix)
+        }
 
         fun collectTranslations(): List<List<String>> {
             val result = mutableListOf<List<String>>()
@@ -132,7 +139,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                 )
             ),
         ),
-        // 5 - [ертен не істейтінін] [оны] мен білемін
+        // 5 - [ертең не істейтінін] [оны] мен білемін
         Combo(
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
@@ -140,9 +147,9 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             VerbInfo("білу", translation = "знать"),
             Shak.presentTransitive,
             subordinatePrefix = StringFragment(
-                "ертен не",
+                "ертең не",
                 listOf(
-                    Pair("ертен", "завтра"),
+                    Pair("ертең", "завтра"),
                     Pair("не", "что"),
                 )
             ),
@@ -208,17 +215,19 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             ),
             mainVerbNegative = true,
         ),
-        // 10 - [сатып алады] [оған] тауарды беремін
+        // 10 - [ертең не сатып аламын] [оны] ойлаймын
+        // orig: Ертең жалақы алған кезде не сатып алатынымды ойластырып, қиялыммен байимын.
         Combo(
-            GrammarFormAffinity.mismatchRequired,
+            GrammarFormAffinity.matchRequired,
             Septik.Barys,
             VerbInfo("сатып алу", translation = "покупать"),
-            VerbInfo("беру", translation = "давать"),
+            VerbInfo("ойлау", translation = "думать"),
             Shak.presentTransitive,
-            mainPrefix = StringFragment(
-                "тауарды",
+            subordinatePrefix = StringFragment(
+                "ертең не",
                 listOf(
-                    Pair("тауар", "товар"),
+                    Pair("ертең", "завтра"),
+                    Pair("не", "что"),
                 )
             ),
         ),
@@ -293,6 +302,43 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             ),
             mainVerbNegative = true,
         ),
+        // 16 - [неге солай ойлайды] [оны] өзі білмейді
+        // orig: Әйткенмен соны ойлайды, неге ойлайтынын өзі де білмейді
+        Combo(
+            GrammarFormAffinity.matchRequired,
+            Septik.Tabys,
+            VerbInfo("ойлау", translation = "думать"),
+            VerbInfo("білу", translation = "знать"),
+            Shak.past,
+            subordinatePrefix = StringFragment(
+                "неге солай",
+                listOf(
+                    Pair("неге", "почему"),
+                    Pair("солай", "так"),
+                )
+            ),
+            mainPrefix = StringFragment(
+                "өз[ENDING]",
+            ),
+            mainVerbNegative = true,
+        ),
+        // 17 - [өсе келе керемет істер істейді] [оған] сенеді
+        // orig: Өсе келе керемет істер істейтініне, атағы шығатынына, көптің құрметіне ие болатынына сенеді.
+        Combo(
+            GrammarFormAffinity.matchRequired,
+            Septik.Barys,
+            VerbInfo("істеу", translation = "делать"),
+            VerbInfo("сену", translation = "верить"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "өсе келе керемет істер",
+                listOf(
+                    Pair("өсе келе", "когда вырасту/вырастешь/вырастет/…"),
+                    Pair("керемет", "великий"),
+                    Pair("іс", "дело"),
+                )
+            ),
+        ),
     )
 
     private fun buildTask(combo: Combo): TaskItem {
@@ -310,7 +356,8 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             secondForm,
             combo.mainSentenceType(),
         )
-        val mainClause = "${combo.mainPrefixString()}${mainVerbForm}"
+        val mainPrefix = combo.mainPrefixString(secondForm)
+        val mainClause = "${mainPrefix}${mainVerbForm}"
         val subordinatePrefix = combo.subordinatePrefixString()
         val pattern = "[${firstForm.pronoun} ${subordinatePrefix}${hintVerbForm}] ${mainClause}"
 

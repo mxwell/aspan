@@ -15,4 +15,20 @@ object PronounDeclension {
     fun getPronounForm(grammarForm: GrammarForm, septik: Septik): String {
         return kPronounInSeptik[grammarForm]!![septik.index]
     }
+
+    private val kOzInAtau = mapOf<GrammarForm, String>(
+        GrammarForm.MEN to "өзім",
+        GrammarForm.BIZ to "өзіміз",
+        GrammarForm.SEN to "өзің",
+        GrammarForm.SENDER to "өздерің",
+        GrammarForm.SIZ to "өзіңіз",
+        GrammarForm.SIZDER to "өздеріңіз",
+        GrammarForm.OL to "өзі",
+        GrammarForm.OLAR to "өздері",
+    )
+
+    // Only Atau septik currently.
+    fun getOzForm(grammarForm: GrammarForm): String {
+        return kOzInAtau[grammarForm]!!
+    }
 }
