@@ -46,6 +46,7 @@ enum class TaskTopic(val ruTitle: String) {
     ADJ_COMPARATIVE("Сравнительная степень - 1"),
     ADJ_COMPARATIVE_DAU("Сравнительная степень - 2"),
     PARTICIPLE_PRESENT("Причастие с -атын как дополнение"),
+    PARTICIPLE_PAST("Причастие с -ған как дополнение"),
     ;
 
     companion object {
@@ -93,6 +94,7 @@ enum class TaskTopic(val ruTitle: String) {
                 ADJ_COMPARATIVE.name -> ADJ_COMPARATIVE
                 ADJ_COMPARATIVE_DAU.name -> ADJ_COMPARATIVE_DAU
                 PARTICIPLE_PRESENT.name -> PARTICIPLE_PRESENT
+                PARTICIPLE_PAST.name -> PARTICIPLE_PAST
                 else -> null
             }
         }

@@ -132,6 +132,10 @@ object TheoryReferenceProvider {
         makeKazTiliArticle("Причастия настоящего времени", "/prichast2.htm"),
         makeBookBekturovs("Есімше (-атын/-етін/-йтын/-йтін)", 405),
     )
+    private val participlePast = listOf(
+        makeKazTiliArticle("Причастия прошедшего времени", "/prichast1.htm"),
+        makeBookBekturovs("Грамматика: есімше (-ған/-ген, -қан/-кен)", 377),
+    )
 
     fun provide(topic: TaskTopic): List<TheoryReference> {
         return when(topic) {
@@ -161,6 +165,7 @@ object TheoryReferenceProvider {
             TaskTopic.ADJ_COMPARATIVE -> adjComparativeRak
             TaskTopic.ADJ_COMPARATIVE_DAU -> adjComparativeDau
             TaskTopic.PARTICIPLE_PRESENT -> participlePresent
+            TaskTopic.PARTICIPLE_PAST -> participlePast
         }
     }
 }

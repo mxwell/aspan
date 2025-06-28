@@ -184,6 +184,30 @@ class ConjugationTest() {
         }
     }
 
+    private fun testPastParticiple() {
+        val relations = mapOf<String, List<String>>(
+            "түсіну" to listOf("түсінген", "түсінбеген"),
+            "күлу" to listOf("күлген", "күлмеген"),
+            "қарау" to listOf("қараған", "қарамаған"),
+            "жеу" to listOf("жеген", "жемеген"),
+        )
+
+        for ((verb, expectations) in relations) {
+            val builder = VerbBuilder(verb)
+            var position = 0
+            for (sentenceType in listOf(SentenceType.Statement, SentenceType.Negative)) {
+                val phrasal = builder.pastParticiple(sentenceType)
+                val expected = expectations[position]
+                position += 1
+                checkFormString(
+                    expected,
+                    phrasal,
+                    "sentence ${sentenceType}"
+                )
+            }
+        }
+    }
+
     private fun testUshyUshiForm() {
         checkFormString(
             "ұнатушы",
@@ -218,6 +242,7 @@ class ConjugationTest() {
         testPossibleFuture()
         testPastTransitive()
         testPresentParticiple()
+        testPastParticiple()
         testUshyUshiForm()
     }
 }

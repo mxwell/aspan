@@ -27,6 +27,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
     enum class Shak {
         presentTransitive,
         past,
+        presentContinuousOtyr,
         presentContinuousTur,
         ;
 
@@ -34,9 +35,16 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             return when(this) {
                 presentTransitive -> builder.presentTransitiveForm(grammarForm.person, grammarForm.number, sentenceType)
                 past -> builder.past(grammarForm.person, grammarForm.number, sentenceType)
+                presentContinuousOtyr -> builder.presentContinuousForm(grammarForm.person, grammarForm.number, sentenceType, AuxVerbProvider.otyruBuilder)
                 presentContinuousTur -> builder.presentContinuousForm(grammarForm.person, grammarForm.number, sentenceType, AuxVerbProvider.turuBuilder)
             }.raw
         }
+    }
+
+    enum class TenseCompat {
+        onlyPresent,
+        onlyPast,
+        presentAndPast,
     }
 
     data class Combo(
@@ -49,6 +57,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         val subordinateVerbNegative: Boolean = false,
         val mainPrefix: StringFragment? = null,
         val mainVerbNegative: Boolean = false,
+        val compat: TenseCompat = TenseCompat.presentAndPast,
     ) {
         fun subordinateSentenceType() = SentenceType.ofNegativeFlag(subordinateVerbNegative)
         fun mainSentenceType() = SentenceType.ofNegativeFlag(mainVerbNegative)
@@ -82,6 +91,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
     }
 
     private val kCombos = listOf(
+        // 1 - [ол не істейді] [оны] білмеймін
         Combo(
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
@@ -91,11 +101,12 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             subordinatePrefix = StringFragment(
                 "не",
                 listOf(
-                    Pair("не", "что")
+                    Pair("не", "что"),
                 )
             ),
             mainVerbNegative = true,
         ),
+        // 2 - [ол бірдеңе істейді] [оны] естімедім
         Combo(
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
@@ -124,6 +135,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                 )
             ),
             subordinateVerbNegative = true,
+            compat = TenseCompat.onlyPresent,
         ),
         // 4 - [бұл жұмысты істейсіңдер] [оларға] көмектесемін
         Combo(
@@ -138,6 +150,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                     Pair("жұмыс", "работа")
                 )
             ),
+            compat = TenseCompat.onlyPresent,
         ),
         // 5 - [ертең не істейтінін] [оны] мен білемін
         Combo(
@@ -153,6 +166,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                     Pair("не", "что"),
                 )
             ),
+            compat = TenseCompat.onlyPresent,
         ),
         // 6 - [онда жұмыс істейді] [оны] сендер білмейсіңдер
         Combo(
@@ -184,7 +198,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
             ),
             mainVerbNegative = true,
         ),
-        // 8 - [бүгін келмедіңіз] [оны] білмедік
+        // 8 - [бүгін келмейсіз] [оны] білмедік
         Combo(
             GrammarFormAffinity.mismatchRequired,
             Septik.Tabys,
@@ -230,6 +244,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                     Pair("не", "что"),
                 )
             ),
+            compat = TenseCompat.onlyPresent,
         ),
         // 11 - [ол келеді] [оны] мен күттім
         Combo(
@@ -338,19 +353,79 @@ class ParticipleTaskGenerator(val taskCount: Int) {
                     Pair("іс", "дело"),
                 )
             ),
+            compat = TenseCompat.onlyPresent,
+        ),
+        // 18 - [мен айттым] [оны] түсінесің
+        // orig: Айтқанымды түсіндің бе?
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("айту", translation = "сказать"),
+            VerbInfo("түсіну", translation = "понимать"),
+            Shak.presentTransitive,
+        ),
+        // 19 - [мен Ахметпен таныстым] [оған] қатты қуанамын
+        // orig: Сізбен танысқаныма өте қуаныштымын!
+        Combo(
+            GrammarFormAffinity.matchRequired,
+            Septik.Barys,
+            VerbInfo("танысу", translation = "знакомиться"),
+            VerbInfo("қуану", translation = "радоваться"),
+            Shak.presentTransitive,
+            subordinatePrefix = StringFragment(
+                "Ахметпен",
+                listOf(
+                    Pair("Ахметпен", "с Ахметом"),
+                )
+            ),
+            mainPrefix = StringFragment(
+                "қатты",
+                listOf(
+                    Pair("қатты", "сильно"),
+                )
+            )
+        ),
+        // 20 - [ол ренжіді] [оны] сезіп отырмын
+        // orig: Қапанның ренжігенін Сақып сезіп отыр екен.
+        Combo(
+            GrammarFormAffinity.mismatchRequired,
+            Septik.Tabys,
+            VerbInfo("ренжу", translation = "расстраиваться"),
+            VerbInfo("сезу", translation = "чувствовать"),
+            Shak.presentContinuousOtyr,
         ),
     )
+    private val kPresentCombos: List<Combo> by lazy {
+        kCombos.filter {
+            it.compat == TenseCompat.presentAndPast || it.compat == TenseCompat.onlyPresent
+        }
+    }
+    private val kPastCombos: List<Combo> by lazy {
+        kCombos.filter {
+            it.compat == TenseCompat.presentAndPast || it.compat == TenseCompat.onlyPast
+        }
+    }
 
-    private fun buildTask(combo: Combo): TaskItem {
+    private fun buildTask(combo: Combo, presentParticiple: Boolean): TaskItem {
         val (firstForm, secondForm) = combo.affinity.getRandomGrammarFormPair()
         val subordinateSeptik = combo.subordinateSeptik
-        val descriptor = "причастие наст. вр., ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
+        val title = if (presentParticiple) {
+            "причастие наст. вр."
+        } else {
+            "причастие прош. вр."
+        }
+        val descriptor = "${title}, ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
         val subordinateVerbBuilder = combo.subordinateVerb.builder()
-        val hintVerbForm = subordinateVerbBuilder.presentTransitiveForm(
-            firstForm.person,
-            firstForm.number,
-            combo.subordinateSentenceType()
-        ).raw
+        val subordinateSentenceType = combo.subordinateSentenceType()
+        val hintVerbForm = if (presentParticiple) {
+            subordinateVerbBuilder.presentTransitiveForm(
+                firstForm.person,
+                firstForm.number,
+                subordinateSentenceType
+            )
+        } else {
+            subordinateVerbBuilder.past(firstForm.person, firstForm.number, subordinateSentenceType)
+        }.raw
         val mainVerbForm = combo.shak.apply(
             combo.mainVerb.builder(),
             secondForm,
@@ -361,14 +436,18 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         val subordinatePrefix = combo.subordinatePrefixString()
         val pattern = "[${firstForm.pronoun} ${subordinatePrefix}${hintVerbForm}] ${mainClause}"
 
-        val participleBuilder = subordinateVerbBuilder.presentParticipleBuilder(combo.subordinateSentenceType())
+        val participleBuilder = if (presentParticiple) {
+            subordinateVerbBuilder.presentParticipleBuilder(subordinateSentenceType)
+        } else {
+            subordinateVerbBuilder.pastParticipleBuilder(subordinateSentenceType)
+        }
         val participleForm = NounBuilder
             .ofPhrasalBuilder(participleBuilder, subordinateVerbBuilder.extractSoftOffset())
             .possessiveSeptikForm(firstForm.person, firstForm.number, subordinateSeptik).raw
         val answer = "${subordinatePrefix}${participleForm} ${mainClause}"
 
         return TaskItem(
-            "(${descriptor})\n`${pattern}`",
+            "(${descriptor})\n`${pattern}`\n",
             listOf(
                 answer
             ),
@@ -391,7 +470,12 @@ class ParticipleTaskGenerator(val taskCount: Int) {
     }
 
     fun genPresentParticiple() = collectTasks {
-        val combo = kCombos.random()
-        buildTask(combo)
+        val combo = kPresentCombos.random()
+        buildTask(combo, presentParticiple = true)
+    }
+
+    fun genPastParticiple() = collectTasks {
+        val combo = kPastCombos.random()
+        buildTask(combo, presentParticiple = false)
     }
 }

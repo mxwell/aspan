@@ -1603,7 +1603,7 @@ class TaskGenerator {
     private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
         val sb = StringBuilder()
         sb.append("(${septik})\n")
-        sb.append("`${sentenceStart}[${objectWord}] ${verbForm}`")
+        sb.append("`${sentenceStart}[${objectWord}] ${verbForm}`\n")
         return sb.toString()
     }
 
@@ -2621,7 +2621,7 @@ class TaskGenerator {
 
         val adjForm = formGenerator(adj.adj)
 
-        val description = "(${formName})\n`${combo.head}[${adj.adj}]${combo.tail}`"
+        val description = "(${formName})\n`${combo.head}[${adj.adj}]${combo.tail}`\n"
         val answer = "${combo.head}${adjForm}${combo.tail}"
         val translations = combo.translations.toMutableList()
         translations.add(adj.asList())
@@ -2685,6 +2685,7 @@ class TaskGenerator {
             TaskTopic.ADJ_COMPARATIVE -> genAdjComparative()
             TaskTopic.ADJ_COMPARATIVE_DAU -> genAdjComparativeDau()
             TaskTopic.PARTICIPLE_PRESENT -> particleGenerator.genPresentParticiple()
+            TaskTopic.PARTICIPLE_PAST -> particleGenerator.genPastParticiple()
             else -> null
         }
     }
