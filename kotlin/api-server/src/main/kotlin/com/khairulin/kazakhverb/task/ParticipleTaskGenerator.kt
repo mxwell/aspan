@@ -233,7 +233,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         // orig: Ертең жалақы алған кезде не сатып алатынымды ойластырып, қиялыммен байимын.
         Combo(
             GrammarFormAffinity.matchRequired,
-            Septik.Barys,
+            Septik.Tabys,
             VerbInfo("сатып алу", translation = "покупать"),
             VerbInfo("ойлау", translation = "думать"),
             Shak.presentTransitive,
