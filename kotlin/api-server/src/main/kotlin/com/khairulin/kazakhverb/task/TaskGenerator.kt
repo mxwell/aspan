@@ -20,16 +20,6 @@ class TaskGenerator {
 
         private val usedForms = GrammarForm.kMainForms
         private val pluralForms = GrammarForm.entries.filter { it.number == GrammarNumber.Plural }
-
-        private val jatuBuilder: VerbBuilder by lazy {
-            VerbBuilder("жату")
-        }
-        private val juruBuilder: VerbBuilder by lazy {
-            VerbBuilder("жүру")
-        }
-        private val turuBuilder: VerbBuilder by lazy {
-            VerbBuilder("тұру")
-        }
     }
 
     private val kTaskCount = 10
@@ -232,7 +222,7 @@ class TaskGenerator {
             grammarForm.person,
             grammarForm.number,
             sentenceType,
-            jatuBuilder
+            AuxVerbProvider.jatuBuilder,
         )
         answers.add("${sentenceStart}${phrasal.raw}")
         if (sentenceType == SentenceType.Negative) {
@@ -240,7 +230,7 @@ class TaskGenerator {
                 grammarForm.person,
                 grammarForm.number,
                 sentenceType,
-                jatuBuilder,
+                AuxVerbProvider.jatuBuilder,
                 negateAux = false
             )
             answers.add("${sentenceStart}${phrasal2.raw}")
@@ -272,7 +262,7 @@ class TaskGenerator {
         val middle: String,
         val verb: VerbInfo,
         val forms: List<GrammarForm> = emptyList(),
-        val aux: VerbBuilder = jatuBuilder,
+        val aux: VerbBuilder = AuxVerbProvider.jatuBuilder,
         val translations: List<Pair<String, String>?> = emptyList(),
     ) {
         fun getGrammarForms() = if (forms.isNotEmpty()) {
@@ -305,13 +295,13 @@ class TaskGenerator {
             NounInfo("радио", "радио"),
             " ",
             VerbInfo("сөйлеу", translation = "говорить"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("жаңбыр", "дождь"),
             " ",
             VerbInfo("жауу", translation = "идти"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("машина", translation = "автомобиль"),
@@ -327,7 +317,7 @@ class TaskGenerator {
             NounInfo("Ахмет", translation = ""),
             " үйiне ",
             VerbInfo("қайту", translation = "возвращаться"),
-            aux = juruBuilder,
+            aux = AuxVerbProvider.juruBuilder,
             translations = listOf(Pair("үй", "дом")),
         ),
         NotHappeningCombo(
@@ -339,7 +329,7 @@ class TaskGenerator {
             NounInfo("көңіл-күйім", translation = "моё настроение"),
             " ",
             VerbInfo("болу", translation = "быть"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("Марат", translation = ""),
@@ -367,20 +357,20 @@ class TaskGenerator {
             null,
             " ештеңе ",
             VerbInfo("айту", translation = "говорить"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
             translations = listOf(Pair("ештеңе", "ничего")),
         ),
         NotHappeningCombo(
             NounInfo("сабақ", "урок"),
             " ",
             VerbInfo("басталу", translation = "начинаться"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
         ),
         NotHappeningCombo(
             null,
             " оны ",
             VerbInfo("түсіну", translation = "понимать"),
-            aux = turuBuilder,
+            aux = AuxVerbProvider.turuBuilder,
         ),
         NotHappeningCombo(
             NounInfo("кітапхана", "библиотека"),

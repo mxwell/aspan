@@ -6,6 +6,9 @@ object AuxVerbProvider {
     val jatuBuilder: VerbBuilder by lazy {
         VerbBuilder("жату")
     }
+    val juruBuilder: VerbBuilder by lazy {
+        VerbBuilder("жүру")
+    }
     val otyruBuilder: VerbBuilder by lazy {
         VerbBuilder("отыру")
     }
