@@ -1070,6 +1070,70 @@ class TaskGenerator {
 
     private fun genTryClause() = genCommon(SentenceTypePattern.S7_Q3, this::tryClauseGenerator)
 
+    private val kBastauClauseTenseVariants = listOf(
+        VerbTense.TensePresentTransitive,
+        VerbTense.TensePast,
+    )
+
+    private fun bastauClauseGenerator(combo: Combo): TaskItem {
+        val verbEntry = combo.verb
+        val verb = verbEntry.verb
+        val grammarForm = combo.grammarForm
+        val sentenceType = combo.sentenceType
+        val tense = kBastauClauseTenseVariants.random()
+
+        val phrasal = verb.builder().bastauClauseOfTense(
+            grammarForm.person,
+            grammarForm.number,
+            tense,
+        )
+
+        val supPair = buildSupplementForm(grammarForm, verbEntry.supplements)
+        val sentenceStart = buildSentenceStart(grammarForm.getPronounByTense(tense), supPair?.second ?: "")
+
+        val description = buildTaskDescription(
+            "конструкция с бастау - начало действия, ${tense.ruName}",
+            sentenceStart,
+            verb,
+            sentenceType,
+        )
+        return TaskItem(
+            description,
+            listOf("${sentenceStart}${phrasal.raw}"),
+            collectTranslations(
+                supPair?.first?.asPair(),
+                verb.asPair(),
+            )
+        )
+    }
+
+    private fun genBastauClauseTasks(pattern: SentenceTypePattern, generator: (combo: Combo) -> TaskItem): GetTasks {
+        val used = mutableSetOf<String>()
+        val result = mutableListOf<Combo>()
+        for (taskId in 1..kTaskCount) {
+            var verbEntry = VerbList.bastauCompatEntries.random()
+            var grammarForm = GrammarForm.getMainRandom()
+            for (retry in 1..5) {
+                val key = "${verbEntry.verb.verb} + ${grammarForm.pronoun}"
+                if (used.contains(key)) {
+                    verbEntry = VerbList.bastauCompatEntries.random()
+                    grammarForm = GrammarForm.getMainRandom()
+                    continue
+                } else {
+                    used.add(key)
+                    break
+                }
+            }
+            val sentenceType = pattern.getSentenceTypeByTaskId(taskId)
+            result.add(Combo(taskId, verbEntry, grammarForm, sentenceType))
+        }
+        return collectTasks { taskId ->
+            generator(result[taskId - 1])
+        }
+    }
+
+    private fun genBastauClause() = genBastauClauseTasks(SentenceTypePattern.S10, this::bastauClauseGenerator)
+
     data class JazdauCombo(
         val supplement: SupplementNoun?,
         val verb: VerbInfo,
@@ -2655,6 +2719,7 @@ class TaskGenerator {
             TaskTopic.CONJ_KORU_CLAUSE -> genKoruClause()
             TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
             TaskTopic.CONJ_TRY_CLAUSE -> genTryClause()
+            TaskTopic.CONJ_BASTAU_CLAUSE -> genBastauClause()
             TaskTopic.CONJ_JAZDAU_CLAUSE -> genJazdauClause()
             TaskTopic.CONJ_CONJUNCTIVE_AR -> genConjunctiveAr()
             TaskTopic.CONJ_CONJUNCTIVE_ATYN -> genConjunctiveAtyn()

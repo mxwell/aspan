@@ -5,7 +5,8 @@ import com.khairulin.kazakhverb.grammar.Septik
 object VerbList {
     data class Entry(
         val verb: VerbInfo,
-        val supplements: List<SupplementNoun>
+        val supplements: List<SupplementNoun>,
+        val bastauIncompat: Boolean = false,
     )
 
     private fun verbTr(verb: String, translation: String) = VerbInfo(verb, translation = translation)
@@ -14,16 +15,16 @@ object VerbList {
         Entry(verbTr("болу", "быть"), listOf(
             SupplementNoun("орталық", "центр", Septik.Jatys),
             SupplementNoun("мектеп", "школа", Septik.Jatys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("деу", "сказать"), listOf(
             SupplementNoun("дұрыс", "правильно", null),
             SupplementNoun("шындық", "правда", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("айту", "сказать"), listOf(
             SupplementNoun("ақиқат", "правда", Septik.Tabys),
             SupplementNoun("бала", "ребёнок", Septik.Barys),
             SupplementNoun("өтірік", "ложь", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("ән айту", "петь"), listOf(
             SupplementNoun("қатты", "громко", null),
         )),
@@ -36,12 +37,12 @@ object VerbList {
             SupplementNoun("дүкен", "магазин", Septik.Shygys),
             SupplementNoun("сыйлық", "подарок", null),
             SupplementNoun("ақша", "деньги", null),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("келу", "приезжать"), listOf(
             SupplementNoun("үй", "дом", Septik.Barys),
             SupplementNoun("жұмыс", "работа", Septik.Shygys),
             SupplementNoun("жұмыс", "работа", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("көру", "смотреть"), listOf(
             SupplementNoun("фильм", "фильм", Septik.Tabys),
             SupplementNoun("теледидар", "телевизор", Septik.Shygys),
@@ -60,7 +61,7 @@ object VerbList {
             SupplementNoun("кітап", "книга", null),
             SupplementNoun("рұқсат", "разрешение", null),
             SupplementNoun("дос", "друг", Septik.Barys, ownedBySubject = true),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("жоспарлау", "планировать"), listOf(
             SupplementNoun("саяхат", "путешествие", Septik.Atau),
             SupplementNoun("демалыс", "отпуск", Septik.Tabys),
@@ -70,7 +71,7 @@ object VerbList {
             SupplementNoun("емтихан", "экзамен", Septik.Shygys),
             SupplementNoun("көпір", "мост", Septik.Shygys),
             SupplementNoun("су", "вода", Septik.Shygys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("жасау", "делать"), listOf(
             SupplementNoun("жоспар", "план", Septik.Atau),
             SupplementNoun("тапсырма", "задание", Septik.Atau),
@@ -81,19 +82,19 @@ object VerbList {
             SupplementNoun("дәрігер", "доктор", Septik.Barys),
             SupplementNoun("қала", "город", Septik.Barys),
             SupplementNoun("ауыл", "аул", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("бару", "ехать"), listOf(
             SupplementNoun("ат", "лошадь", Septik.Komektes),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("алып бару", "отнести"), listOf(
             SupplementNoun("дәрігер", "доктор", Septik.Barys),
             SupplementNoun("пошта", "почта", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("ету", "делать"), listOf(
             SupplementNoun("дұрыс таңдау", "правильный выбор", Septik.Atau),
             SupplementNoun("рұқсат", "разрешение", Septik.Atau),
             SupplementNoun("хабар", "известие", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("қызмет ету", "служить"), listOf(
             SupplementNoun("әскер", "армия", Septik.Jatys),
             SupplementNoun("кеме", "судно", Septik.Jatys),
@@ -102,7 +103,7 @@ object VerbList {
             SupplementNoun("сурет", "картина", Septik.Atau),
             SupplementNoun("құжат", "документ", Septik.Tabys),
             SupplementNoun("жол", "дорога", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("күту", "ждать"), listOf(
             SupplementNoun("жәрдем", "помощь", Septik.Atau),
             SupplementNoun("кезек", "очередь", Septik.Atau),
@@ -121,7 +122,7 @@ object VerbList {
             SupplementNoun("алға", "вперёд", null),
             SupplementNoun("дала", "улица", Septik.Barys),
             SupplementNoun("қала", "город", Septik.Shygys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("жазу", "писать"), listOf(
             SupplementNoun("хат", "письмо", Septik.Tabys),
             SupplementNoun("тақта", "доска", Septik.Barys),
@@ -132,12 +133,12 @@ object VerbList {
             SupplementNoun("мектеп", "школа", Septik.Barys),
             SupplementNoun("тау", "гора", Septik.Barys),
             SupplementNoun("межелі жер", "место назначения", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("сұрау", "спрашивать"), listOf(
             SupplementNoun("рұқсат", "разрешение", Septik.Atau),
             SupplementNoun("көмек", "помощь", Septik.Atau),
             SupplementNoun("пікір", "мнение", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("оқу", "читать"), listOf(
             SupplementNoun("дауыстап", "вслух", Septik.Atau),
             SupplementNoun("мақала", "статья", Septik.Tabys),
@@ -151,7 +152,7 @@ object VerbList {
             SupplementNoun("қала", "город", Septik.Jatys),
             SupplementNoun("қонақта", "в гостях", null),
             SupplementNoun("осында", "здесь", null),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("көздеу", "стремиться"), listOf(
             SupplementNoun("нысана", "цель", Septik.Tabys),
             SupplementNoun("бостандық", "свобода", Septik.Tabys),
@@ -159,11 +160,11 @@ object VerbList {
         )),
         Entry(verbTr("түсу", "спускаться"), listOf(
             SupplementNoun("автобус", "автобус", Septik.Shygys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("түсу", "падать"), listOf(
             SupplementNoun("жер", "земля", Septik.Barys),
             SupplementNoun("су", "вода", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("ұсыну", "предлагать"), listOf(
             SupplementNoun("көмек", "помощь", Septik.Tabys),
             SupplementNoun("жоба", "проект", Septik.Atau),
@@ -178,12 +179,12 @@ object VerbList {
             SupplementNoun("орнында", "на месте", null),
             SupplementNoun("көше", "улица", Septik.Jatys),
             SupplementNoun("мектептің алдында", "перед школой", null),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("қабылдау", "принимать"), listOf(
             SupplementNoun("қонақ", "гость", Septik.Tabys),
             SupplementNoun("шешім", "решение", Septik.Atau),
             SupplementNoun("тапсырма", "задание", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("көріну", "виднеться"), listOf(
             SupplementNoun("алыстан", "издалека", null),
             SupplementNoun("терезе", "окно", Septik.Shygys),
@@ -192,22 +193,22 @@ object VerbList {
             SupplementNoun("кітап", "книга", Septik.Tabys),
             SupplementNoun("сөре", "полка", Septik.Barys),
             SupplementNoun("сұрақ", "вопрос", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("қою", "класть"), listOf(
             SupplementNoun("гүл", "цветок", Septik.Tabys),
             SupplementNoun("үстел", "стол", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("бастау", "начинать"), listOf(
             SupplementNoun("жұмыс", "работа", Septik.Tabys),
             SupplementNoun("кешке", "вечером", null),
             SupplementNoun("саяхат", "путешествие", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("сурет салу", "рисовать"), listOf(
             SupplementNoun("дәптер", "тетрадь", Septik.Barys),
         )),
         Entry(verbTr("қармақ салу", "закидывать удочку"), listOf(
             SupplementNoun("өзен", "река", Septik.Barys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("шатыр салу", "разбивать палатку"), listOf(
             SupplementNoun("орман", "лес", Septik.Jatys),
         )),
@@ -216,21 +217,21 @@ object VerbList {
             SupplementNoun("қант", "сахар", Septik.Atau),
             SupplementNoun("файл", "файд", Septik.Atau),
             SupplementNoun("дыбыс", "звук", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("кету", "отправляться"), listOf(
             SupplementNoun("үй", "дом", Septik.Shygys),
             SupplementNoun("пойыз", "поезд", Septik.Komektes),
             SupplementNoun("жұмыс", "работа", Septik.Shygys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("алып кету", "забрать на вынос"), listOf(
             SupplementNoun("кофе", "кофе", Septik.Atau),
             SupplementNoun("самса", "самса", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("есту", "слышать"), listOf(
             SupplementNoun("әңгіме", "рассказ", Septik.Atau),
             SupplementNoun("жаңалық", "новость", Septik.Tabys),
             SupplementNoun("дауыс", "голос", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("тыңдау", "слушать"), listOf(
             SupplementNoun("әдемі әуен", "красивая мелодия", Septik.Atau),
             SupplementNoun("дәріс", "лекция", Septik.Atau),
@@ -258,7 +259,7 @@ object VerbList {
             SupplementNoun("жауап", "ответ", Septik.Tabys),
             SupplementNoun("жаңалық", "новость", Septik.Tabys),
             SupplementNoun("ереже", "правило", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("ұстау", "держать"), listOf(
             SupplementNoun("доп", "мяч", Septik.Tabys),
             SupplementNoun("қалам", "ручка", Septik.Tabys),
@@ -295,7 +296,7 @@ object VerbList {
             SupplementNoun("шешім", "решение", Septik.Atau),
             SupplementNoun("дос", "друг", Septik.Atau),
             SupplementNoun("уақыт", "время", Septik.Atau),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("табу", "зарабатывать"), listOf(
             SupplementNoun("ақша", "деньги", Septik.Atau),
         )),
@@ -319,9 +320,11 @@ object VerbList {
         Entry(verbTr("ашу", "открывать"), listOf(
             SupplementNoun("есік", "дверь", Septik.Atau),
             SupplementNoun("есік", "дверь", Septik.Tabys),
-        )),
+        ), bastauIncompat = true),
         Entry(verbTr("жақындау", "приближаться"), listOf(
             SupplementNoun("қасқыр", "волк", Septik.Barys),
         )),
     )
+
+    val bastauCompatEntries = entries.filter { !it.bastauIncompat }
 }

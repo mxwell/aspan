@@ -597,6 +597,19 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
             .build()
     }
 
+    private val bastauAuxBuilder: VerbBuilder by lazy {
+        VerbBuilder("бастау")
+    }
+
+    fun bastauClauseOfTense(person: GrammarPerson, number: GrammarNumber, tense: VerbTense): Phrasal {
+        val transitiveBaseBuilder = presentTransitiveCommonBuilder()
+        val auxVerbPhrasal = bastauAuxBuilder.ofTenseOrThrow(person, number, SentenceType.Statement, tense)
+        return transitiveBaseBuilder
+            .space()
+            .auxVerb(phrasal = auxVerbPhrasal)
+            .build()
+    }
+
     private val jazdauAuxBuidler: VerbBuilder by lazy {
         VerbBuilder("жаздау")
     }
