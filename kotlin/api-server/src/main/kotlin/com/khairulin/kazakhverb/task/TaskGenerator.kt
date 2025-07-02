@@ -1134,6 +1134,62 @@ class TaskGenerator {
 
     private fun genBastauClause() = genBastauClauseTasks(SentenceTypePattern.S10, this::bastauClauseGenerator)
 
+    data class QoyuCombo(
+        val verb: VerbInfo,
+        val supplements: List<SupplementNoun>,
+    ) {
+        fun translations(): List<List<String>> {
+            val result = mutableListOf<List<String>>()
+            verb.asPair()?.let {
+                result.add(listOf(it.first, it.second))
+            }
+            for (sup in supplements) {
+                val p = sup.asPair()
+                result.add(listOf(p.first, p.second))
+            }
+            return result.toList()
+        }
+    }
+
+    private val kQoyuCombos = listOf(
+        QoyuCombo(
+            VerbInfo("шегу", translation = "курить"),
+            supplements = listOf(
+                SupplementNoun("темекі", "табак", Septik.Atau),
+            )
+        )
+    )
+
+    private fun genQoyuClause() = collectTasks {
+        val grammarForm = GrammarForm.getMainRandom()
+        val combo = kQoyuCombos.random()
+        val sentenceType = SentenceType.Statement
+
+        val mainVerbForm = NounBuilder.ofNoun(combo.verb.verb).septikForm(Septik.Tabys).raw
+
+        val auxVerbForm = VerbBuilder("қою").past(grammarForm.person, grammarForm.number, sentenceType).raw
+
+        val tense = VerbTense.TensePast
+        val middle = combo.supplements.map { it.form(grammarForm)!! }.joinToString(" ")
+        val sentenceStart = buildSentenceStart(grammarForm.getPronounByTense(tense), middle)
+
+        val description = buildTaskDescription(
+            "конструкция с қою - прекращение действия",
+            sentenceStart,
+            combo.verb,
+            sentenceType,
+            auxVerb = "қою",
+        )
+
+        TaskItem(
+            description,
+            listOf(
+                "${sentenceStart}${mainVerbForm} ${auxVerbForm}"
+            ),
+            translations = combo.translations(),
+        )
+    }
+
     data class JazdauCombo(
         val supplement: SupplementNoun?,
         val verb: VerbInfo,
@@ -2720,6 +2776,7 @@ class TaskGenerator {
             TaskTopic.CONJ_TRY_CLAUSE_EASY -> genTryClauseEasy()
             TaskTopic.CONJ_TRY_CLAUSE -> genTryClause()
             TaskTopic.CONJ_BASTAU_CLAUSE -> genBastauClause()
+            TaskTopic.CONJ_QOYU_CLAUSE -> genQoyuClause()
             TaskTopic.CONJ_JAZDAU_CLAUSE -> genJazdauClause()
             TaskTopic.CONJ_CONJUNCTIVE_AR -> genConjunctiveAr()
             TaskTopic.CONJ_CONJUNCTIVE_ATYN -> genConjunctiveAtyn()

@@ -78,6 +78,9 @@ object TheoryReferenceProvider {
     private val clauseBastau = listOf(
         makeKazTiliArticle("Вспомогательный глагол 'бастау'", "/glv04.htm"),
     )
+    private val clauseQoyu = listOf(
+        makeKazTiliArticle("Совершенный вид. Вспомогательный глагол 'қою'", "/glvat03.htm"),
+    )
     private val clauseJazdau = listOf(
         makeKazTiliArticle("Вспомогательный глагол 'жаздау'", "/glv08.htm"),
     )
@@ -155,6 +158,7 @@ object TheoryReferenceProvider {
             TaskTopic.CONJ_KORU_CLAUSE -> clauseKoru
             TaskTopic.CONJ_TRY_CLAUSE_EASY, TaskTopic.CONJ_TRY_CLAUSE -> clauseTry
             TaskTopic.CONJ_BASTAU_CLAUSE -> clauseBastau
+            TaskTopic.CONJ_QOYU_CLAUSE -> clauseQoyu
             TaskTopic.CONJ_JAZDAU_CLAUSE -> clauseJazdau
             TaskTopic.CONJ_CONJUNCTIVE_AR -> conjunctiveAr
             TaskTopic.CONJ_CONJUNCTIVE_ATYN -> conjunctiveAtyn
