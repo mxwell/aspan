@@ -414,7 +414,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         } else {
             "причастие прош. вр."
         }
-        val descriptor = "${title}, ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
+        val label = "${title}, ${firstForm.ruShort}, ${subordinateSeptik.ruShort}"
         val subordinateVerbBuilder = combo.subordinateVerb.builder()
         val subordinateSentenceType = combo.subordinateSentenceType()
         val hintVerbForm = if (presentParticiple) {
@@ -447,7 +447,7 @@ class ParticipleTaskGenerator(val taskCount: Int) {
         val answer = "${subordinatePrefix}${participleForm} ${mainClause}"
 
         return TaskItem(
-            "(${descriptor})\n`${pattern}`\n",
+            TaskDescription.compose(label, pattern),
             listOf(
                 answer
             ),

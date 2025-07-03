@@ -65,9 +65,7 @@ class TaskGenerator {
         subject: String? = null,
         auxVerb: String? = null
     ): String {
-        val sb = StringBuilder()
-        val hint = buildConjugationHint(tense, sentenceType)
-        sb.append("(${hint})\n")
+        val label = buildConjugationHint(tense, sentenceType)
         val subjectPart = if (subject != null) {
             "[${subject}] "
         } else {
@@ -88,8 +86,8 @@ class TaskGenerator {
         } else {
             ""
         }
-        sb.append("`${sentenceStart}${subjectPart}[${verb}${noteOnException}${auxVerbPart}]${questionMark}`\n")
-        return sb.toString()
+        val pattern = "${sentenceStart}${subjectPart}[${verb}${noteOnException}${auxVerbPart}]${questionMark}"
+        return TaskDescription.compose(label, pattern)
     }
 
     private fun buildTaskDescription(
@@ -399,7 +397,8 @@ class TaskGenerator {
         } else {
             ""
         }
-        val description = "(что-то никак не происходит)\n\n${sentenceStart}[${combo.verb.verb} ${aluHint}+ ${auxVerb}]"
+        val label = "что-то никак не происходит"
+        val pattern = "${sentenceStart}[${combo.verb.verb} ${aluHint}+ ${auxVerb}]"
         val builder = combo.verb.builder()
         val verbForm = if (alu) {
             builder.canClauseInPresentContinuous(grammarForm.person, grammarForm.number, SentenceType.Negative, combo.aux).raw
@@ -408,7 +407,7 @@ class TaskGenerator {
         }
         val answer = "${sentenceStart}${verbForm}"
         TaskItem(
-            description,
+            TaskDescription.compose(label, pattern),
             listOf(
                 answer
             ),
@@ -789,31 +788,32 @@ class TaskGenerator {
             .presentTransitiveForm(second.person, second.number, combo.secondSentence)
             .raw
 
-        val descriptionSb = StringBuilder("(")
-        descriptionSb.append("условное наклонение")
+        val labelSb = StringBuilder()
+        labelSb.append("условное наклонение")
         if (combo.firstSentence == SentenceType.Negative) {
-            descriptionSb.append(", *отрицание*")
+            labelSb.append(", *отрицание*")
         }
-        descriptionSb.append(", ${first.ruShort}")
-        descriptionSb.append(" + ")
-        descriptionSb.append("переходное время")
+        labelSb.append(", ${first.ruShort}")
+        labelSb.append(" + ")
+        labelSb.append("переходное время")
         if (combo.secondSentence == SentenceType.Negative) {
-            descriptionSb.append(", *отрицание*")
+            labelSb.append(", *отрицание*")
         }
-        descriptionSb.append(", ${second.ruShort}")
-        descriptionSb.append(")\n")
-        descriptionSb.append("`")
-        descriptionSb.append(firstStart)
-        descriptionSb.append("[${combo.firstVerb.verb}]")
-        descriptionSb.append(", ")
-        descriptionSb.append(secondStart)
-        descriptionSb.append("[${combo.secondVerb.verb}]")
-        descriptionSb.append("`")
+        labelSb.append(", ${second.ruShort}")
+        val label = labelSb.toString()
+
+        val patternSb = StringBuilder()
+        patternSb.append(firstStart)
+        patternSb.append("[${combo.firstVerb.verb}]")
+        patternSb.append(", ")
+        patternSb.append(secondStart)
+        patternSb.append("[${combo.secondVerb.verb}]")
+        val pattern = patternSb.toString()
 
         val answer = "${firstStart}${firstVerbForm}, ${secondStart}${secondVerbForm}"
 
         TaskItem(
-            descriptionSb.toString(),
+            TaskDescription.compose(label, pattern),
             listOf(answer),
             translations = combo.collectComboTranslations()
         )
@@ -911,17 +911,22 @@ class TaskGenerator {
             val grammarForm = usedForms.random()
             val subject = kLikableSubjects.random()
             val negation = Random.nextBoolean()
-            val hint = if (negation) {
+            val label = if (negation) {
                 "не нравится, переходное время"
             } else {
                 "нравится, переходное время"
             }
             val pronoun = grammarForm.pronoun
-            val description = "(${hint})\n`[${pronoun}] ${subject.first} [ұнау]`"
+            val pattern = "[${pronoun}] ${subject.first} [ұнау]"
             val dative = grammarForm.dative
             val verb = if (negation) "ұнамайды" else "ұнайды"
             val answer = "${dative} ${subject.first} ${verb}"
-            tasks.add(TaskItem(description, listOf(answer)))
+            tasks.add(
+                TaskItem(
+                    TaskDescription.compose(label, pattern),
+                    listOf(answer)
+                )
+            )
         }
         return GetTasks(tasks)
     }
@@ -1271,8 +1276,8 @@ class TaskGenerator {
             startSb.append(combo.supplement.form(grammarForm))
         }
         val sentenceStart = startSb.toString()
-        val description =
-            "(действие чуть не совершилось)\n`${sentenceStart} [${combo.verb.verb} + ${combo.auxVerb} + жаздау]`"
+        val label = "действие чуть не совершилось"
+        val pattern = "${sentenceStart} [${combo.verb.verb} + ${combo.auxVerb} + жаздау]"
         val auxBuilder = VerbBuilder(combo.auxVerb)
         val verbForm = combo
             .verb.builder()
@@ -1281,7 +1286,7 @@ class TaskGenerator {
         val answer = "${sentenceStart} ${verbForm}"
 
         TaskItem(
-            description,
+            TaskDescription.compose(label, pattern),
             listOf(answer),
             translations = collectTranslations(
                 combo.supplement?.asPair(),
@@ -1330,13 +1335,14 @@ class TaskGenerator {
             .raw
     }
 
-    private fun buildConjunctiveDescription(conjName: String, grammarForm: GrammarForm, template: String, sentenceType: SentenceType = SentenceType.Statement): String {
+    private fun buildConjunctiveDescription(conjName: String, grammarForm: GrammarForm, pattern: String, sentenceType: SentenceType = SentenceType.Statement): String {
         val sentenceTypePart = when (sentenceType) {
             SentenceType.Statement -> ""
             SentenceType.Negative -> ", *отрицание*"
             else -> throw IllegalArgumentException("sentenceType ${sentenceType} not supported")
         }
-        return "(${conjName}, ${grammarForm.ruShort}${sentenceTypePart})\n`${template}`"
+        val label = "${conjName}, ${grammarForm.ruShort}${sentenceTypePart}"
+        return TaskDescription.compose(label, pattern)
     }
 
     private fun conjunctiveArGen1(conjName: String, conjFormBuilder: TConjFormBuilder): TaskItem {
@@ -1752,11 +1758,9 @@ class TaskGenerator {
         this::getUshyForm,
     )
 
-    private fun buildSeptikDescription(sentenceStart: String, septik: String, objectWord: String, verbForm: String): String {
-        val sb = StringBuilder()
-        sb.append("(${septik})\n")
-        sb.append("`${sentenceStart}[${objectWord}] ${verbForm}`\n")
-        return sb.toString()
+    private fun buildSeptikDescription(sentenceStart: String, label: String, objectWord: String, verbForm: String): String {
+        val pattern = "${sentenceStart}[${objectWord}] ${verbForm}"
+        return TaskDescription.compose(label, pattern)
     }
 
     private fun genTabysEasy(): GetTasks {
@@ -2767,19 +2771,19 @@ class TaskGenerator {
         ),
     )
 
-    private fun genCommonAdjComparative(formName: String, formGenerator: (String) -> String) = collectTasks {
+    private fun genCommonAdjComparative(label: String, formGenerator: (String) -> String) = collectTasks {
         val combo = kAdjComparativeCombos.random()
         val adj = combo.adjs.random()
 
         val adjForm = formGenerator(adj.adj)
 
-        val description = "(${formName})\n`${combo.head}[${adj.adj}]${combo.tail}`\n"
+        val pattern = "${combo.head}[${adj.adj}]${combo.tail}"
         val answer = "${combo.head}${adjForm}${combo.tail}"
         val translations = combo.translations.toMutableList()
         translations.add(adj.asList())
 
         TaskItem(
-            description,
+            TaskDescription.compose(label, pattern),
             listOf(answer),
             translations = translations,
         )
