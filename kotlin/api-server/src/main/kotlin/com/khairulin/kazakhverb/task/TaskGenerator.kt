@@ -1140,12 +1140,12 @@ class TaskGenerator {
     ) {
         fun translations(): List<List<String>> {
             val result = mutableListOf<List<String>>()
-            verb.asPair()?.let {
-                result.add(listOf(it.first, it.second))
-            }
             for (sup in supplements) {
                 val p = sup.asPair()
                 result.add(listOf(p.first, p.second))
+            }
+            verb.asPair()?.let {
+                result.add(listOf(it.first, it.second))
             }
             return result.toList()
         }
@@ -1157,7 +1157,49 @@ class TaskGenerator {
             supplements = listOf(
                 SupplementNoun("темекі", "табак", Septik.Atau),
             )
-        )
+        ),
+        // Марафонға қатысқаннан кейін жүгіруді қойдым
+        QoyuCombo(
+            VerbInfo("жүгіру", translation = "бегать"),
+            supplements = listOf(
+                SupplementNoun("марафон", "марафон", Septik.Barys),
+                SupplementNoun("қатысқаннан", "участвовать", null, initialForm = "қатысу"),
+                SupplementNoun.notNoun("кейін", "после"),
+            )
+        ),
+        // Ол он елге барып келгеннен кейін саяхаттауды қойды
+        QoyuCombo(
+            VerbInfo("саяхаттау", translation = "путешествовать"),
+            supplements = listOf(
+                SupplementNoun("он", "десять", null),
+                SupplementNoun("ел", "страна", Septik.Barys),
+                SupplementNoun("барып келгеннен", "съездить", null, initialForm = "барып келу"),
+                SupplementNoun.notNoun("кейін", "после"),
+            )
+        ),
+        // Ол ауылдан көшіп, балық аулауды қойды
+        QoyuCombo(
+            VerbInfo("балық аулау", translation = "рыбу ловить"),
+            supplements = listOf(
+                SupplementNoun("ауыл", "десять", Septik.Shygys),
+                SupplementNoun("көшіп,", "переехать", null, initialForm = "көшу"),
+            )
+        ),
+        // Олар арақ ішуді қойды
+        QoyuCombo(
+            VerbInfo("ішу", translation = "пить"),
+            supplements = listOf(
+                SupplementNoun("арақ", "водка", Septik.Atau),
+            ),
+        ),
+        // .. үйде тамақ пісіруді қойдық
+        QoyuCombo(
+            VerbInfo("пісіру", translation = "готовить"),
+            supplements = listOf(
+                SupplementNoun("үй", "дом", Septik.Jatys),
+                SupplementNoun("тамақ", "пища", Septik.Atau),
+            )
+        ),
     )
 
     private fun genQoyuClause() = collectTasks {

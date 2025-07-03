@@ -9,6 +9,7 @@ data class SupplementNoun(
     val translation: String,
     val septik: Septik?,
     val ownedBySubject: Boolean = false,  // the noun should be put into a possessive form determined by the subject
+    val initialForm: String? = null,
 ) {
 
     companion object {
@@ -38,5 +39,12 @@ data class SupplementNoun(
         }
     }
 
-    fun asPair() = Pair(noun, translation)
+    fun asPair(): Pair<String, String> {
+        val from = if (initialForm != null) {
+            initialForm
+        } else {
+            noun
+        }
+        return Pair(from, translation)
+    }
 }
