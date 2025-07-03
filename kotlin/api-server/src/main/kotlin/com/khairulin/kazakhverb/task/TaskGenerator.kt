@@ -1868,7 +1868,7 @@ class TaskGenerator {
             } else {
                 formHintSb.append(", притяжательная форма для ")
                 formHintSb.append(possForm.ruShort)
-                objectHintSb.append(" ∈ ${possForm.pronoun}")
+                objectHintSb.append(" ∈ ${possForm.poss}")
             }
             val description = buildSeptikDescription(sentenceStart, formHintSb.toString(), objectHintSb.toString(), verbForm)
             val nounBuilder = combo.first.builder()
@@ -2020,7 +2020,7 @@ class TaskGenerator {
             } else {
                 formDescriptionSb.append(", притяжательная форма для ")
                 formDescriptionSb.append(ownerPossForm.ruShort)
-                formHintSb.append(" ∈ ${ownerPossForm.pronoun}")
+                formHintSb.append(" ∈ ${ownerPossForm.poss}")
             }
 
             val description = buildSeptikDescription(
@@ -2178,7 +2178,7 @@ class TaskGenerator {
             val formDescriptionSb = StringBuilder("дательный падеж для ")
             formDescriptionSb.append(possForm.ruShort)
             val formHintSb = StringBuilder(noun)
-            formHintSb.append(" ∈ ${possForm.pronoun}")
+            formHintSb.append(" ∈ ${possForm.poss}")
 
             val description = buildSeptikDescription(
                 sentenceStart,
@@ -2236,7 +2236,7 @@ class TaskGenerator {
 
             val sentenceStart = "${subject.first} "
             val formDescription = "местный падеж для ${possForm.ruShort}"
-            val formHint = "${place.first} ∈ ${possForm.pronoun}"
+            val formHint = "${place.first} ∈ ${possForm.poss}"
 
             val description = buildSeptikDescription(
                 sentenceStart,
@@ -2349,7 +2349,7 @@ class TaskGenerator {
 
             val sentenceStart = "${grammarForm.pronoun} "
             val formDescription = "исходный падеж для ${possForm.ruShort}"
-            val formHint = "${noun} ∈ ${possForm.pronoun}"
+            val formHint = "${noun} ∈ ${possForm.poss}"
 
             val description = buildSeptikDescription(
                 sentenceStart,
@@ -2487,7 +2487,7 @@ class TaskGenerator {
             val formDescriptionSb = StringBuilder("творительный падеж для ")
             val formHintSb = StringBuilder(noun.noun)
             formDescriptionSb.append(possForm.ruShort)
-            formHintSb.append(" ∈ ${possForm.pronoun}")
+            formHintSb.append(" ∈ ${possForm.poss}")
 
             val description = buildSeptikDescription(
                 sentenceStart,
