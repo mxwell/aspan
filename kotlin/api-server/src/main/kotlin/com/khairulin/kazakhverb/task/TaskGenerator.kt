@@ -77,7 +77,7 @@ class TaskGenerator {
             ""
         }
         val auxVerbPart = if (auxVerb != null) {
-            ", вспомогательный глагол ${auxVerb}"
+            " + ${auxVerb}"
         } else {
             ""
         }
@@ -1163,6 +1163,12 @@ class TaskGenerator {
                 SupplementNoun("темекі", "табак", Septik.Atau),
             )
         ),
+        QoyuCombo(
+            VerbInfo("тарту", translation = "курить"),
+            supplements = listOf(
+                SupplementNoun("темекі", "табак", Septik.Atau),
+            )
+        ),
         // Марафонға қатысқаннан кейін жүгіруді қойдым
         QoyuCombo(
             VerbInfo("жүгіру", translation = "бегать"),
@@ -1186,7 +1192,7 @@ class TaskGenerator {
         QoyuCombo(
             VerbInfo("балық аулау", translation = "рыбу ловить"),
             supplements = listOf(
-                SupplementNoun("ауыл", "десять", Septik.Shygys),
+                SupplementNoun("ауыл", "аул", Septik.Shygys),
                 SupplementNoun("көшіп,", "переехать", null, initialForm = "көшу"),
             )
         ),
@@ -1205,6 +1211,34 @@ class TaskGenerator {
                 SupplementNoun("тамақ", "пища", Septik.Atau),
             )
         ),
+        // Ол киноға баруды қойды
+        QoyuCombo(
+            VerbInfo("бару", translation = "ходить"),
+            supplements = listOf(
+                SupplementNoun("кино", "кино", Septik.Barys),
+            )
+        ),
+        // Мен интернетте отыруды қойдым
+        QoyuCombo(
+            VerbInfo("отыру", translation = "сидеть"),
+            supplements = listOf(
+                SupplementNoun("интернет", "интернет", Septik.Jatys),
+            )
+        ),
+        // Аружан ән айтуды қойды.
+        QoyuCombo(
+            VerbInfo("ән айту", translation = "петь"),
+            supplements = emptyList()
+        ),
+        // Біз кешке дейін жұмыс істеуді қойдық
+        QoyuCombo(
+            VerbInfo("жұмыс істеу", translation = "работать"),
+            supplements = listOf(
+                SupplementNoun("кеш", "вечер", Septik.Barys),
+                SupplementNoun.notNoun("дейін", "до"),
+            )
+        ),
+        // TODO support imperative, e.g. Сен оны мазалауды қойшы!
     )
 
     private fun genQoyuClause() = collectTasks {
