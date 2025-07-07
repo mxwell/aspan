@@ -54,6 +54,7 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
     }
 
     private val verbBase: String
+    private val verbLastWord: String
     private val regularVerbBase: String
     private val soft: Boolean
     private val softOffset: Int
@@ -66,7 +67,7 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
     init {
         require(validateVerb(verbDictForm)) { "Invalid verb dictionary form" }
 
-        val verbLastWord = StrManip.getLastWord(verbDictForm)
+        verbLastWord = StrManip.getLastWord(verbDictForm)
         var base = verbDictForm.dropLast(1)
 
         regularVerbBase = base
@@ -124,8 +125,8 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
 
     private fun getPresentContinousAffix(): String {
         return when {
-            Rules.VERB_PRESENT_CONT_EXCEPTION_A_SET.contains(verbDictForm) -> "а"
-            Rules.VERB_PRESENT_CONT_EXCEPTION_E_SET.contains(verbDictForm) -> "е"
+            Rules.VERB_PRESENT_CONT_EXCEPTION_A_SET.contains(verbLastWord) -> "а"
+            Rules.VERB_PRESENT_CONT_EXCEPTION_E_SET.contains(verbLastWord) -> "е"
             else -> getPerfectParticipleAffix()
         }
     }

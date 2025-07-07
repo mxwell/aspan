@@ -236,6 +236,35 @@ class ConjugationTest() {
         )
     }
 
+    private fun testPresentContinuous() {
+        val auxBuilder = VerbBuilder("жату")
+        checkFormString(
+            "бара жатырмын",
+            VerbBuilder("бару").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "preset cont. for бару",
+        )
+        checkFormString(
+            "алып бара жатырмын",
+            VerbBuilder("алып бару").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "preset cont. for алып бару",
+        )
+        checkFormString(
+            "келе жатырмын",
+            VerbBuilder("келу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "preset cont. for келу",
+        )
+        checkFormString(
+            "барып келе жатырмын",
+            VerbBuilder("барып келу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "preset cont. for барып келу",
+        )
+        checkFormString(
+            "жазып жатырмын",
+            VerbBuilder("жазу").presentContinuousForm(GrammarPerson.First, GrammarNumber.Singular, SentenceType.Statement, auxBuilder),
+            "preset cont. for жазу",
+        )
+    }
+
     fun test() {
         testJazdau()
         testPastUncertain()
@@ -244,5 +273,6 @@ class ConjugationTest() {
         testPresentParticiple()
         testPastParticiple()
         testUshyUshiForm()
+        testPresentContinuous()
     }
 }
