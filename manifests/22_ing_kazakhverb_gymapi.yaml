@@ -4,6 +4,8 @@ metadata:
   name: kazakhverb-gymapi-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header 'Access-Control-Allow-Origin' '*' always;
 spec:
   tls:
     - hosts:
