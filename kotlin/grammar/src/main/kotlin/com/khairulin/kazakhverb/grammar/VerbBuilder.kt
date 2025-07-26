@@ -630,6 +630,48 @@ class VerbBuilder(val verbDictForm: String, private val forceExceptional: Boolea
             .build()
     }
 
+    private fun intentionFutureAffix(char: Char): String {
+        return VerbSuffix.getMakmekBakbekPakpek(char, softOffset)
+    }
+
+    private fun intentionFutureCommonBuilder(person: GrammarPerson, number: GrammarNumber): PhrasalBuilder {
+        val base = genericBaseModifier(nc = true, yp = false)
+        val affix = intentionFutureAffix(base.last)
+        val affixLast = affix.last()
+        val persAffix = PersAffix.getPersAffix1(person, number, affixLast, softOffset)
+        return PhrasalBuilder()
+            .verbBase(base.base)
+            .tenseAffix(affix)
+            .personalAffix(persAffix)
+    }
+
+    fun intentionFutureForm(person: GrammarPerson, number: GrammarNumber, sentenceType: SentenceType): Phrasal {
+        return when (sentenceType) {
+            SentenceType.Statement -> {
+                intentionFutureCommonBuilder(person, number)
+                    .build()
+            }
+            SentenceType.Negative -> {
+                val base = genericBaseModifier(nc = true, yp = false)
+                val affix = intentionFutureAffix(base.last)
+                // last sound and softness come from "емес"
+                val persAffix = PersAffix.getPersAffix1(person, number, 'с', 1)
+                PhrasalBuilder()
+                    .verbBase(base.base)
+                    .tenseAffix(affix)
+                    .space()
+                    .negation("емес")
+                    .personalAffix(persAffix)
+                    .build()
+            }
+            SentenceType.Question -> {
+                buildQuestionForm(
+                    intentionFutureCommonBuilder(person, number)
+                ).build()
+            }
+        }
+    }
+
     private fun possibleFutureSuffix(): String = when {
         Phonetics.genuineVowel(baseLast) -> "р"
         soft -> "ер"

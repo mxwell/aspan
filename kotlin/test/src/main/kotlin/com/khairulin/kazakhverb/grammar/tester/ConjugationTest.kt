@@ -84,6 +84,38 @@ class ConjugationTest() {
         }
     }
 
+    private fun testIntentionFuture() {
+        val relations = mapOf<String, List<String>>(
+            "ұғу" to listOf(
+                "ұқпақпын", "ұқпақпыз", "ұқпақсың", "ұқпақсыңдар", "ұқпақсыз", "ұқпақсыздар", "ұқпақ", "ұқпақ",
+                "ұқпақ емеспін", "ұқпақ емеспіз", "ұқпақ емессің", "ұқпақ емессіңдер", "ұқпақ емессіз", "ұқпақ емессіздер", "ұқпақ емес", "ұқпақ емес",
+            ),
+            "көру" to listOf(
+                "көрмекпін", "көрмекпіз", "көрмексің", "көрмексіңдер", "көрмексіз", "көрмексіздер", "көрмек", "көрмек",
+                "көрмек емеспін", "көрмек емеспіз", "көрмек емессің", "көрмек емессіңдер", "көрмек емессіз", "көрмек емессіздер", "көрмек емес", "көрмек емес",
+            ),
+        )
+
+        for ((verb, forms) in relations) {
+            val builder = VerbBuilder(verb)
+            var position = 0
+            for (sentenceType in listOf(SentenceType.Statement, SentenceType.Negative)) {
+                for (person in GrammarPerson.entries) {
+                    for (number in GrammarNumber.entries) {
+                        val phrasal = builder.intentionFutureForm(person, number, sentenceType)
+                        val expected = forms[position]
+                        position += 1
+                        checkFormString(
+                            expected,
+                            phrasal,
+                            "person ${person}, number ${number}, sentence ${sentenceType}"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun testPossibleFuture() {
         val relations = mapOf<String, List<String>>(
             "қорқу" to listOf(
@@ -269,6 +301,7 @@ class ConjugationTest() {
         testJazdau()
         testPastUncertain()
         testPossibleFuture()
+        testIntentionFuture()
         testPastTransitive()
         testPresentParticiple()
         testPastParticiple()

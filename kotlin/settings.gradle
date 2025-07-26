@@ -26,4 +26,5 @@ rootProject.name = "Kazakh Verb"
 include ':api-server'
 //include ':app'
 include ':grammar'
+include ':latex'
 include ':test'

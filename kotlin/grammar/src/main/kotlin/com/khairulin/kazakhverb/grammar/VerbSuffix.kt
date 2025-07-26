@@ -37,6 +37,10 @@ object VerbSuffix {
         return Rules.YPIP[softOffset]
     }
 
+    fun getMakmekBakbekPakpek(char: Char, softOffset: Int): String {
+        return AffixHelpers.chooseMBP(char, softOffset, Rules.MAKMEK, Rules.BAKBEK, Rules.PAKPEK)
+    }
+
     fun getImperativeVowel(person: GrammarPerson, number: GrammarNumber, char: Char, softOffset: Int): String {
         if (person == GrammarPerson.First) {
             if (Phonetics.genuineVowel(char)) {
