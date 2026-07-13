@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kazakhverb-qarauapi-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # The upstream is an HTTPS service, so make nginx-ingress speak TLS to it
+    # (port 443 below) instead of plain HTTP.
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # Send Host: qarau.khairulin.com (and matching SNI) upstream so the
+    # name-based vhost there answers correctly. Without this the preserved
+    # Host header would be kazakhverb.khairulin.com.
+    nginx.ingress.kubernetes.io/upstream-vhost: "qarau.khairulin.com"
+spec:
+  tls:
+    - hosts:
+        - kazakhverb.khairulin.com
+      secretName: kazakhverb-tls
+  rules:
+  - host: kazakhverb.khairulin.com
+    http:
+      paths:
+      - path: /qarauapi
+        pathType: Prefix
+        backend:
+          service:
+            name: qarauapi-external
+            port:
+              number: 443

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qarauapi-external
+spec:
+  type: ExternalName
+  externalName: qarau.khairulin.com
